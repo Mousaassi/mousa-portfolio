@@ -28,13 +28,12 @@ const firebaseConfig = {
   onAuthStateChanged(auth, user => {
     window._fbUser = user;
     window._isAdmin = !!user;
-    if (user) {
-      document.getElementById('adminBar').classList.add('visible');
-      document.getElementById('fbUserEmail').textContent = user.email;
-      window._loadFromFirebase();
-    } else {
-      document.getElementById('adminBar').classList.remove('visible');
-    }
+if (user) {
+  document.getElementById('adminBar').classList.add('visible');
+  document.getElementById('fbUserEmail').textContent = user.email;
+} else {
+  document.getElementById('adminBar').classList.remove('visible');
+}
   });
 
   window._loadFromFirebase = async () => {
