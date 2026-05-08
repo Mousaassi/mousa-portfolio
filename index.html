@@ -11,15 +11,15 @@
   import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDJpkvqm10plb-KVIXe8yXwjZ5vgvSUT8o",
-    authDomain: "mousa-cv.firebaseapp.com",
-    projectId: "mousa-cv",
-    storageBucket: "mousa-cv.firebasestorage.app",
-    messagingSenderId: "565112479189",
-    appId: "1:565112479189:web:8c3a035d2d4a7bc184715c",
-    measurementId: "G-J2XQ04E2N8"
-  };
+const firebaseConfig = {
+  apiKey: "AIzaSyDJpkvqm10plb-KVIXe8yXwjZ5vgvSUT8o",
+  authDomain: "mousa-cv.firebaseapp.com",
+  projectId: "mousa-cv",
+  storageBucket: "mousa-cv.firebasestorage.app",
+  messagingSenderId: "565112479189",
+  appId: "1:565112479189:web:ef12df896973cb84715c",
+  measurementId: "G-GYQNNG47BF"
+};
 
   const app  = initializeApp(firebaseConfig);
   const db   = getFirestore(app);
