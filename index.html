@@ -73,7 +73,17 @@ const firebaseConfig = {
   window._loadFromFirebase = async () => {
     try {
       showSync('loading', '☁ Loading from cloud…');
-      window.D = {};
+      window.D = {
+     hero:{},
+  titles:{},
+  edu:[],
+  proj:[],
+  exp:[],
+  skills:[],
+  certs:[],
+  social:[],
+  custom:[]
+      };
 
       const heroSnap = await getDoc(doc(db, 'portfolio', 'hero'));
       if (heroSnap.exists()) {
@@ -1137,12 +1147,23 @@ function closeLightbox()   { document.getElementById('lightbox').classList.remov
 
 // ════════════ RENDER ════════════
 window.render = function() {
+ const D = window.D || {};
+  D.hero   = D.hero   || {};
+  D.titles = D.titles || {};
+  D.edu    = Array.isArray(D.edu) ? D.edu : [];
+  D.proj   = Array.isArray(D.proj) ? D.proj : [];
+  D.exp    = Array.isArray(D.exp) ? D.exp : [];
+  D.skills = Array.isArray(D.skills) ? D.skills : [];
+  D.certs  = Array.isArray(D.certs) ? D.certs : [];
+  D.social = Array.isArray(D.social) ? D.social : [];
+  D.custom = Array.isArray(D.custom) ? D.custom : [];
+
   const isAr = lang === 'ar';
   document.documentElement.setAttribute('lang', lang);
   document.documentElement.setAttribute('dir', isAr ? 'rtl' : 'ltr');
 
   const h = window.D.hero || DEFS.hero;
-  // safe getter
+
   const ml = (obj) => {
     if (!obj) return '';
     if (typeof obj === 'string') return obj;
