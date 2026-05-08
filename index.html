@@ -8,7 +8,7 @@
   
 <script type="module">
   import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-  import { getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+ import { collection, getDocs, writeBatch, getFirestore, doc, getDoc, setDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
   import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const firebaseConfig = {
@@ -40,11 +40,38 @@ window._loadFromFirebase();
   window._loadFromFirebase = async () => {
     try {
       showSync('loading', '☁ Loading from cloud…');
-      const snap = await getDoc(doc(db, 'portfolio', 'main'));
-      if (snap.exists()) {
-        window.D = snap.data().content;
-        try { localStorage.setItem('ma_portfolio_v4', JSON.stringify(window.D)); } catch(e){}
-      }
+window.D = {};
+
+const heroSnap = await getDoc(doc(db, 'portfolio', 'hero'));
+if (heroSnap.exists()) {
+  window.D.hero = heroSnap.data();
+}
+
+const titlesSnap = await getDoc(doc(db, 'portfolio', 'titles'));
+if (titlesSnap.exists()) {
+  window.D.titles = titlesSnap.data();
+}
+
+const eduSnap = await getDoc(doc(db, 'portfolio_lists', 'edu'));
+window.D.edu = eduSnap.exists() ? eduSnap.data().items : [];
+
+const projSnap = await getDoc(doc(db, 'portfolio_lists', 'projects'));
+window.D.proj = projSnap.exists() ? projSnap.data().items : [];
+
+const expSnap = await getDoc(doc(db, 'portfolio_lists', 'experience'));
+window.D.exp = expSnap.exists() ? expSnap.data().items : [];
+
+const skillsSnap = await getDoc(doc(db, 'portfolio_lists', 'skills'));
+window.D.skills = skillsSnap.exists() ? skillsSnap.data().items : [];
+
+const certsSnap = await getDoc(doc(db, 'portfolio_lists', 'certs'));
+window.D.certs = certsSnap.exists() ? certsSnap.data().items : [];
+
+const socialSnap = await getDoc(doc(db, 'portfolio_lists', 'social'));
+window.D.social = socialSnap.exists() ? socialSnap.data().items : [];
+
+const customSnap = await getDoc(doc(db, 'portfolio_lists', 'custom'));
+window.D.custom = customSnap.exists() ? customSnap.data().items : [];
       const photoSnap = await getDoc(doc(db, 'portfolio', 'photo'));
       if (photoSnap.exists() && photoSnap.data().data) {
         window.profilePhoto = photoSnap.data().data;
@@ -61,22 +88,69 @@ window._loadFromFirebase();
     if (!window._fbUser) { showSync('error','✗ Not logged in'); return; }
     try {
       showSync('saving', '☁ Saving to cloud…');
-      await setDoc(doc(db, 'portfolio', 'main'), {
-        content: window.D,
-        updatedAt: new Date().toISOString(),
-        updatedBy: window._fbUser.email
-      });
-      if (window.profilePhoto) {
-        await setDoc(doc(db, 'portfolio', 'photo'), {
-          data: window.profilePhoto,
-          updatedAt: new Date().toISOString()
-        });
-      }
-      try { localStorage.setItem('ma_portfolio_v4', JSON.stringify(window.D)); } catch(e){}
-      showSync('synced', '✓ Saved to Firebase!');
-    } catch(e) {
-      showSync('error', '✗ Save error: ' + e.message);
-    }
+const batch = writeBatch(db);
+
+batch.set(doc(db, 'portfolio', 'hero'), window.D.hero || {});
+batch.set(doc(db, 'portfolio', 'titles'), window.D.titles || {});
+batch.set(doc(db, 'portfolio', 'meta'), {
+  updatedAt: new Date().toISOString(),
+  updatedBy: window._fbUser.email
+});
+
+batch.set(doc(db, 'portfolio_lists', 'edu'), {
+  items: window.D.edu || []
+});
+
+batch.set(doc(db, 'portfolio_lists', 'projects'), {
+  items: window.D.proj || []
+});
+
+batch.set(doc(db, 'portfolio_lists', 'experience'), {
+  items: window.D.exp || []
+});
+
+batch.set(doc(db, 'portfolio_lists', 'skills'), {
+  items: window.D.skills || []
+});
+
+batch.set(doc(db, 'portfolio_lists', 'certs'), {
+  items: window.D.certs || []
+});
+
+batch.set(doc(db, 'portfolio_lists', 'social'), {
+  items: window.D.social || []
+});
+
+batch.set(doc(db, 'portfolio_lists', 'custom'), {
+  items: window.D.custom || []
+});
+console.log(
+  'Portfolio size:',
+  new Blob([JSON.stringify(window.D)]).size / 1024,
+  'KB'
+);
+await batch.commit();
+
+try {
+  if (window.profilePhoto && window.profilePhoto.length < 500000) {
+    await setDoc(doc(db, 'portfolio', 'photo'), {
+      data: window.profilePhoto,
+      updatedAt: new Date().toISOString()
+    });
+  }
+} catch(err) {
+  console.error('Photo save failed:', err);
+}
+
+try {
+  localStorage.setItem('ma_portfolio_v4', JSON.stringify(window.D));
+} catch(e){}
+
+showSync('synced', '✓ Saved to Firebase!');
+
+} catch(e) {
+  showSync('error', '✗ Save error: ' + e.message);
+}
   };
 
   window._firebaseLogin = async (email, password) => {
