@@ -347,7 +347,8 @@ footer p{animation:pulse 5s ease infinite;}
 .modal-overlay{
   position:fixed;top:0;left:0;right:0;bottom:0;
   background:rgba(0,0,0,.88);backdrop-filter:blur(14px);
-  z-index:9200;
+  position:relative;
+  z-index:100000;
   visibility:hidden;opacity:0;
   display:flex;align-items:center;justify-content:center;padding:20px;
   transition:opacity .25s ease,visibility .25s ease;
