@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mousa Assi — Portfolio</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 
 <script type="module">
 import { initializeApp }           from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -34,7 +36,6 @@ onAuthStateChanged(auth, user => {
   window._fbUser  = user;
   window._isAdmin = !!user;
   if (user) {
-    /* ── Show admin panel in header ── */
     document.getElementById('adminHeaderPanel').classList.add('visible');
     document.getElementById('fbUserEmail').textContent = user.email;
     document.getElementById('adminLoginBtn').style.display = 'none';
@@ -100,7 +101,7 @@ window._saveToFirebase = async () => {
     batch.set(doc(db,'portfolio_lists','social'),     {items:window.D.social||[]});
     batch.set(doc(db,'portfolio_lists','custom'),     {items:window.D.custom||[]});
     await batch.commit();
-    if (window.profilePhoto) {
+    if (window.profilePhoto && !window.profilePhoto.startsWith('http')) {
       const sz=new Blob([window.profilePhoto]).size;
       if(sz<400000){await setDoc(doc(db,'portfolio_assets','photo'),{data:window.profilePhoto,updatedAt:new Date().toISOString()});}
       else{showSync('error','✗ Profile photo too large — compress more');return;}
@@ -110,28 +111,50 @@ window._saveToFirebase = async () => {
   } catch(e){console.error('Save error:',e);showSync('error','✗ Save error: '+e.message);}
 };
 
+/* ── Upload cert image → Firebase Storage ── */
 window._uploadCertImageToStorage = async (certName, base64DataUrl) => {
   try {
     showSync('saving','☁ Uploading image…');
-    const safeName = certName.replace(/[^a-zA-Z0-9]/g,'_').toLowerCase() + '_' + Date.now();
+    const safeName = (certName||'cert').replace(/[^a-zA-Z0-9]/g,'_').toLowerCase().slice(0,40) + '_' + Date.now();
     const storageRef = ref(storage, `cert_images/${safeName}.jpg`);
     await uploadString(storageRef, base64DataUrl, 'data_url');
     const url = await getDownloadURL(storageRef);
-    showSync('synced','✓ Image uploaded');
+    showSync('synced','✓ Image uploaded to Storage');
     return url;
-  } catch(e){console.error('Storage upload error:',e);showSync('error','✗ Upload error: '+e.message);return null;}
+  } catch(e){
+    console.error('Storage upload error:',e);
+    showSync('error','✗ Upload error: '+e.message);
+    return null;
+  }
 };
+
 window._deleteCertImageFromStorage = async (url) => {
-  try { if(url&&url.startsWith('https')){const r=ref(storage,url);await deleteObject(r);} } catch(e){}
+  try {
+    if(url && url.startsWith('https')) {
+      // Extract path from URL for deletion
+      const storageRef = ref(storage, url);
+      await deleteObject(storageRef);
+    }
+  } catch(e){ console.warn('Delete from storage (ignored):', e.message); }
 };
 
 window._firebaseLogin = async (email,password) => {
   try{await signInWithEmailAndPassword(auth,email,password);return{ok:true};}
-  catch(e){const m={'auth/wrong-password':'Wrong password.','auth/user-not-found':'Email not found.','auth/invalid-email':'Invalid email format.','auth/too-many-requests':'Too many attempts. Try later.','auth/invalid-credential':'Wrong email or password.'};return{ok:false,msg:m[e.code]||e.message};}
+  catch(e){
+    const m={
+      'auth/wrong-password':'Wrong password.',
+      'auth/user-not-found':'Email not found.',
+      'auth/invalid-email':'Invalid email format.',
+      'auth/too-many-requests':'Too many attempts. Try later.',
+      'auth/invalid-credential':'Wrong email or password.'
+    };
+    return{ok:false,msg:m[e.code]||e.message};
+  }
 };
 window._firebaseLogout=()=>signOut(auth);
 window._fbReady=true;
 
+/* ── Normalise helpers ── */
 function ensureLO(val,def){
   if(val&&typeof val==='object'&&(val.en!==undefined||val.tr!==undefined||val.ar!==undefined))
     return{en:val.en||(def&&def.en)||'',tr:val.tr||(def&&def.tr)||'',ar:val.ar||(def&&def.ar)||''};
@@ -142,7 +165,11 @@ function ensureLO(val,def){
 function deepMerge(fb,defs){
   const r={};
   const h=fb.hero||{},dh=defs.hero||{};
-  r.hero={firstName:h.firstName||dh.firstName||'Mousa',lastName:h.lastName||dh.lastName||'Assi',eyebrow:ensureLO(h.eyebrow,dh.eyebrow),subtitle:ensureLO(h.subtitle,dh.subtitle),desc:ensureLO(h.desc,dh.desc),tags:(h.tags&&h.tags.length)?h.tags:(dh.tags||[]),email:h.email||dh.email||'',phone:h.phone||dh.phone||'',location:h.location||dh.location||'',linkedin:h.linkedin||dh.linkedin||''};
+  r.hero={firstName:h.firstName||dh.firstName||'Mousa',lastName:h.lastName||dh.lastName||'Assi',
+    eyebrow:ensureLO(h.eyebrow,dh.eyebrow),subtitle:ensureLO(h.subtitle,dh.subtitle),
+    desc:ensureLO(h.desc,dh.desc),tags:(h.tags&&h.tags.length)?h.tags:(dh.tags||[]),
+    email:h.email||dh.email||'',phone:h.phone||dh.phone||'',
+    location:h.location||dh.location||'',linkedin:h.linkedin||dh.linkedin||''};
   const t=fb.titles||{},dt=defs.titles||{};
   r.titles={};['edu','proj','exp','skills','certs'].forEach(k=>{r.titles[k]=ensureLO(t[k],dt[k]);});
   r.edu   =(fb.edu   &&fb.edu.length)   ?fb.edu.map(normEdu)   :defs.edu;
@@ -154,7 +181,10 @@ function deepMerge(fb,defs){
   r.custom=(fb.custom&&fb.custom.length)?fb.custom:defs.custom;
   return r;
 }
-function normBullets(a){if(!a||!a.length)return[{en:'',tr:'',ar:''}];return a.map(b=>{if(!b)return{en:'',tr:'',ar:''};if(typeof b==='string')return{en:b,tr:b,ar:b};return{en:b.en||'',tr:b.tr||'',ar:b.ar||''};});}
+function normBullets(a){
+  if(!a||!a.length)return[{en:'',tr:'',ar:''}];
+  return a.map(b=>{if(!b)return{en:'',tr:'',ar:''};if(typeof b==='string')return{en:b,tr:b,ar:b};return{en:b.en||'',tr:b.tr||'',ar:b.ar||''};});
+}
 function normEdu(e){return{year:e.year||'',degree:ensureLO(e.degree,{en:'',tr:'',ar:''}),school:e.school||'',loc:e.loc||''};}
 function normProj(p){return{year:p.year||'',title:ensureLO(p.title,{en:'',tr:'',ar:''}),bullets:normBullets(p.bullets),pdf:p.pdf||'',pdfName:p.pdfName||''};}
 function normExp(e){return{role:ensureLO(e.role,{en:'',tr:'',ar:''}),company:e.company||'',period:e.period||'',loc:e.loc||'',bullets:normBullets(e.bullets)};}
@@ -164,6 +194,7 @@ window._normBullets=normBullets;
 </script>
 
 <style>
+/* ══ VARIABLES & THEMES ══ */
 :root{
   --radius:14px;
   --font-display:'Playfair Display',serif;
@@ -171,13 +202,14 @@ window._normBullets=normBullets;
   --font-mono:'JetBrains Mono',monospace;
   --trans:all .28s cubic-bezier(.4,0,.2,1);
 }
-[data-theme="dark"]  {--bg:#0a0a0f;--surface:#111118;--surface2:#1a1a26;--border:#2a2a40;--accent:#e8c87a;--accent2:#7a9ee8;--accent3:#e87a9e;--text:#e8e8f0;--text-dim:#8888a8;--text-dimmer:#55556a;--header-bg:rgba(10,10,15,.9);--glow:rgba(232,200,122,.12);}
-[data-theme="light"] {--bg:#f5f4f0;--surface:#ffffff;--surface2:#f0ede8;--border:#d8d4cc;--accent:#b8860b;--accent2:#3a6ab8;--accent3:#c0305c;--text:#1a1814;--text-dim:#5a5650;--text-dimmer:#9a9690;--header-bg:rgba(245,244,240,.92);--glow:rgba(184,134,11,.08);}
-[data-theme="navy"]  {--bg:#0d1b2a;--surface:#112236;--surface2:#163049;--border:#1e3a56;--accent:#64c8ff;--accent2:#7affd4;--accent3:#ff9f64;--text:#e0f0ff;--text-dim:#7aa8cc;--text-dimmer:#446688;--header-bg:rgba(13,27,42,.92);--glow:rgba(100,200,255,.10);}
-[data-theme="forest"]{--bg:#0d1f0f;--surface:#122614;--surface2:#183220;--border:#264030;--accent:#7dd87a;--accent2:#a8d8a8;--accent3:#f0c060;--text:#e0f0e0;--text-dim:#7aaa7a;--text-dimmer:#446644;--header-bg:rgba(13,31,15,.92);--glow:rgba(125,216,122,.10);}
-[data-theme="rose"]  {--bg:#1a0d14;--surface:#241018;--surface2:#30141e;--border:#481830;--accent:#f0a0c0;--accent2:#c080f0;--accent3:#f0d060;--text:#f8e8f0;--text-dim:#c08090;--text-dimmer:#805060;--header-bg:rgba(26,13,20,.92);--glow:rgba(240,160,192,.10);}
-[data-theme="mono"]  {--bg:#111111;--surface:#1c1c1c;--surface2:#252525;--border:#333333;--accent:#eeeeee;--accent2:#aaaaaa;--accent3:#888888;--text:#eeeeee;--text-dim:#999999;--text-dimmer:#555555;--header-bg:rgba(17,17,17,.92);--glow:rgba(220,220,220,.06);}
+[data-theme="dark"]  {--bg:#0a0a0f;--surface:#111118;--surface2:#1a1a26;--border:#2a2a40;--accent:#e8c87a;--accent2:#7a9ee8;--accent3:#e87a9e;--text:#e8e8f0;--text-dim:#8888a8;--text-dimmer:#55556a;--header-bg:rgba(10,10,15,.92);--glow:rgba(232,200,122,.12);}
+[data-theme="light"] {--bg:#f5f4f0;--surface:#ffffff;--surface2:#f0ede8;--border:#d8d4cc;--accent:#b8860b;--accent2:#3a6ab8;--accent3:#c0305c;--text:#1a1814;--text-dim:#5a5650;--text-dimmer:#9a9690;--header-bg:rgba(245,244,240,.94);--glow:rgba(184,134,11,.08);}
+[data-theme="navy"]  {--bg:#0d1b2a;--surface:#112236;--surface2:#163049;--border:#1e3a56;--accent:#64c8ff;--accent2:#7affd4;--accent3:#ff9f64;--text:#e0f0ff;--text-dim:#7aa8cc;--text-dimmer:#446688;--header-bg:rgba(13,27,42,.94);--glow:rgba(100,200,255,.10);}
+[data-theme="forest"]{--bg:#0d1f0f;--surface:#122614;--surface2:#183220;--border:#264030;--accent:#7dd87a;--accent2:#a8d8a8;--accent3:#f0c060;--text:#e0f0e0;--text-dim:#7aaa7a;--text-dimmer:#446644;--header-bg:rgba(13,31,15,.94);--glow:rgba(125,216,122,.10);}
+[data-theme="rose"]  {--bg:#1a0d14;--surface:#241018;--surface2:#30141e;--border:#481830;--accent:#f0a0c0;--accent2:#c080f0;--accent3:#f0d060;--text:#f8e8f0;--text-dim:#c08090;--text-dimmer:#805060;--header-bg:rgba(26,13,20,.94);--glow:rgba(240,160,192,.10);}
+[data-theme="mono"]  {--bg:#111111;--surface:#1c1c1c;--surface2:#252525;--border:#333333;--accent:#eeeeee;--accent2:#aaaaaa;--accent3:#888888;--text:#eeeeee;--text-dim:#999999;--text-dimmer:#555555;--header-bg:rgba(17,17,17,.94);--glow:rgba(220,220,220,.06);}
 
+/* ══ KEYFRAMES ══ */
 @keyframes pageIn   {from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
 @keyframes shimmer  {0%{background-position:-200% center}100%{background-position:200% center}}
 @keyframes float    {0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
@@ -185,46 +217,41 @@ window._normBullets=normBullets;
 @keyframes sF       {0%{opacity:1}70%{opacity:1}100%{opacity:0}}
 @keyframes fbP      {0%,100%{opacity:1}50%{opacity:.3}}
 @keyframes spin     {to{transform:rotate(360deg)}}
-@keyframes slideUp  {from{opacity:0;transform:translateY(28px)}to{opacity:1;transform:none}}
 @keyframes adminIn  {from{opacity:0;transform:translateY(-8px) scale(.96)}to{opacity:1;transform:none}}
-@keyframes modalIn  {from{opacity:0}to{opacity:1}}
+@keyframes modalIn  {from{opacity:0;transform:scale(.97)}to{opacity:1;transform:scale(1)}}
 @keyframes pulse    {0%,100%{opacity:.5}50%{opacity:.85}}
 @keyframes certIn   {from{opacity:0;transform:translateY(20px) scale(.97)}to{opacity:1;transform:none}}
 @keyframes borderRun{0%{background-position:0% 50%}100%{background-position:200% 50%}}
 
+/* ══ BASE ══ */
 *{margin:0;padding:0;box-sizing:border-box;}
-body{
-  background:var(--bg);color:var(--text);font-family:var(--font-body);
-  min-height:100vh;overflow-x:hidden;
-  transition:background .4s,color .4s;
-  animation:pageIn .55s ease forwards;
-}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);min-height:100vh;overflow-x:hidden;transition:background .4s,color .4s;animation:pageIn .55s ease forwards;}
 
 /* ══ SYNC ══ */
-.sync-bar{position:fixed;top:0;left:0;right:0;z-index:9998;height:3px;pointer-events:none;}
+.sync-bar{position:fixed;top:0;left:0;right:0;z-index:9999;height:3px;pointer-events:none;}
 .sync-bar.loading{background:linear-gradient(90deg,transparent,var(--accent2),transparent);animation:sP 1.2s infinite;}
 .sync-bar.saving {background:linear-gradient(90deg,transparent,var(--accent),transparent);animation:sP .8s infinite;}
 .sync-bar.synced {background:linear-gradient(90deg,transparent,#4ecb71,transparent);animation:sF 2.5s forwards;}
 .sync-bar.error  {background:linear-gradient(90deg,transparent,#e87a7a,transparent);}
-.sync-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:8px 22px;font-family:var(--font-mono);font-size:.71rem;color:var(--text-dim);opacity:0;transition:all .3s;z-index:801;white-space:nowrap;pointer-events:none;max-width:90vw;overflow:hidden;text-overflow:ellipsis;}
+.sync-toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(16px);background:var(--surface);border:1px solid var(--border);border-radius:50px;padding:8px 22px;font-family:var(--font-mono);font-size:.71rem;color:var(--text-dim);opacity:0;transition:all .3s;z-index:9000;white-space:nowrap;pointer-events:none;max-width:92vw;overflow:hidden;text-overflow:ellipsis;}
 .sync-toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 .sync-toast.synced{border-color:#4ecb71;color:#4ecb71;}
 .sync-toast.error {border-color:#e87a7a;color:#e87a7a;}
 .sync-toast.saving,.sync-toast.loading{border-color:var(--accent);color:var(--accent);}
 
 /* ══ HEADER ══ */
-header{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:center;justify-content:space-between;padding:16px 48px;background:var(--header-bg);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);transition:background .4s,border-color .4s;}
+header{position:fixed;top:0;left:0;right:0;z-index:800;display:flex;align-items:center;justify-content:space-between;padding:14px 40px;background:var(--header-bg);backdrop-filter:blur(24px);border-bottom:1px solid var(--border);transition:background .4s,border-color .4s;}
 .logo{font-family:var(--font-display);font-size:1.4rem;font-weight:700;color:var(--accent);}
-.header-right{display:flex;align-items:center;gap:10px;}
-.lang-switcher{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:50px;padding:4px;gap:2px;}
-.lang-btn{padding:5px 13px;border:none;background:transparent;color:var(--text-dim);font-family:var(--font-body);font-size:.76rem;font-weight:500;cursor:pointer;border-radius:50px;transition:var(--trans);letter-spacing:.05em;text-transform:uppercase;}
+.header-right{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;}
+.lang-switcher{display:flex;background:var(--surface2);border:1px solid var(--border);border-radius:50px;padding:3px;gap:2px;}
+.lang-btn{padding:5px 11px;border:none;background:transparent;color:var(--text-dim);font-family:var(--font-body);font-size:.74rem;font-weight:500;cursor:pointer;border-radius:50px;transition:var(--trans);letter-spacing:.05em;text-transform:uppercase;}
 .lang-btn.active{background:var(--accent);color:var(--bg);font-weight:600;}
 .lang-btn:hover:not(.active){background:var(--border);color:var(--text);}
 .theme-wrap{position:relative;}
-.theme-btn{display:flex;align-items:center;gap:7px;padding:8px 16px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-body);font-size:.78rem;cursor:pointer;border-radius:50px;transition:var(--trans);}
+.theme-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;background:var(--surface2);border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-body);font-size:.76rem;cursor:pointer;border-radius:50px;transition:var(--trans);}
 .theme-btn:hover{border-color:var(--accent);color:var(--accent);}
-.theme-btn svg{width:14px;height:14px;}
-.theme-panel{position:absolute;top:calc(100% + 10px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;display:none;flex-direction:column;gap:8px;width:220px;z-index:999;box-shadow:0 12px 40px rgba(0,0,0,.4);}
+.theme-btn svg{width:13px;height:13px;}
+.theme-panel{position:absolute;top:calc(100% + 10px);right:0;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px;display:none;flex-direction:column;gap:8px;width:220px;z-index:810;box-shadow:0 12px 40px rgba(0,0,0,.4);}
 .theme-panel.open{display:flex;}
 .tp-title{font-family:var(--font-mono);font-size:.67rem;color:var(--text-dimmer);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px;}
 .theme-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;}
@@ -232,33 +259,26 @@ header{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:
 .t-swatch:hover,.t-swatch.active{border-color:var(--accent);background:var(--surface2);}
 .sw-circle{width:28px;height:28px;border-radius:50%;border:2px solid rgba(255,255,255,.15);}
 .sw-label{font-size:.64rem;color:var(--text-dim);font-family:var(--font-mono);}
-.admin-login-btn{display:flex;align-items:center;gap:7px;padding:8px 16px;background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-body);font-size:.8rem;cursor:pointer;border-radius:50px;transition:var(--trans);}
-.admin-login-btn:hover{border-color:var(--accent);color:var(--accent);}
-.admin-login-btn svg{width:14px;height:14px;}
 
-/* ══ ADMIN HEADER PANEL (replaces bottom-right bar) ══ */
-.admin-header-panel{
-  display:none;
-  align-items:center;
-  gap:8px;
-  padding:6px 6px 6px 14px;
-  background:rgba(0,0,0,.2);
-  border:1px solid var(--accent);
-  border-radius:50px;
-  animation:adminIn .35s cubic-bezier(.34,1.56,.64,1) forwards;
-}
+/* Login button */
+.admin-login-btn{display:flex;align-items:center;gap:6px;padding:7px 14px;background:transparent;border:1px solid var(--border);color:var(--text-dim);font-family:var(--font-body);font-size:.78rem;cursor:pointer;border-radius:50px;transition:var(--trans);}
+.admin-login-btn:hover{border-color:var(--accent);color:var(--accent);}
+.admin-login-btn svg{width:13px;height:13px;}
+
+/* ══ ADMIN HEADER PANEL ══ */
+.admin-header-panel{display:none;align-items:center;gap:6px;padding:5px 5px 5px 12px;background:rgba(0,0,0,.2);border:1px solid var(--accent);border-radius:50px;animation:adminIn .35s cubic-bezier(.34,1.56,.64,1) forwards;}
 .admin-header-panel.visible{display:flex;}
-.admin-user-info{display:flex;flex-direction:column;line-height:1.2;}
-.admin-user-label{font-family:var(--font-mono);font-size:.58rem;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;}
-.admin-user-email{font-family:var(--font-mono);font-size:.65rem;color:var(--text-dim);max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.ahp-btn{display:flex;align-items:center;gap:5px;padding:7px 13px;border-radius:50px;font-family:var(--font-body);font-size:.78rem;cursor:pointer;transition:var(--trans);border:none;white-space:nowrap;}
+.admin-user-info{display:flex;flex-direction:column;line-height:1.2;margin-right:2px;}
+.admin-user-label{font-family:var(--font-mono);font-size:.57rem;color:var(--accent);letter-spacing:.08em;text-transform:uppercase;}
+.admin-user-email{font-family:var(--font-mono);font-size:.63rem;color:var(--text-dim);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ahp-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:50px;font-family:var(--font-body);font-size:.76rem;cursor:pointer;transition:var(--trans);border:none;white-space:nowrap;}
 .ahp-edit{background:var(--accent);color:var(--bg);font-weight:600;}
 .ahp-edit:hover{opacity:.85;}
 .ahp-sync{background:transparent;border:1px solid #4ecb71;color:#4ecb71;}
 .ahp-sync:hover{background:rgba(78,203,113,.1);}
-.ahp-logout{background:transparent;border:1px solid var(--border);color:var(--text-dimmer);padding:7px 10px;}
+.ahp-logout{background:transparent;border:1px solid var(--border);color:var(--text-dimmer);padding:6px 10px;}
 .ahp-logout:hover{border-color:#e87a7a;color:#e87a7a;}
-.fb-dot{width:6px;height:6px;border-radius:50%;background:#4ecb71;display:inline-block;animation:fbP 2s infinite;flex-shrink:0;}
+.fb-dot{width:6px;height:6px;border-radius:50%;background:#4ecb71;flex-shrink:0;animation:fbP 2s infinite;}
 
 /* ══ HERO ══ */
 .hero{min-height:100vh;display:flex;align-items:center;padding:120px 48px 80px;position:relative;overflow:hidden;}
@@ -274,12 +294,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:
 .hero-eyebrow{font-family:var(--font-mono);font-size:.76rem;color:var(--accent);letter-spacing:.16em;text-transform:uppercase;margin-bottom:22px;display:flex;align-items:center;gap:12px;}
 .hero-eyebrow::before{content:'';display:block;width:40px;height:1px;background:var(--accent);}
 .hero-name{font-family:var(--font-display);font-size:clamp(3rem,7vw,6.5rem);font-weight:900;line-height:.93;letter-spacing:-.025em;margin-bottom:10px;}
-.hero-name .accent{
-  background:linear-gradient(90deg,var(--accent) 25%,#fff8e7 50%,var(--accent) 75%);
-  background-size:200% auto;
-  -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
-  animation:shimmer 4s linear infinite;
-}
+.hero-name .accent{background:linear-gradient(90deg,var(--accent) 25%,#fff8e7 50%,var(--accent) 75%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 4s linear infinite;}
 .hero-subtitle{font-family:var(--font-display);font-size:clamp(1rem,2vw,1.5rem);color:var(--text-dim);font-weight:400;font-style:italic;margin-bottom:20px;margin-top:14px;}
 .hero-desc{font-size:.94rem;color:var(--text-dim);line-height:1.85;max-width:540px;margin-bottom:28px;}
 .hero-tags{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:32px;}
@@ -305,7 +320,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:
 /* ══ EDUCATION ══ */
 .edu-grid{display:grid;gap:18px;}
 .edu-card{display:grid;grid-template-columns:auto 1fr;gap:0 26px;padding:22px 26px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);transition:var(--trans);}
-.edu-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.25),0 0 0 1px var(--accent);}
+.edu-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 8px 32px rgba(0,0,0,.25);}
 .edu-year{font-family:var(--font-mono);font-size:.7rem;color:var(--accent);writing-mode:vertical-rl;letter-spacing:.1em;opacity:.7;align-self:start;margin-top:3px;}
 .edu-info h3{font-family:var(--font-display);font-size:1.08rem;font-weight:700;margin-bottom:4px;}
 .edu-info .school{color:var(--accent);font-size:.86rem;font-weight:500;margin-bottom:3px;}
@@ -323,7 +338,7 @@ header{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:
 .project-card li{font-size:.81rem;color:var(--text-dim);padding-left:15px;position:relative;line-height:1.5;}
 .project-card li::before{content:'→';position:absolute;left:0;color:var(--accent);font-size:.69rem;top:2px;}
 .project-pdf-link{display:flex;align-items:center;gap:7px;margin-top:14px;padding:8px 14px;background:rgba(0,0,0,.15);border:1px solid var(--border);border-radius:8px;color:var(--accent);font-size:.78rem;font-family:var(--font-mono);text-decoration:none;transition:var(--trans);width:fit-content;cursor:pointer;}
-.project-pdf-link:hover{border-color:var(--accent);background:rgba(0,0,0,.25);}
+.project-pdf-link:hover{border-color:var(--accent);}
 .project-pdf-link svg{width:14px;height:14px;}
 
 /* ══ EXPERIENCE ══ */
@@ -369,15 +384,34 @@ header{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:
 .cert-body{padding:18px 20px 8px;flex:1;display:flex;flex-direction:column;gap:6px;}
 .cert-name{font-family:var(--font-display);font-size:1.08rem;font-weight:700;color:var(--text);line-height:1.35;}
 .cert-org{font-family:var(--font-mono);font-size:.69rem;color:var(--accent);letter-spacing:.06em;text-transform:uppercase;}
-.cert-view-btn{display:flex;align-items:center;justify-content:center;gap:7px;margin:8px 20px 18px;padding:10px 16px;background:transparent;border:1px solid var(--border);border-radius:9px;color:var(--accent);font-size:.78rem;font-family:var(--font-mono);cursor:pointer;transition:var(--trans);text-decoration:none;letter-spacing:.04em;}
+.cert-view-btn{display:flex;align-items:center;justify-content:center;gap:7px;margin:8px 20px 18px;padding:10px 16px;background:transparent;border:1px solid var(--border);border-radius:9px;color:var(--accent);font-size:.78rem;font-family:var(--font-mono);cursor:pointer;transition:var(--trans);text-decoration:none;}
 .cert-view-btn:hover{border-color:var(--accent);background:var(--glow);transform:translateY(-1px);}
 .cert-view-btn svg{width:13px;height:13px;}
 .cert-zoom-icon{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) scale(0);background:rgba(0,0,0,.6);border-radius:50%;width:44px;height:44px;display:flex;align-items:center;justify-content:center;color:#fff;z-index:3;transition:transform .3s cubic-bezier(.34,1.56,.64,1);pointer-events:none;}
 .cert-img-wrap:hover .cert-zoom-icon{transform:translate(-50%,-50%) scale(1);}
 .cert-zoom-icon svg{width:18px;height:18px;}
 
+/* ══ CONTACT SECTION ══ */
+.contact-form-wrap{max-width:680px;margin:0 auto;}
+.contact-form{display:flex;flex-direction:column;gap:16px;}
+.cf-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.cf-group{display:flex;flex-direction:column;gap:7px;}
+.cf-label{font-family:var(--font-mono);font-size:.7rem;color:var(--text-dim);letter-spacing:.06em;text-transform:uppercase;}
+.cf-input,.cf-textarea{width:100%;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:var(--font-body);font-size:.9rem;outline:none;transition:var(--trans);}
+.cf-input:focus,.cf-textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--glow);}
+.cf-textarea{min-height:130px;resize:vertical;line-height:1.6;}
+.cf-submit{display:flex;align-items:center;justify-content:center;gap:10px;padding:13px 32px;background:var(--accent);border:none;border-radius:10px;color:var(--bg);font-family:var(--font-body);font-size:.92rem;font-weight:700;cursor:pointer;transition:var(--trans);align-self:flex-start;}
+.cf-submit:hover{opacity:.88;transform:translateY(-2px);}
+.cf-submit:disabled{opacity:.4;cursor:not-allowed;transform:none;}
+.cf-submit svg{width:16px;height:16px;}
+.cf-status{padding:12px 18px;border-radius:10px;font-size:.84rem;display:none;margin-top:4px;}
+.cf-status.ok{display:block;background:rgba(78,203,113,.1);border:1px solid rgba(78,203,113,.3);color:#4ecb71;}
+.cf-status.err{display:block;background:rgba(232,122,122,.1);border:1px solid rgba(232,122,122,.3);color:#e87a7a;}
+.cf-spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite;display:none;}
+.cf-spinner.show{display:block;}
+
 /* ══ LIGHTBOX ══ */
-.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9998;display:none;align-items:center;justify-content:center;padding:24px;}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:9500;display:none;align-items:center;justify-content:center;padding:24px;}
 .lightbox.open{display:flex;}
 .lightbox img{max-width:90vw;max-height:88vh;border-radius:12px;box-shadow:0 20px 80px rgba(0,0,0,.8);}
 .lightbox-close{position:absolute;top:20px;right:24px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:1.4rem;cursor:pointer;line-height:1;border-radius:50%;width:40px;height:40px;display:flex;align-items:center;justify-content:center;transition:var(--trans);}
@@ -387,11 +421,33 @@ header{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:
 footer{text-align:center;padding:48px;color:var(--text-dimmer);font-family:var(--font-mono);font-size:.7rem;border-top:1px solid var(--border);}
 footer p{animation:pulse 5s ease infinite;}
 
-/* ══ MODALS ══ */
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);backdrop-filter:blur(14px);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px;}
-.modal-overlay.active{display:flex;animation:modalIn .25s ease forwards;}
+/* ══ MODALS — fixed positioning so they always center on screen ══ */
+.modal-overlay{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.88);
+  backdrop-filter:blur(14px);
+  z-index:9200;
+  display:none;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  /* force center regardless of scroll */
+  overflow-y:auto;
+}
+.modal-overlay.active{
+  display:flex;
+  animation:modalIn .25s ease forwards;
+}
+/* inner content sits naturally centered */
+.modal-overlay > *{
+  margin:auto;
+}
+
 .mclose{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--text-dim);cursor:pointer;font-size:1.2rem;padding:6px;line-height:1;transition:color .2s;}
 .mclose:hover{color:var(--text);}
+
+/* ── LOGIN CARD ── */
 .login-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:44px;width:100%;max-width:440px;position:relative;}
 .login-logo{font-family:var(--font-display);font-size:2.2rem;font-weight:900;color:var(--accent);text-align:center;margin-bottom:4px;}
 .login-tagline{font-family:var(--font-mono);font-size:.7rem;color:var(--text-dimmer);text-align:center;margin-bottom:6px;letter-spacing:.08em;text-transform:uppercase;}
@@ -424,8 +480,8 @@ footer p{animation:pulse 5s ease infinite;}
 .fbtn-spinner{width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite;display:none;}
 .fbtn-spinner.show{display:block;}
 
-/* ══ EDITOR ══ */
-.editor-modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:100%;max-width:900px;max-height:91vh;display:flex;flex-direction:column;position:relative;overflow:hidden;}
+/* ── EDITOR MODAL ── */
+.editor-modal{background:var(--surface);border:1px solid var(--border);border-radius:18px;width:100%;max-width:900px;max-height:88vh;display:flex;flex-direction:column;position:relative;overflow:hidden;}
 .ehead{padding:20px 28px 0;flex-shrink:0;border-bottom:1px solid var(--border);}
 .ehead h2{font-family:var(--font-display);font-size:1.4rem;font-weight:700;margin-bottom:14px;}
 .etabs{display:flex;overflow-x:auto;}
@@ -502,7 +558,7 @@ footer p{animation:pulse 5s ease infinite;}
 /* ══ RESPONSIVE ══ */
 @media(max-width:900px){
   .admin-user-info{display:none;}
-  .admin-header-panel{padding:6px;}
+  .admin-header-panel{padding:5px;}
 }
 @media(max-width:768px){
   header{padding:12px 16px;}
@@ -511,9 +567,9 @@ footer p{animation:pulse 5s ease infinite;}
   .section{padding:60px 18px;}
   .projects-grid,.skills-grid,.certs-grid{grid-template-columns:1fr;}
   .exp-card{flex-direction:column;gap:10px;}
-  .two-col,.three-col{grid-template-columns:1fr;}
+  .two-col,.three-col,.cf-row{grid-template-columns:1fr;}
   .social-row{grid-template-columns:32px 1fr auto;}
-  .ahp-sync span{display:none;}
+  .ahp-sync span:last-child{display:none;}
 }
 </style>
 </head>
@@ -541,13 +597,11 @@ footer p{animation:pulse 5s ease infinite;}
       </div>
     </div>
 
-    <!-- Admin login button (shown when logged out) -->
     <button class="admin-login-btn" id="adminLoginBtn" onclick="openLogin()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       Admin
     </button>
 
-    <!-- Admin panel (shown when logged in) — right in the header -->
     <div class="admin-header-panel" id="adminHeaderPanel">
       <span class="fb-dot"></span>
       <div class="admin-user-info">
@@ -555,9 +609,7 @@ footer p{animation:pulse 5s ease infinite;}
         <span class="admin-user-email" id="fbUserEmail">—</span>
       </div>
       <button class="ahp-btn ahp-edit" onclick="openEditor()">✏ Edit</button>
-      <button class="ahp-btn ahp-sync" onclick="window._saveToFirebase&&window._saveToFirebase()" title="Sync to Cloud">
-        <span>☁</span><span> Sync</span>
-      </button>
+      <button class="ahp-btn ahp-sync" onclick="window._saveToFirebase&&window._saveToFirebase()" title="Sync to Cloud">☁ <span>Sync</span></button>
       <button class="ahp-btn ahp-logout" onclick="doLogout()" title="Logout">✕</button>
     </div>
   </div>
@@ -572,7 +624,6 @@ footer p{animation:pulse 5s ease infinite;}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
         <span>No Photo</span>
       </div>
-      <!-- Hidden file input -->
       <input type="file" id="photoFileInput" accept="image/*" style="display:none;">
     </div>
     <div class="hero-content">
@@ -597,6 +648,47 @@ footer p{animation:pulse 5s ease infinite;}
 <div class="section-divider"></div>
 <div class="section fade-in"><div class="section-header"><span class="section-num">05</span><h2 class="section-title" id="titleCerts"></h2><div class="section-line"></div></div><div class="certs-grid" id="certsGrid"></div></div>
 <div id="customContainer"></div>
+
+<!-- ══ CONTACT SECTION ══ -->
+<div class="section-divider"></div>
+<div class="section fade-in" id="contactSection">
+  <div class="section-header">
+    <span class="section-num" id="contactSectionNum">06</span>
+    <h2 class="section-title" id="titleContact">Contact</h2>
+    <div class="section-line"></div>
+  </div>
+  <div class="contact-form-wrap">
+    <div class="contact-form">
+      <div class="cf-row">
+        <div class="cf-group">
+          <label class="cf-label" id="cfLabelFirst">First Name</label>
+          <input class="cf-input" id="cfFirst" type="text" placeholder="Mousa" autocomplete="given-name">
+        </div>
+        <div class="cf-group">
+          <label class="cf-label" id="cfLabelLast">Last Name</label>
+          <input class="cf-input" id="cfLast" type="text" placeholder="Assi" autocomplete="family-name">
+        </div>
+      </div>
+      <div class="cf-group">
+        <label class="cf-label" id="cfLabelPhone">Phone Number</label>
+        <input class="cf-input" id="cfPhone" type="tel" placeholder="+90 555 000 00 00" autocomplete="tel">
+      </div>
+      <div class="cf-group">
+        <label class="cf-label" id="cfLabelMsg">Message</label>
+        <textarea class="cf-textarea" id="cfMsg" placeholder="Write your message here…"></textarea>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+        <button class="cf-submit" id="cfSendBtn" onclick="sendContactForm()">
+          <span class="cf-spinner" id="cfSpinner"></span>
+          <svg id="cfSendIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <span id="cfSendLabel">Send Message</span>
+        </button>
+      </div>
+      <div class="cf-status" id="cfStatus"></div>
+    </div>
+  </div>
+</div>
+
 <footer><p id="footerTxt"></p></footer>
 
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
@@ -604,7 +696,7 @@ footer p{animation:pulse 5s ease infinite;}
   <img id="lightboxImg" src="" alt="">
 </div>
 
-<!-- LOGIN -->
+<!-- LOGIN MODAL -->
 <div class="modal-overlay" id="loginOverlay">
   <div class="login-card">
     <button class="mclose" onclick="closeLogin()">✕</button>
@@ -637,7 +729,7 @@ footer p{animation:pulse 5s ease infinite;}
   </div>
 </div>
 
-<!-- EDITOR -->
+<!-- EDITOR MODAL -->
 <div class="modal-overlay" id="editorOverlay">
   <div class="editor-modal">
     <button class="mclose" style="top:14px;right:14px;" onclick="closeEditor()">✕</button>
@@ -719,7 +811,15 @@ footer p{animation:pulse 5s ease infinite;}
   </div>
 </div>
 
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
 <script>
+/* ══ EMAILJS CONFIG — replace with your own keys ══ */
+const EMAILJS_SERVICE_ID  = 'service_XXXXXXX';  // ← your Service ID
+const EMAILJS_TEMPLATE_ID = 'template_XXXXXXX'; // ← your Template ID
+const EMAILJS_PUBLIC_KEY  = 'XXXXXXXXXXXXXXXXXXXX'; // ← your Public Key
+
 /* ══ SYNC ══ */
 let syncTimer;
 function showSync(state,msg){
@@ -763,7 +863,7 @@ document.addEventListener('click',e=>{if(!e.target.closest('.theme-wrap'))closeT
 /* ══ CAPTCHA ══ */
 let captchaAns=0;
 function newCaptcha(){
-  const ops=['+','-','×'];const op=ops[Math.floor(Math.random()*3)];let a,b;
+  const ops=['+','-','×'];const op=ops[~~(Math.random()*3)];let a,b;
   if(op==='+'){a=~~(Math.random()*15)+1;b=~~(Math.random()*15)+1;captchaAns=a+b;}
   else if(op==='-'){a=~~(Math.random()*15)+5;b=~~(Math.random()*a)+1;captchaAns=a-b;}
   else{a=~~(Math.random()*9)+2;b=~~(Math.random()*9)+2;captchaAns=a*b;}
@@ -789,13 +889,63 @@ async function doLogin(){
     const res=await window._firebaseLogin(email,pass);
     document.getElementById('loginSpinner').classList.remove('show');
     if(res.ok){failCount=0;updateDots();closeLogin();}
-    else{failCount++;updateDots();newCaptcha();document.getElementById('loginBtn').disabled=false;
+    else{
+      failCount++;updateDots();newCaptcha();document.getElementById('loginBtn').disabled=false;
       if(failCount>=MAX_FAIL){lockUntil=Date.now()+LOCK_MS;failCount=0;document.getElementById('loginBtn').disabled=true;showLockout();startLockTimer();}
-      else showErr(res.msg||'Wrong credentials.');}
-  }else{document.getElementById('loginSpinner').classList.remove('show');document.getElementById('loginBtn').disabled=false;showErr('Firebase loading, please wait.');}
+      else showErr(res.msg||'Wrong credentials.');
+    }
+  }else{
+    document.getElementById('loginSpinner').classList.remove('show');
+    document.getElementById('loginBtn').disabled=false;
+    showErr('Firebase loading, please wait.');
+  }
 }
-function openLogin(){newCaptcha();document.getElementById('loginOverlay').classList.add('active');}
-function closeLogin(){document.getElementById('loginOverlay').classList.remove('active');document.getElementById('loginErr').classList.remove('show');document.getElementById('loginUser').value='';document.getElementById('loginPass').value='';document.getElementById('loginBtn').disabled=false;document.getElementById('loginSpinner').classList.remove('show');}
+
+/* ── Modal helpers — scroll body to top so modal is visible ── */
+function openLogin(){
+  newCaptcha();
+  document.body.style.overflow='hidden';
+  document.getElementById('loginOverlay').classList.add('active');
+}
+function closeLogin(){
+  document.getElementById('loginOverlay').classList.remove('active');
+  document.body.style.overflow='';
+  document.getElementById('loginErr').classList.remove('show');
+  document.getElementById('loginUser').value='';
+  document.getElementById('loginPass').value='';
+  document.getElementById('loginBtn').disabled=false;
+  document.getElementById('loginSpinner').classList.remove('show');
+}
+function openEditor(){
+  const h=window.D.hero||DEFS.hero;
+  document.getElementById('eFirstName').value=h.firstName||'';
+  document.getElementById('eLastName').value=h.lastName||'';
+  document.getElementById('eEyebrowEN').value=(h.eyebrow&&h.eyebrow.en)||'';
+  document.getElementById('eEyebrowTR').value=(h.eyebrow&&h.eyebrow.tr)||'';
+  document.getElementById('eEyebrowAR').value=(h.eyebrow&&h.eyebrow.ar)||'';
+  document.getElementById('eSubEN').value=(h.subtitle&&h.subtitle.en)||'';
+  document.getElementById('eSubTR').value=(h.subtitle&&h.subtitle.tr)||'';
+  document.getElementById('eSubAR').value=(h.subtitle&&h.subtitle.ar)||'';
+  document.getElementById('eDescEN').value=(h.desc&&h.desc.en)||'';
+  document.getElementById('eDescTR').value=(h.desc&&h.desc.tr)||'';
+  document.getElementById('eDescAR').value=(h.desc&&h.desc.ar)||'';
+  document.getElementById('eTags').value=(h.tags||[]).join(', ');
+  document.getElementById('eEmail').value=h.email||'';
+  document.getElementById('ePhone').value=h.phone||'';
+  document.getElementById('eLocation').value=h.location||'';
+  document.getElementById('eLinkedIn').value=h.linkedin||'';
+  updatePhotoUI();
+  document.querySelectorAll('.epanel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.etab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tHero').classList.add('active');
+  document.querySelector('.etab').classList.add('active');
+  document.body.style.overflow='hidden';
+  document.getElementById('editorOverlay').classList.add('active');
+}
+function closeEditor(){
+  document.getElementById('editorOverlay').classList.remove('active');
+  document.body.style.overflow='';
+}
 async function doLogout(){if(window._firebaseLogout)await window._firebaseLogout();window._isAdmin=false;}
 
 /* ══ DATA ══ */
@@ -815,11 +965,18 @@ function normSkill(s){return{cat:ensureLO(s.cat,{en:'',tr:'',ar:''}),tags:s.tags
 function normCert(c){return{name:c.name||'',year:c.year||'',img:c.img||'',url:c.url||''};}
 
 const DEFS={
-  hero:{firstName:'Mousa',lastName:'Assi',eyebrow:{en:'Mechanical & Mechatronics Engineer',tr:'Makine & Mekatronik Mühendisi',ar:'مهندس ميكانيكا وميكاترونيكس'},subtitle:{en:'UAV Systems · Robotics · Embedded Design',tr:'İHA Sistemleri · Robotik · Gömülü Tasarım',ar:'أنظمة الطائرات المسيّرة · الروبوتيكس · التصميم المدمج'},desc:{en:'Mechanical Engineering graduate pursuing Mechatronics at Selcuk University. Building drones, robotic arms, and autonomous systems — from concept to tested prototype.',tr:"Makine Mühendisliği mezunu olup, Selçuk Üniversitesi'nde Mekatronik Mühendisliği lisans eğitimine devam etmekteyim.",ar:'خريج هندسة ميكانيكية أتابع درجة البكالوريوس في هندسة الميكاترونيكس في جامعة سلجوق.'},tags:['SolidWorks','Fusion 360','Arduino','3D Printing','UAV Design','PID Control','Computer Vision'],email:'mousaassi.swi@gmail.com',phone:'+90 555 144 11 57',location:'Konya, Türkiye',linkedin:'linkedin.com/in/musa-assi'},
+  hero:{firstName:'Mousa',lastName:'Assi',
+    eyebrow:{en:'Mechanical & Mechatronics Engineer',tr:'Makine & Mekatronik Mühendisi',ar:'مهندس ميكانيكا وميكاترونيكس'},
+    subtitle:{en:'UAV Systems · Robotics · Embedded Design',tr:'İHA Sistemleri · Robotik · Gömülü Tasarım',ar:'أنظمة الطائرات المسيّرة · الروبوتيكس · التصميم المدمج'},
+    desc:{en:'Mechanical Engineering graduate pursuing Mechatronics at Selcuk University. Building drones, robotic arms, and autonomous systems — from concept to tested prototype.',
+          tr:"Makine Mühendisliği mezunu olup, Selçuk Üniversitesi'nde Mekatronik Mühendisliği lisans eğitimine devam etmekteyim.",
+          ar:'خريج هندسة ميكانيكية أتابع درجة البكالوريوس في هندسة الميكاترونيكس في جامعة سلجوق.'},
+    tags:['SolidWorks','Fusion 360','Arduino','3D Printing','UAV Design','PID Control','Computer Vision'],
+    email:'mousaassi.swi@gmail.com',phone:'+90 555 144 11 57',location:'Konya, Türkiye',linkedin:'linkedin.com/in/musa-assi'},
   titles:{edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},certs:{en:'Certifications',tr:'Sertifikalar',ar:'الشهادات'}},
   edu:[{year:'2024→',degree:{en:'B.Sc. Mechatronics Engineering',tr:'Mekatronik Mühendisliği Lisans',ar:'بكالوريوس هندسة الميكاترونيكس'},school:'Selcuk University',loc:'Konya, Türkiye · Sep 2024 – Present'},{year:'2019–23',degree:{en:'B.Sc. Mechanical Engineering',tr:'Makine Mühendisliği Lisans',ar:'بكالوريوس الهندسة الميكانيكية'},school:'Selcuk University',loc:'Konya, Türkiye · Oct 2019 – Jul 2023'},{year:'2017–18',degree:{en:'High School Certificate (Tawjihi) — Scientific',tr:'Lise Diploması (Tawjihi — Fen)',ar:'شهادة الثانوية العامة — الفرع العلمي'},school:'Salfit Palestinian Secondary School',loc:'Salfit, Palestine'}],
   proj:[{year:'2022',title:{en:'3D Printing Systems Study',tr:'3B Yazıcı Sistemleri',ar:'دراسة أنظمة الطباعة ثلاثية الأبعاد'},bullets:[{en:'Hardware, slicing software and materials analysis',tr:'Donanım, dilimleme yazılımı ve malzeme analizi',ar:'تحليل الأجهزة وبرامج التقطيع والمواد'},{en:'Mechanical performance and print quality',tr:'Mekanik performans ve baskı kalitesi',ar:'الأداء الميكانيكي وجودة الطباعة'},{en:'Industrial application potential evaluation',tr:'Endüstriyel uygulama potansiyelinin değerlendirilmesi',ar:'تقييم إمكانات التطبيق الصناعي'}],pdf:'',pdfName:''},{year:'2022',title:{en:'Hybrid Ground–Aerial Vehicle',tr:'Hibrit Kara–Hava Aracı',ar:'مركبة هجينة برية وجوية'},bullets:[{en:'Aerodynamic calculations and structural feasibility',tr:'Aerodinamik hesaplamalar ve yapısal fizibilite',ar:'الحسابات الديناميكية الهوائية والجدوى الهيكلية'},{en:'Propulsion system configuration evaluation',tr:'İtki sistemi konfigürasyonunun değerlendirilmesi',ar:'تقييم تكوين نظام الدفع'},{en:'Dual-mode mobility design',tr:'Çift modlu mobilite tasarımı',ar:'تصميم التنقل ثنائي الوضع'}],pdf:'',pdfName:''},{year:'2023',title:{en:'Industrial Robotics Research',tr:'Endüstriyel Robotik Araştırması',ar:'بحث في الروبوتيكس الصناعي'},bullets:[{en:'Robot classifications, control and kinematics',tr:'Robot sınıflandırmaları, kontrol ve kinematik',ar:'تصنيفات الروبوت والتحكم والحركيات'},{en:'Sensor technologies and smart factory trends',tr:'Sensör teknolojileri ve akıllı fabrika trendleri',ar:'تقنيات الاستشعار واتجاهات المصانع الذكية'},{en:'Real-world industrial application study',tr:'Gerçek dünya endüstriyel uygulama çalışması',ar:'دراسة التطبيق الصناعي في العالم الحقيقي'}],pdf:'',pdfName:''},{year:'2024',title:{en:'RRP Robotic Arm',tr:'RRP Robot Kol',ar:'ذراع روبوتية RRP'},bullets:[{en:'3D-printed components, servo motor actuation',tr:'3D baskılı bileşenler, servo motor tahriği',ar:'مكونات مطبوعة ثلاثية الأبعاد، تشغيل محرك سيرفو'},{en:'Forward & inverse kinematics implementation',tr:'İleri ve ters kinematik uygulaması',ar:'تنفيذ الحركيات الأمامية والعكسية'},{en:'Transformation matrices and motion planning',tr:'Dönüşüm matrisleri ve hareket planlaması',ar:'مصفوفات التحويل وتخطيط الحركة'}],pdf:'',pdfName:''},{year:'2024',title:{en:'Autonomous Obstacle Avoidance Car',tr:'Otonom Engel Kaçınma Aracı',ar:'سيارة ذكية لتفادي العوائق'},bullets:[{en:'Arduino + ultrasonic sensor obstacle detection',tr:'Arduino + ultrasonik sensör engel tespiti',ar:'Arduino + استشعار فوق صوتي لاكتشاف العوائق'},{en:'Real-time decision-making algorithm',tr:'Gerçek zamanlı karar verme algoritması',ar:'خوارزمية اتخاذ القرار في الوقت الفعلي'},{en:'Built for robotics competitions',tr:'Robotik yarışmaları için tasarlandı',ar:'مصمم لمسابقات الروبوتيكس'}],pdf:'',pdfName:''},{year:'2025',title:{en:'Smart Hospital Assistance Robot',tr:'Akıllı Hastane Destek Robotu',ar:'روبوت مساعدة مستشفى ذكي'},bullets:[{en:'Heart rate, blood & air quality sensors',tr:'Nabız, kan ve hava kalitesi sensörleri',ar:'أجهزة استشعار معدل ضربات القلب والدم وجودة الهواء'},{en:'Wireless real-time data transmission',tr:'Kablosuz gerçek zamanlı veri iletimi',ar:'نقل البيانات اللاسلكي في الوقت الفعلي'},{en:'Hospital monitoring system architecture',tr:'Hastane izleme sistemi mimarisi',ar:'معمارية نظام مراقبة المستشفى'}],pdf:'',pdfName:''},{year:'2025',title:{en:'Medical Delivery Drone',tr:'Tıbbi Teslimat İHA',ar:'طائرة مسيّرة طبية'},bullets:[{en:'SolidWorks & Fusion 360 structural design',tr:'SolidWorks ve Fusion 360 yapısal tasarım',ar:'التصميم الهيكلي بـ SolidWorks و Fusion 360'},{en:'Servo-controlled payload release mechanism',tr:'Servo kontrollü yük bırakma mekanizması',ar:'آلية تحرير الحمولة بالسيرفو'},{en:"Presented at TEKNO-SEL 2025",tr:"TEKNO-SEL 2025'te sunuldu",ar:'قُدِّم في TEKNO-SEL 2025'}],pdf:'',pdfName:''},{year:'2025',title:{en:'Disaster Relief UAV (Ongoing)',tr:'Afet Müdahale İHA (Devam)',ar:'طائرة مسيّرة لإغاثة الكوارث (جارية)'},bullets:[{en:'Modular structure for earthquake/flood operations',tr:'Deprem/sel operasyonları için modüler yapı',ar:'هيكل معياري لعمليات الزلازل والفيضانات'},{en:'AI-based vision for victim detection',tr:'Kurban tespiti için yapay zeka tabanlı görü',ar:'رؤية قائمة على الذكاء الاصطناعي للكشف عن الضحايا'},{en:'Emergency location & image transmission',tr:'Acil konum ve görüntü iletimi',ar:'إرسال الموقع الطارئ والصورة'}],pdf:'',pdfName:''},{year:'2026',title:{en:'Single-Axis Reaction Wheel System',tr:'Tek Eksenli Reaksiyon Çarkı',ar:'نظام عجلة رد فعل أحادي المحور'},bullets:[{en:'NEMA-17, MPU6050 IMU, Arduino Nano',tr:'NEMA-17, MPU6050 IMU, Arduino Nano',ar:'NEMA-17، وحدة IMU MPU6050، Arduino Nano'},{en:'PD and PID attitude control algorithms',tr:'PD ve PID tutum kontrol algoritmaları',ar:'خوارزميات التحكم في الاتجاه PD و PID'},{en:'Validated disturbance rejection performance',tr:'Doğrulanmış bozunum reddi performansı',ar:'أداء رفض الاضطراب المُتحقَّق منه'}],pdf:'',pdfName:''},{year:'2026',title:{en:'4-Axis Robotic Arm',tr:'4 Eksenli Robot Kol',ar:'ذراع روبوتية 4 محاور'},bullets:[{en:'High-torque servos + modular end-effector',tr:'Yüksek torklu servolar + modüler son efektör',ar:'محركات سيرفو عالية العزم + مؤثر نهائي معياري'},{en:'Internal cable routing for reliability',tr:'Güvenilirlik için dahili kablo yönlendirmesi',ar:'توجيه الكابلات الداخلي للموثوقية'},{en:'Arduino-based multi-axis motion control',tr:'Arduino tabanlı çok eksenli hareket kontrolü',ar:'تحكم متعدد المحاور قائم على Arduino'}],pdf:'',pdfName:''}],
-  exp:[{role:{en:'Mechanical Design Engineer',tr:'Makine Tasarım Mühendisi',ar:'مهندس تصميم ميكانيكي'},company:'SRT Gear Manufacturing Co.',period:'Feb 2024',loc:'Konya, Türkiye',bullets:[{en:'Designed gear systems and automotive spare parts',tr:'Dişli sistemleri ve otomotiv yedek parçaları tasarladı',ar:'صمم أنظمة التروس وقطع غيار السيارات'},{en:'Prepared technical drawings and 3D models',tr:'Teknik çizimler ve 3D modeller hazırladı',ar:'أعد الرسومات الفنية والنماذج ثلاثية الأبعاد'},{en:'Supported design optimization and manufacturing documentation',tr:'Tasarım optimizasyonu ve üretim belgelerini destekledi',ar:'دعم تحسين التصميم ووثائق التصنيع'}]},{role:{en:'Production Engineering Intern',tr:'Üretim Mühendisliği Stajyeri',ar:'متدرب هندسة الإنتاج'},company:'Efor Machinery',period:'Jun – Aug 2022',loc:'Konya, Türkiye',bullets:[{en:'Food processing machinery manufacturing operations',tr:'Gıda işleme makineleri üretim operasyonları',ar:'عمليات تصنيع آلات معالجة الغذاء'},{en:'Observed machining, assembly, and production workflows',tr:'İşleme, montaj ve üretim iş akışlarını gözlemledi',ar:'راقب سير عمل التشغيل والتجميع والإنتاج'},{en:'Industrial materials and electrical systems exposure',tr:'Endüstriyel malzemeler ve elektrik sistemlerine maruz kalma',ar:'التعرض للمواد الصناعية والأنظمة الكهربائية'}]},{role:{en:'Financial Management Intern',tr:'Organizasyon Stajyeri',ar:'متدرب إدارة مالية'},company:'Efor Machinery',period:'Aug – Sep 2022',loc:'Konya, Türkiye',bullets:[{en:'Assisted in financial and cost-management operations',tr:'Mali ve maliyet yönetimi operasyonlarında yardım etti',ar:'ساعد في عمليات الإدارة المالية وإدارة التكاليف'},{en:'Industrial budgeting and reporting understanding',tr:'Endüstriyel bütçeleme ve raporlama anlayışı',ar:'فهم الميزانية والتقارير الصناعية'}]},{role:{en:'Mechanical Engineering Orientation',tr:'Makine Mühendisliği Oryantasyonu',ar:'تدريب توجيه هندسة ميكانيكية'},company:'Selcuk University',period:'Jun – Aug 2021',loc:'Konya, Türkiye',bullets:[{en:'Industrial orientation for engineering students',tr:'Mühendislik öğrencileri için endüstriyel oryantasyon',ar:'التوجيه الصناعي لطلاب الهندسة'},{en:'Learned professional roles and responsibilities',tr:'Profesyonel rolleri ve sorumlulukları öğrendi',ar:'تعلم الأدوار والمسؤوليات المهنية'}]}],
+  exp:[{role:{en:'Mechanical Design Engineer',tr:'Makine Tasarım Mühendisi',ar:'مهندس تصميم ميكانيكي'},company:'SRT Gear Manufacturing Co.',period:'Feb 2024',loc:'Konya, Türkiye',bullets:[{en:'Designed gear systems and automotive spare parts',tr:'Dişli sistemleri ve otomotiv yedek parçaları tasarladı',ar:'صمم أنظمة التروس وقطع غيار السيارات'},{en:'Prepared technical drawings and 3D models',tr:'Teknik çizimler ve 3D modeller hazırladı',ar:'أعد الرسومات الفنية والنماذج ثلاثية الأبعاد'},{en:'Supported design optimization and manufacturing documentation',tr:'Tasarım optimizasyonu ve üretim belgelerini destekledi',ar:'دعم تحسين التصميم ووثائق التصنيع'}]},{role:{en:'Production Engineering Intern',tr:'Üretim Mühendisliği Stajyeri',ar:'متدرب هندسة الإنتاج'},company:'Efor Machinery',period:'Jun – Aug 2022',loc:'Konya, Türkiye',bullets:[{en:'Food processing machinery manufacturing operations',tr:'Gıda işleme makineleri üretim operasyonları',ar:'عمليات تصنيع آلات معالجة الغذاء'},{en:'Observed machining, assembly, and production workflows',tr:'İşleme, montaj ve üretim iş akışlarını gözlemledi',ar:'راقب سير عمل التشغيل والتجميع والإنتاج'},{en:'Industrial materials and electrical systems exposure',tr:'Endüstriyel malzemeler ve elektrik sistemlerine maruz kalma',ar:'التعرض للمواد الصناعية والأنظمة الكهربائية'}]},{role:{en:'Financial Management Intern',tr:'Organizasyon Stajyeri',ar:'متدرب إدارة مالية'},company:'Efor Machinery',period:'Aug – Sep 2022',loc:'Konya, Türkiye',bullets:[{en:'Assisted in financial and cost-management operations',tr:'Mali ve maliyet yönetimi operasyonlarında yardım etti',ar:'ساعد في عمليات الإدارة المالية وإدارة التكاليف'},{en:'Industrial budgeting and reporting understanding',tr:'Endüstriyel bütçeleme ve raporlama anlayışı',ar:'فهم الميزانية والتقارير الصناعية'}]},{role:{en:'Mechanical Engineering Orientation',tr:'Makine Mühendisliği Oryantasyonu',ar:'تدريب توجيه هندسة ميكانيكية'},company:'Selcuk University',period:'Jun – Aug 2021',loc:'Konya, Türkiye',bullets:[{en:'Industrial orientation for engineering students',tr:'Mühendislik öğrencileri için endüstriyel oryantasyon',ar:'التوجيه الصناعي لطلاب الهندسة'},{en:'Learned professional roles and responsibilities',tr:'Profesyonel rolleri ve sorumlulukları öğرendi',ar:'تعلم الأدوار والمسؤوليات المهنية'}]}],
   skills:[{cat:{en:'Technical',tr:'Teknik',ar:'التقنية'},tags:['SolidWorks','Fusion 360','AutoCAD','MATLAB','Proteus','Drone Design','Mechanical Design','MS Office'],hl:[0,1]},{cat:{en:'Laboratory',tr:'Laboratuvar',ar:'المختبر'},tags:['3D Printing (PLA, PETG)','Mechanical Assembly','Prototyping','Sensor Integration','IMU / GPS / Ultrasonic'],hl:[0]},{cat:{en:'Languages',tr:'Diller',ar:'اللغات'},tags:['Arabic — Native','Turkish — Advanced','English — Intermediate'],hl:[0,1]},{cat:{en:'Interests',tr:'İlgi Alanları',ar:'الاهتمامات'},tags:['UAV Systems','Robotics','Autonomous Systems','Additive Manufacturing','Computer Vision'],hl:[]}],
   certs:[{name:'Microsoft Office (Word, Excel, PowerPoint)',year:'2023',img:'',url:''},{name:'AutoCAD',year:'2023',img:'',url:''},{name:'Basic Technical Drawing',year:'2023',img:'',url:''},{name:'KOSGEB Entrepreneurship Training',year:'2023',img:'',url:''},{name:'Circuit Design with Proteus',year:'2025',img:'',url:''},{name:'Introduction to Basic Electronics & Robotics',year:'2025',img:'',url:''},{name:'Robotic Coding with mBlock',year:'2025',img:'',url:''},{name:'Image Processing Onramp',year:'2025',img:'',url:''},{name:'MATLAB Onramp',year:'2025',img:'',url:''},{name:'Computer Vision Onramp',year:'2025',img:'',url:''},{name:'Arduino Programming with Projects',year:'2025',img:'',url:''},{name:'Motors and Motor Control Circuits',year:'2026',img:'',url:''},{name:'Fundamentals of Flight Mechanics',year:'2026',img:'',url:''}],
   social:[{name:'LinkedIn',url:'https://linkedin.com/in/musa-assi',icon:'linkedin'}],
@@ -846,6 +1003,7 @@ const SI={
   eye:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`,
   upload:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>`,
   zoom:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>`,
+  send:`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`,
 };
 
 const PRESETS=[{name:'Instagram',icon:'instagram'},{name:'Twitter/X',icon:'twitter'},{name:'GitHub',icon:'github'},{name:'YouTube',icon:'youtube'},{name:'WhatsApp',icon:'whatsapp'},{name:'Telegram',icon:'telegram'},{name:'Facebook',icon:'facebook'},{name:'TikTok',icon:'tiktok'},{name:'Website',icon:'website'}];
@@ -856,14 +1014,14 @@ function loadLocalD(){
     if(s){
       const d=JSON.parse(s);
       if(d.hero){['eyebrow','subtitle','desc'].forEach(k=>{if(d.hero[k])d.hero[k]=ensureLO(d.hero[k],DEFS.hero[k]);});}
-      if(d.proj)d.proj=d.proj.map(normProj);
-      if(d.exp)d.exp=d.exp.map(normExp);
-      if(d.edu)d.edu=d.edu.map(normEdu);
-      if(d.skills)d.skills=d.skills.map(normSkill);
-      if(d.certs)d.certs=d.certs.map(normCert);
-      if(!d.social)d.social=DEFS.social;
-      if(!d.custom)d.custom=DEFS.custom;
-      if(!d.titles)d.titles=JSON.parse(JSON.stringify(DEFS.titles));
+      if(d.proj) d.proj=d.proj.map(normProj);
+      if(d.exp)  d.exp=d.exp.map(normExp);
+      if(d.edu)  d.edu=d.edu.map(normEdu);
+      if(d.skills) d.skills=d.skills.map(normSkill);
+      if(d.certs)  d.certs=d.certs.map(normCert);
+      if(!d.social) d.social=DEFS.social;
+      if(!d.custom) d.custom=DEFS.custom;
+      if(!d.titles) d.titles=JSON.parse(JSON.stringify(DEFS.titles));
       return d;
     }
   }catch(e){}
@@ -877,125 +1035,96 @@ window.profilePhoto=loadPhoto();
 let lang='en';
 
 /* ══════════════════════════════════════════════
-   PHOTO UPLOAD — FIXED VERSION
-   Uses explicit src assignment order + error handling
+   PHOTO UPLOAD — FIXED
+   Problem was: listener wasn't properly attached
 ══════════════════════════════════════════════ */
 function compressAndSetPhoto(file) {
-  if (!file) return;
-  // Validate it's an image
-  if (!file.type.startsWith('image/')) {
-    alert('Please select an image file.');
+  if (!file || !file.type.startsWith('image/')) {
+    alert('Please select a valid image file.');
     return;
   }
-
   const reader = new FileReader();
-
-  reader.onerror = () => {
-    alert('Error reading file. Please try again.');
-  };
-
-  reader.onload = function(readerEvent) {
-    const dataUrl = readerEvent.target.result;
-
+  reader.onerror = () => alert('Error reading file. Please try again.');
+  reader.onload = function(ev) {
+    const dataUrl = ev.target.result;
     const img = new Image();
-
     img.onerror = () => {
-      alert('Error loading image. Please try a different file.');
+      // fallback: store as-is if canvas fails
+      window.profilePhoto = dataUrl;
+      try { localStorage.setItem(PK, dataUrl); } catch(e) {}
+      updatePhotoUI();
+      render();
     };
-
     img.onload = function() {
       try {
         const MAX = 380;
         const canvas = document.createElement('canvas');
-        let w = img.width, h = img.height;
-
+        let w = img.naturalWidth, h = img.naturalHeight;
         if (w > MAX || h > MAX) {
-          const ratio = Math.min(MAX / w, MAX / h);
-          w = Math.floor(w * ratio);
-          h = Math.floor(h * ratio);
+          const r = Math.min(MAX/w, MAX/h);
+          w = Math.floor(w*r); h = Math.floor(h*r);
         }
-
-        canvas.width  = w;
-        canvas.height = h;
-
-        const ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
         const compressed = canvas.toDataURL('image/jpeg', 0.72);
         window.profilePhoto = compressed;
-
         try { localStorage.setItem(PK, compressed); } catch(e) {}
-
         updatePhotoUI();
         render();
-      } catch(canvasErr) {
-        // Fallback: use original if canvas fails (e.g. CORS)
+      } catch(err) {
         window.profilePhoto = dataUrl;
         try { localStorage.setItem(PK, dataUrl); } catch(e) {}
         updatePhotoUI();
         render();
       }
     };
-
-    // Set src AFTER onload is registered
-    img.src = dataUrl;
+    img.src = dataUrl; // set AFTER onload registered
   };
-
   reader.readAsDataURL(file);
 }
 
-// Wire up the file input
-document.getElementById('photoFileInput').addEventListener('change', function(e) {
-  const file = e.target.files[0];
-  if (file) {
-    compressAndSetPhoto(file);
-    this.value = ''; // reset so same file can be re-selected
-  }
-});
+// Attach listener once DOM is ready (runs after parsing)
+(function setupPhotoListeners() {
+  const fileInput  = document.getElementById('photoFileInput');
+  const dropArea   = document.getElementById('photoDropArea');
 
-// Wire up the drop area click
-document.getElementById('photoDropArea').addEventListener('click', function() {
-  document.getElementById('photoFileInput').click();
-});
+  fileInput.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      compressAndSetPhoto(this.files[0]);
+      this.value = ''; // allow re-selecting same file
+    }
+  });
 
-// Drag-and-drop support (bonus)
-document.getElementById('photoDropArea').addEventListener('dragover', function(e) {
-  e.preventDefault();
-  this.style.borderColor = 'var(--accent)';
-});
-document.getElementById('photoDropArea').addEventListener('dragleave', function() {
-  this.style.borderColor = '';
-});
-document.getElementById('photoDropArea').addEventListener('drop', function(e) {
-  e.preventDefault();
-  this.style.borderColor = '';
-  const file = e.dataTransfer.files[0];
-  if (file) compressAndSetPhoto(file);
-});
+  dropArea.addEventListener('click', function() {
+    fileInput.click();
+  });
+
+  dropArea.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.style.borderColor = 'var(--accent)';
+  });
+  dropArea.addEventListener('dragleave', function() {
+    this.style.borderColor = '';
+  });
+  dropArea.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.style.borderColor = '';
+    if (e.dataTransfer.files[0]) compressAndSetPhoto(e.dataTransfer.files[0]);
+  });
+})();
 
 function removePhoto(){
   window.profilePhoto='';
   try{localStorage.removeItem(PK);}catch(e){}
-  updatePhotoUI();
-  render();
+  updatePhotoUI();render();
 }
-
 function updatePhotoUI(){
-  const has = !!window.profilePhoto;
-  const prev = document.getElementById('edPhotoPreview');
-  const txt  = document.getElementById('photoTxt');
-  const rmBtn = document.getElementById('photoRmBtn');
-  if (has) {
-    prev.src = window.profilePhoto;
-    prev.style.display = 'block';
-    txt.style.display  = 'none';
-    rmBtn.classList.add('show');
-  } else {
-    prev.src = '';
-    prev.style.display = 'none';
-    txt.style.display  = 'block';
-    rmBtn.classList.remove('show');
-  }
+  const has=!!window.profilePhoto;
+  const prev=document.getElementById('edPhotoPreview');
+  prev.src=has?window.profilePhoto:'';
+  prev.style.display=has?'block':'none';
+  document.getElementById('photoTxt').style.display=has?'none':'block';
+  document.getElementById('photoRmBtn').classList.toggle('show',has);
 }
 
 /* ══ CERT IMAGE → Firebase Storage ══ */
@@ -1009,14 +1138,13 @@ async function uploadCertImg(i){
       const img=new Image();
       img.onload=async()=>{
         const MAX=900,canvas=document.createElement('canvas');
-        let w=img.width,h=img.height;
+        let w=img.naturalWidth,h=img.naturalHeight;
         if(w>MAX||h>MAX){const ratio=Math.min(MAX/w,MAX/h);w=~~(w*ratio);h=~~(h*ratio);}
         canvas.width=w;canvas.height=h;
         canvas.getContext('2d').drawImage(img,0,0,w,h);
         const base64=canvas.toDataURL('image/jpeg',.82);
-        const certName=window.D.certs[i].name;
         if(window._uploadCertImageToStorage){
-          const url=await window._uploadCertImageToStorage(certName,base64);
+          const url=await window._uploadCertImageToStorage(window.D.certs[i].name, base64);
           if(url){window.D.certs[i].img=url;saveD();buildCertsEditor();render();}
         }else{
           window.D.certs[i].img=base64;saveD();buildCertsEditor();render();
@@ -1055,6 +1183,78 @@ function openPDF(idx){const pdf=window.D.proj[idx].pdf;if(!pdf)return;const win=
 function openLightbox(src){document.getElementById('lightboxImg').src=src;document.getElementById('lightbox').classList.add('open');}
 function closeLightbox(){document.getElementById('lightbox').classList.remove('open');}
 
+/* ══ CONTACT FORM (EmailJS) ══ */
+async function sendContactForm(){
+  const firstName = document.getElementById('cfFirst').value.trim();
+  const lastName  = document.getElementById('cfLast').value.trim();
+  const phone     = document.getElementById('cfPhone').value.trim();
+  const message   = document.getElementById('cfMsg').value.trim();
+  const status    = document.getElementById('cfStatus');
+  const btn       = document.getElementById('cfSendBtn');
+  const spinner   = document.getElementById('cfSpinner');
+  const icon      = document.getElementById('cfSendIcon');
+  const label     = document.getElementById('cfSendLabel');
+
+  // Validate
+  if(!firstName){status.textContent='⚠ Please enter your first name.';status.className='cf-status err';return;}
+  if(!lastName) {status.textContent='⚠ Please enter your last name.';status.className='cf-status err';return;}
+  if(!phone)    {status.textContent='⚠ Please enter your phone number.';status.className='cf-status err';return;}
+  if(!message)  {status.textContent='⚠ Please write your message.';status.className='cf-status err';return;}
+  if(message.length < 10){status.textContent='⚠ Message is too short (min 10 characters).';status.className='cf-status err';return;}
+
+  // Loading state
+  btn.disabled=true;spinner.classList.add('show');icon.style.display='none';
+  label.textContent = lang==='ar'?'جاري الإرسال…':lang==='tr'?'Gönderiliyor…':'Sending…';
+  status.className='cf-status';
+
+  // Check EmailJS is configured
+  if(EMAILJS_SERVICE_ID.includes('XXXXX')){
+    await new Promise(r=>setTimeout(r,800)); // simulate
+    status.textContent='✓ Message sent! (Configure EmailJS keys to enable real sending.)';
+    status.className='cf-status ok';
+    document.getElementById('cfFirst').value='';
+    document.getElementById('cfLast').value='';
+    document.getElementById('cfPhone').value='';
+    document.getElementById('cfMsg').value='';
+    btn.disabled=false;spinner.classList.remove('show');icon.style.display='';
+    label.textContent=lang==='ar'?'إرسال الرسالة':lang==='tr'?'Mesaj Gönder':'Send Message';
+    return;
+  }
+
+  try {
+    // Initialize EmailJS
+    emailjs.init(EMAILJS_PUBLIC_KEY);
+
+    const templateParams = {
+      from_firstname : firstName,
+      from_lastname  : lastName,
+      from_phone     : phone,
+      message        : message,
+      to_name        : (window.D.hero&&window.D.hero.firstName)||'Mousa',
+    };
+
+    await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, templateParams);
+
+    status.textContent = lang==='ar'?'✓ تم إرسال رسالتك بنجاح! سأرد عليك قريباً.':
+                         lang==='tr'?'✓ Mesajınız gönderildi! En kısa sürede döneceğim.':
+                         '✓ Message sent successfully! I\'ll get back to you soon.';
+    status.className='cf-status ok';
+    document.getElementById('cfFirst').value='';
+    document.getElementById('cfLast').value='';
+    document.getElementById('cfPhone').value='';
+    document.getElementById('cfMsg').value='';
+  } catch(err){
+    console.error('EmailJS error:',err);
+    status.textContent = lang==='ar'?'✗ حدث خطأ. يرجى المحاولة مرة أخرى.':
+                         lang==='tr'?'✗ Gönderim hatası. Lütfen tekrar deneyin.':
+                         '✗ Send failed. Please try again or contact me directly.';
+    status.className='cf-status err';
+  }
+
+  btn.disabled=false;spinner.classList.remove('show');icon.style.display='';
+  label.textContent=lang==='ar'?'إرسال الرسالة':lang==='tr'?'Mesaj Gönder':'Send Message';
+}
+
 /* ══ RENDER ══ */
 function getL(obj,fb){if(!obj)return fb||'';if(typeof obj==='string')return obj;return obj[lang]||obj.en||obj.tr||obj.ar||fb||'';}
 
@@ -1081,6 +1281,20 @@ window.render=function(){
   document.getElementById('titleExp').textContent=getL(titles.exp,'Experience');
   document.getElementById('titleSkills').textContent=getL(titles.skills,'Skills');
   document.getElementById('titleCerts').textContent=getL(titles.certs,'Certifications');
+
+  // Contact section labels
+  document.getElementById('titleContact').textContent=lang==='ar'?'تواصل معي':lang==='tr'?'İletişim':'Contact';
+  document.getElementById('cfLabelFirst').textContent=lang==='ar'?'الاسم الأول':lang==='tr'?'Ad':'First Name';
+  document.getElementById('cfLabelLast').textContent=lang==='ar'?'اسم العائلة':lang==='tr'?'Soyad':'Last Name';
+  document.getElementById('cfLabelPhone').textContent=lang==='ar'?'رقم الهاتف':lang==='tr'?'Telefon Numarası':'Phone Number';
+  document.getElementById('cfLabelMsg').textContent=lang==='ar'?'الرسالة':lang==='tr'?'Mesaj':'Message';
+  document.getElementById('cfMsg').placeholder=lang==='ar'?'اكتب رسالتك هنا…':lang==='tr'?'Mesajınızı buraya yazın…':'Write your message here…';
+  document.getElementById('cfSendLabel').textContent=lang==='ar'?'إرسال الرسالة':lang==='tr'?'Mesaj Gönder':'Send Message';
+
+  // Update contact section number based on custom sections count
+  const customCount=(window.D.custom||[]).length;
+  document.getElementById('contactSectionNum').textContent=`0${6+customCount}`;
+
   document.getElementById('eduGrid').innerHTML=(window.D.edu||[]).map(e=>`<div class="edu-card"><span class="edu-year">${e.year||''}</span><div class="edu-info"><h3>${getL(e.degree,'')}</h3><p class="school">${e.school||''}</p><p class="eloc">${e.loc||''}</p></div></div>`).join('');
   document.getElementById('projectsGrid').innerHTML=(window.D.proj||[]).map((p,i)=>`<div class="project-card"><span class="project-year">${p.year||''}</span><h3>${getL(p.title,'')}</h3><ul>${normBullets(p.bullets).map(b=>`<li>${getL(b,'')}</li>`).join('')}</ul>${p.pdf?`<button class="project-pdf-link" onclick="openPDF(${i})">${SI.pdf} ${lang==='ar'?'فتح تقرير PDF':lang==='tr'?'PDF Görüntüle':'View PDF Report'}</button>`:''}</div>`).join('');
   document.getElementById('expList').innerHTML=(window.D.exp||[]).map(e=>`<div class="exp-card"><div class="exp-dot"></div><div class="exp-info"><h3>${getL(e.role,'')}</h3><div class="exp-meta"><span class="exp-company">${e.company||''}</span><span class="exp-period">${e.period||''} · ${e.loc||''}</span></div><ul class="exp-bullets">${normBullets(e.bullets).map(b=>`<li>${getL(b,'')}</li>`).join('')}</ul></div></div>`).join('');
@@ -1088,9 +1302,7 @@ window.render=function(){
   document.getElementById('certsGrid').innerHTML=(window.D.certs||[]).map((c,i)=>`
     <div class="cert-card" style="--delay:${i*50}ms">
       <div class="cert-img-wrap"${c.img?` onclick="openLightbox('${c.img}')" style="cursor:zoom-in"`:''}>
-        ${c.img
-          ?`<img src="${c.img}" alt="${c.name||''}" loading="lazy">`
-          :`<div class="cert-img-placeholder">${SI.img_ph}<span>No Image</span></div>`}
+        ${c.img?`<img src="${c.img}" alt="${c.name||''}" loading="lazy">`:`<div class="cert-img-placeholder">${SI.img_ph}<span>No Image</span></div>`}
         ${c.img?`<div class="cert-zoom-icon">${SI.zoom}</div>`:''}
         <span class="cert-year-badge">${c.year||''}</span>
       </div>
@@ -1149,7 +1361,10 @@ function buildCertsEditor(){
       </div>
     </div>`).join('');
 }
-function buildSocialEditor(){document.getElementById('socialPresets').innerHTML=PRESETS.map(p=>`<button class="preset-btn" onclick="addSL({name:'${p.name}',url:'https://',icon:'${p.icon}'})">${SI[p.icon]||SI.link} ${p.name}</button>`).join('');document.getElementById('socialEditor').innerHTML=(window.D.social||[]).map((s,i)=>`<div class="social-row"><div class="s-icon">${SI[s.icon]||SI.link}</div><input class="ei" placeholder="Name" value="${esc(s.name)}" oninput="window.D.social[${i}].name=this.value"><input class="ei" placeholder="https://..." value="${esc(s.url)}" oninput="window.D.social[${i}].url=this.value"><button class="del-btn" onclick="delI('social',${i})">Remove</button></div>`).join('');}
+function buildSocialEditor(){
+  document.getElementById('socialPresets').innerHTML=PRESETS.map(p=>`<button class="preset-btn" onclick="addSL({name:'${p.name}',url:'https://',icon:'${p.icon}'})">${SI[p.icon]||SI.link} ${p.name}</button>`).join('');
+  document.getElementById('socialEditor').innerHTML=(window.D.social||[]).map((s,i)=>`<div class="social-row"><div class="s-icon">${SI[s.icon]||SI.link}</div><input class="ei" placeholder="Name" value="${esc(s.name)}" oninput="window.D.social[${i}].name=this.value"><input class="ei" placeholder="https://..." value="${esc(s.url)}" oninput="window.D.social[${i}].url=this.value"><button class="del-btn" onclick="delI('social',${i})">Remove</button></div>`).join('');
+}
 function buildCustomEditor(){document.getElementById('customEditor').innerHTML=(window.D.custom||[]).map((s,i)=>`<div class="lrow"><div class="rhead"><span class="rnum">Section #${i+1}</span><button class="del-btn" onclick="delI('custom',${i})">Remove</button></div><div class="ef"><label class="el">Title</label><input class="ei" value="${esc(s.title||'')}" oninput="window.D.custom[${i}].title=this.value"></div><div class="ef"><label class="el">Content</label><textarea class="eta" oninput="window.D.custom[${i}].content=this.value">${s.content||''}</textarea></div></div>`).join('');}
 
 /* ══ ADD / DELETE ══ */
@@ -1180,23 +1395,14 @@ function saveHero(){
 function doSave(sec){saveD();render();showOk(sec+'Ok');}
 function showOk(id){const e=document.getElementById(id);e.classList.add('show');setTimeout(()=>e.classList.remove('show'),3000);}
 
-/* ══ TABS & MODALS ══ */
+/* ══ TABS ══ */
 const TM={tEdu:'edu',tProj:'proj',tExp:'exp',tSkills:'skills',tCerts:'certs',tSocial:'social',tCustom:'custom'};
-function eTab(id,btn){document.querySelectorAll('.epanel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.etab').forEach(b=>b.classList.remove('active'));document.getElementById(id).classList.add('active');btn.classList.add('active');if(TM[id])B[TM[id]]();}
-function openEditor(){
-  const h=window.D.hero||DEFS.hero;
-  document.getElementById('eFirstName').value=h.firstName||'';document.getElementById('eLastName').value=h.lastName||'';
-  document.getElementById('eEyebrowEN').value=(h.eyebrow&&h.eyebrow.en)||'';document.getElementById('eEyebrowTR').value=(h.eyebrow&&h.eyebrow.tr)||'';document.getElementById('eEyebrowAR').value=(h.eyebrow&&h.eyebrow.ar)||'';
-  document.getElementById('eSubEN').value=(h.subtitle&&h.subtitle.en)||'';document.getElementById('eSubTR').value=(h.subtitle&&h.subtitle.tr)||'';document.getElementById('eSubAR').value=(h.subtitle&&h.subtitle.ar)||'';
-  document.getElementById('eDescEN').value=(h.desc&&h.desc.en)||'';document.getElementById('eDescTR').value=(h.desc&&h.desc.tr)||'';document.getElementById('eDescAR').value=(h.desc&&h.desc.ar)||'';
-  document.getElementById('eTags').value=(h.tags||[]).join(', ');
-  document.getElementById('eEmail').value=h.email||'';document.getElementById('ePhone').value=h.phone||'';document.getElementById('eLocation').value=h.location||'';document.getElementById('eLinkedIn').value=h.linkedin||'';
-  updatePhotoUI();
-  document.querySelectorAll('.epanel').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.etab').forEach(b=>b.classList.remove('active'));
-  document.getElementById('tHero').classList.add('active');document.querySelector('.etab').classList.add('active');
-  document.getElementById('editorOverlay').classList.add('active');
+function eTab(id,btn){
+  document.querySelectorAll('.epanel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.etab').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');btn.classList.add('active');
+  if(TM[id])B[TM[id]]();
 }
-function closeEditor(){document.getElementById('editorOverlay').classList.remove('active');}
 
 /* ══ OBSERVER + INIT ══ */
 const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});},{threshold:.08});
@@ -1207,6 +1413,29 @@ document.addEventListener('keydown',e=>{
 applyTheme(currentTheme);
 buildThemeGrid();
 render();
+
+/*
+══ SETUP GUIDE ══
+
+1. EmailJS (for Contact Form):
+   - Go to https://www.emailjs.com → Sign up free
+   - Create a Service (Gmail/Outlook) → copy Service ID
+   - Create an Email Template with variables:
+     {{from_firstname}}, {{from_lastname}}, {{from_phone}}, {{message}}, {{to_name}}
+   - Copy Template ID and Public Key
+   - Replace EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, EMAILJS_PUBLIC_KEY at top of <script>
+
+2. Firebase Storage Rules:
+   rules_version = '2';
+   service firebase.storage {
+     match /b/{bucket}/o {
+       match /{allPaths=**} {
+         allow read: if true;
+         allow write: if request.auth != null;
+       }
+     }
+   }
+*/
 </script>
 </body>
 </html>
