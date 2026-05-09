@@ -793,13 +793,9 @@ function closeLogin(){
 function openEditor(){
    const overlay = document.getElementById('editorOverlay');
    if(overlay){
+     overlay.style.display='flex'; // ضمان أن العنصر مرئي
      overlay.classList.add('active');
-     overlay.style.display='flex'; // تأكد من أن العرض مرئي
    }
-
-  if(!window.D){
-    window.D = loadLocalD();
-  }
 
   const h = window.D.hero || DEFS.hero || {};
 
