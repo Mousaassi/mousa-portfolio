@@ -792,32 +792,40 @@ function closeLogin(){
 
 // ══ FIX الرئيسي: openEditor يضمن وجود window.D قبل الفتح ══
 function openEditor(){
-  document.getElementById('editorOverlay').classList.add('active');
+   const overlay = document.getElementById('editorOverlay');
 
-  // إذا D غير موجود بعد
+  if(overlay){
+    overlay.classList.add('active');
+    overlay.style.display = 'flex';
+  }
+
   if(!window.D){
     window.D = loadLocalD();
   }
 
   const h = window.D.hero || DEFS.hero || {};
 
-  // ملء الحقول بأمان مع || ''
-  document.getElementById('eFirstName').value=h.firstName||'';
-  document.getElementById('eLastName').value=h.lastName||'';
-  document.getElementById('eEyebrowEN').value=(h.eyebrow&&h.eyebrow.en)||'';
-  document.getElementById('eEyebrowTR').value=(h.eyebrow&&h.eyebrow.tr)||'';
-  document.getElementById('eEyebrowAR').value=(h.eyebrow&&h.eyebrow.ar)||'';
-  document.getElementById('eSubEN').value=(h.subtitle&&h.subtitle.en)||'';
-  document.getElementById('eSubTR').value=(h.subtitle&&h.subtitle.tr)||'';
-  document.getElementById('eSubAR').value=(h.subtitle&&h.subtitle.ar)||'';
-  document.getElementById('eDescEN').value=(h.desc&&h.desc.en)||'';
-  document.getElementById('eDescTR').value=(h.desc&&h.desc.tr)||'';
-  document.getElementById('eDescAR').value=(h.desc&&h.desc.ar)||'';
-  document.getElementById('eTags').value=(h.tags||[]).join(', ');
-  document.getElementById('eEmail').value=h.email||'';
-  document.getElementById('ePhone').value=h.phone||'';
-  document.getElementById('eLocation').value=h.location||'';
-  document.getElementById('eLinkedIn').value=h.linkedin||'';
+  document.getElementById('eFirstName').value = h.firstName || '';
+  document.getElementById('eLastName').value = h.lastName || '';
+
+  document.getElementById('eEyebrowEN').value = (h.eyebrow && h.eyebrow.en) || '';
+  document.getElementById('eEyebrowTR').value = (h.eyebrow && h.eyebrow.tr) || '';
+  document.getElementById('eEyebrowAR').value = (h.eyebrow && h.eyebrow.ar) || '';
+
+  document.getElementById('eSubEN').value = (h.subtitle && h.subtitle.en) || '';
+  document.getElementById('eSubTR').value = (h.subtitle && h.subtitle.tr) || '';
+  document.getElementById('eSubAR').value = (h.subtitle && h.subtitle.ar) || '';
+
+  document.getElementById('eDescEN').value = (h.desc && h.desc.en) || '';
+  document.getElementById('eDescTR').value = (h.desc && h.desc.tr) || '';
+  document.getElementById('eDescAR').value = (h.desc && h.desc.ar) || '';
+
+  document.getElementById('eTags').value = (h.tags || []).join(', ');
+
+  document.getElementById('eEmail').value = h.email || '';
+  document.getElementById('ePhone').value = h.phone || '';
+  document.getElementById('eLocation').value = h.location || '';
+  document.getElementById('eLinkedIn').value = h.linkedin || '';
   updatePhotoUI();
 
   // إعادة تعيين التابز إلى Hero
