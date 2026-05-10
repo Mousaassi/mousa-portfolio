@@ -1310,9 +1310,9 @@ window.render=function(){
     </div>`).join('');
 
   // Contact labels
- const ct={en:{t:'Get In Touch',d:'Send me a message.',fn:'First Name',ln:'Last Name',ph:'Phone (optional)',ms:'Message',sb:'Send Message'},
-        tr:{t:'İletişime Geç',d: Mesaj gönderin, en kısa sürede döneceğim.',fn:'Ad',ln:'Soyad',ph:'Telefon (isteğe bağlı)',ms:'Mesaj',sb:'Gönder'},
-        ar:{t:'تواصل معي',d:' أرسل رسالة وسأرد في أقرب وقت.',fn:'الاسم الأول',ln:'الاسم الأخير',ph:'الهاتف (اختياري)',ms:'الرسالة',sb:'إرسال'}};
+  const ct={en:{t:'Get In Touch',d:'Have a project or want to collaborate? Send me a message.',fn:'First Name',ln:'Last Name',ph:'Phone (optional)',ms:'Message',sb:'Send Message'},
+            tr:{t:'İletişime Geç',d:'Bir projeniz mi var? Mesaj gönderin, en kısa sürede döneceğim.',fn:'Ad',ln:'Soyad',ph:'Telefon (isteğe bağlı)',ms:'Mesaj',sb:'Gönder'},
+            ar:{t:'تواصل معي',d:'هل لديك مشروع؟ أرسل رسالة وسأرد في أقرب وقت.',fn:'الاسم الأول',ln:'الاسم الأخير',ph:'الهاتف (اختياري)',ms:'الرسالة',sb:'إرسال'}};
   const c=ct[lang]||ct.en;
   document.getElementById('ctTitle').textContent=c.t;
   document.getElementById('ctDesc').textContent=c.d;
