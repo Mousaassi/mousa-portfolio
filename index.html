@@ -2308,27 +2308,14 @@ render();
   }
 })();
 
-/* ── B8. Subtitle fade cycle ── */
+/* ── B8. Typewriter sub-title cycle ── */
 (function(){
-  const style = document.createElement('style');
-  style.textContent = `
-    #heroSub {
-      transition: opacity .5s ease, transform .5s ease;
-    }
-
-    #heroSub.fade-out {
-      opacity: 0;
-      transform: translateY(8px);
-    }
-
-    #heroSub.fade-in {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  `;
-  document.head.appendChild(style);
+  let cycling = false;
 
   function startCycle(){
+    if(cycling) return;
+    cycling = true;
+
     const el = document.getElementById('heroSub');
     if(!el) return;
 
@@ -2342,27 +2329,45 @@ render();
     ];
 
     let idx = 0;
-    el.textContent = texts[0];
-    el.classList.add('fade-in');
 
-    setInterval(() => {
-      el.classList.remove('fade-in');
-      el.classList.add('fade-out');
+    function typeOut(text, cb){
+      el.textContent = '';
+      let i = 0;
 
-      setTimeout(() => {
-        idx = (idx + 1) % texts.length;
-        el.textContent = texts[idx];
+      const iv = setInterval(()=>{
+        el.textContent = text.slice(0, ++i);
 
-        el.classList.remove('fade-out');
-        el.classList.add('fade-in');
-      }, 500);
+        if(i >= text.length){
+          clearInterval(iv);
+          setTimeout(cb, 1800);
+        }
+      }, 35);
+    }
 
-    }, 3200);
+    function eraseOut(cb){
+      let t = el.textContent;
+
+      const iv = setInterval(()=>{
+        t = t.slice(0, -1);
+        el.textContent = t;
+
+        if(!t.length){
+          clearInterval(iv);
+          cb();   // مباشرة
+        }
+      }, 18);
+    }
+
+    function loop(){
+      idx = (idx + 1) % texts.length;
+      eraseOut(()=> typeOut(texts[idx], loop));
+    }
+
+    typeOut(texts[0], loop);
   }
 
-  setTimeout(startCycle, 1200);
+  setTimeout(startCycle, 1000);
 })();
-
 </script>
 
 <!-- ═══════════════════════════════════════════════════════════════
