@@ -2358,7 +2358,6 @@ render();
   const style = document.createElement('style');
   style.textContent = `
     #heroSub { border-right: 2px solid transparent; }
-    #heroSub.typing { border-right-color: var(--ac); animation: cursorBlink .7s step-end infinite; }
     @keyframes cursorBlink { 0%,100%{border-color:var(--ac)} 50%{border-color:transparent} }
   `;
   document.head.appendChild(style);
