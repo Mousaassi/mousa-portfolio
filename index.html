@@ -1923,41 +1923,6 @@ render();
   }, {passive:true});
 })();
 
-/* ── A7. Text Scramble on Hover for Section Titles ── */
-(function(){
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789#$%&@';
-  function scramble(el){
-    const original = el.textContent;
-    let frame = 0, maxFrames = 14;
-    const iv = setInterval(()=>{
-      el.textContent = original.split('').map((ch, i)=>{
-        if(ch === ' ') return ' ';
-        if(i < frame * (original.length / maxFrames)) return ch;
-        return chars[~~(Math.random()*chars.length)];
-      }).join('');
-      if(++frame > maxFrames){
-        el.textContent = original;
-        clearInterval(iv);
-      }
-    }, 35);
-  }
-  document.querySelectorAll('.st').forEach(el=>{
-    el.addEventListener('mouseenter', ()=>scramble(el));
-  });
-  // Re-apply after render
-  const origRender = window.render;
-  if(origRender){
-    window.render = function(){
-      origRender.apply(this, arguments);
-      requestAnimationFrame(()=>{
-        document.querySelectorAll('.st').forEach(el=>{
-          el.addEventListener('mouseenter', ()=>scramble(el));
-        });
-      });
-    };
-  }
-})();
-
 /* ── A8. Pulse Ring on Exp dots ── */
 (function(){
   const style = document.createElement('style');
