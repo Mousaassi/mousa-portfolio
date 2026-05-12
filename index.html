@@ -2310,84 +2310,63 @@ render();
 
 /* ── B8. Typewriter sub-title cycle ── */
 (function(){
-  const style = document.createElement('style');
-  style.textContent = `
-    #heroSub { border-right: 2px solid transparent; }
-    @keyframes cursorBlink { 0%,100%{border-color:var(--ac)} 50%{border-color:transparent} }
-  `;
-  document.head.appendChild(style);
   let cycling = false;
+
   function startCycle(){
     if(cycling) return;
     cycling = true;
+
     const el = document.getElementById('heroSub');
     if(!el) return;
-    const origText = el.textContent;
-    const texts = [origText];
-    // add extra phrases derived from tags
-    const tags = (window.D&&window.D.hero&&window.D.hero.tags)||[];
-    if(tags.length>2) texts.push(tags.slice(0,3).join(' · '));
-    if(tags.length>5) texts.push(tags.slice(3,6).join(' · '));
-    let idx=0;
+
+    const texts = [
+      "UAV Systems Developer",
+      "Robotics & Autonomous Systems",
+      "Embedded Systems Engineer",
+      "3D Printing & Mechanical Design",
+      "Control Systems (PD / PID)",
+      "Medical Technology Projects"
+    ];
+
+    let idx = 0;
+
     function typeOut(text, cb){
-      el.textContent=''; el.classList.add('typing');
-      let i=0;
-      const iv=setInterval(()=>{
-        el.textContent=text.slice(0,++i);
-        if(i>=text.length){clearInterval(iv); setTimeout(cb,2800);}
-      },38);
+      el.textContent = '';
+      let i = 0;
+
+      const iv = setInterval(()=>{
+        el.textContent = text.slice(0, ++i);
+
+        if(i >= text.length){
+          clearInterval(iv);
+          setTimeout(cb, 2500);
+        }
+      }, 38);
     }
+
     function eraseOut(cb){
-      let t=el.textContent;
-      const iv=setInterval(()=>{
-        t=t.slice(0,-1); el.textContent=t;
-        if(!t.length){clearInterval(iv); el.classList.remove('typing'); cb();}
-      },22);
+      let t = el.textContent;
+
+      const iv = setInterval(()=>{
+        t = t.slice(0, -1);
+        el.textContent = t;
+
+        if(!t.length){
+          clearInterval(iv);
+          cb();
+        }
+      }, 22);
     }
+
     function loop(){
-      idx=(idx+1)%texts.length;
-      eraseOut(()=>setTimeout(()=>typeOut(texts[idx],loop),300));
+      idx = (idx + 1) % texts.length;
+      eraseOut(()=> setTimeout(()=> typeOut(texts[idx], loop), 300));
     }
-    setTimeout(()=>typeOut(origText,loop),1500);
+
+    typeOut(texts[0], loop);
   }
-  setTimeout(startCycle,2000);
-})();
 
-/* ── B9. Magnetic Nav Logo ── */
-(function(){
-  const logo = document.querySelector('.logo');
-  if(!logo) return;
-  const style = document.createElement('style');
-  style.textContent = `
-    .logo { cursor: default; transition: letter-spacing .3s ease, color .3s; }
-    .logo:hover { letter-spacing: .18em; color: var(--a2) !important; }
-  `;
-  document.head.appendChild(style);
-})();
-
-/* ── B10. Section Divider Animated Gradient ── */
-(function(){
-  const style = document.createElement('style');
-  style.textContent = `
-    @keyframes divAnim {
-      0%   { background-position: 0% 50%; }
-      100% { background-position: 400% 50%; }
-    }
-    .sdiv {
-      background: linear-gradient(90deg,
-        transparent 0%,
-        var(--bd) 20%,
-        var(--ac) 40%,
-        var(--a2) 60%,
-        var(--bd) 80%,
-        transparent 100%
-      ) !important;
-      background-size: 400% 100% !important;
-      animation: divAnim 6s linear infinite !important;
-      opacity: .55 !important;
-    }
-  `;
-  document.head.appendChild(style);
+  setTimeout(startCycle, 1500);
 })();
 
 </script>
