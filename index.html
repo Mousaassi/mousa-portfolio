@@ -610,7 +610,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 
 <!-- HEADER -->
 <header>
-  <div class="logo">MA</div>
+<div class="logo" ondblclick="openLogin()">MA</div>
   <div class="hr">
     <div class="lang-sw">
       <button class="lb active" onclick="setLang('en')">EN</button>
@@ -627,8 +627,8 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
         <div class="tgrid" id="themeGrid"></div>
       </div>
     </div>
-    <button class="admin-login-btn" id="adminLoginBtn" onclick="openLogin()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+<button class="admin-login-btn" id="adminLoginBtn" onclick="openLogin()" style="display:none;">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
       Admin
     </button>
     <div class="admin-bar" id="adminBar">
