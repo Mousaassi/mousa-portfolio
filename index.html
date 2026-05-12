@@ -285,7 +285,16 @@ header{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:
 .h-ey::before{content:'';display:block;width:40px;height:1px;background:var(--ac);}
 .h-name{font-family:var(--fd);font-size:clamp(3rem,7vw,6.5rem);font-weight:900;line-height:.93;letter-spacing:-.025em;margin-bottom:10px;}
 .h-name .ac{background:linear-gradient(90deg,var(--ac) 25%,#fff8e7 50%,var(--ac) 75%);background-size:200% auto;-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;animation:shimmer 4s linear infinite;}
-.h-sub{font-family:var(--fd);font-size:clamp(1rem,2vw,1.5rem);color:var(--td);font-weight:400;font-style:italic;margin-bottom:20px;margin-top:14px;}
+.h-sub{
+  font-family:var(--fd);
+  font-size:clamp(1rem,2vw,1.5rem);
+  color:var(--td);
+  font-weight:400;
+  font-style:italic;
+  margin-bottom:20px;
+  margin-top:14px;
+  min-height:48px;
+}
 .h-desc{font-size:.94rem;color:var(--td);line-height:1.85;max-width:540px;margin-bottom:28px;}
 .h-tags{display:flex;flex-wrap:wrap;gap:9px;margin-bottom:32px;}
 .tag{padding:5px 15px;border:1px solid var(--bd);border-radius:50px;font-size:.78rem;color:var(--td);font-family:var(--fm);transition:var(--tr);cursor:default;}
