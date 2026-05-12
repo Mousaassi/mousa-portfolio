@@ -2187,51 +2187,6 @@ render();
   }
 })();
 
-/* ── B4. Ambient Sound-wave Bars beside Hero Photo ── */
-(function(){
-  const style = document.createElement('style');
-  style.textContent = `
-    .soundwave {
-      display: flex;
-      align-items: flex-end;
-      gap: 3px;
-      height: 26px;
-      margin-top: 14px;
-      justify-content: center;
-    }
-    .sw-bar {
-      width: 3px;
-      border-radius: 2px;
-      background: var(--ac);
-      opacity: .7;
-      transform-origin: bottom;
-      animation: swBar var(--d,.8s) ease-in-out infinite alternate;
-    }
-    @keyframes swBar {
-      from { transform: scaleY(.2); opacity:.4; }
-      to   { transform: scaleY(1);  opacity:.9; }
-    }
-  `;
-  document.head.appendChild(style);
-  function buildWave(){
-    const wrap = document.querySelector('.hphw');
-    if(!wrap || wrap.querySelector('.soundwave')) return;
-    const sw = document.createElement('div');
-    sw.className = 'soundwave';
-    const heights = [8,14,20,26,18,22,12,24,16,10,20,26,14,8,18];
-    heights.forEach((h,i)=>{
-      const b = document.createElement('div');
-      b.className = 'sw-bar';
-      b.style.height = h+'px';
-      b.style.setProperty('--d', (.5 + Math.random()*.8)+'s');
-      b.style.animationDelay = (i*.06)+'s';
-      sw.appendChild(b);
-    });
-    wrap.appendChild(sw);
-  }
-  setTimeout(buildWave, 500);
-})();
-
 /* ── B5. Section Number Count-up ── */
 (function(){
   const style = document.createElement('style');
