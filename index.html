@@ -2086,5 +2086,702 @@ render();
 })();
 
 </script>
+
+  <!-- ═══════════════════════════════════════════════════════════════
+     ADDON 1 — Extra Premium Animations
+     Paste this <script> block just before the closing </body> tag,
+     AFTER all existing <script> blocks.
+═══════════════════════════════════════════════════════════════ -->
+<script>
+/* ══════════════════════════════════════════════════════════════
+   🌟 PREMIUM ANIMATIONS ADDON v2
+   Paste AFTER all existing scripts, just before </body>
+══════════════════════════════════════════════════════════════ */
+
+/* ── B1. Glitch Effect on Hero Last Name (hover) ── */
+(function(){
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes glitch1 {
+      0%,100%{ clip-path:inset(0 0 90% 0); transform:skewX(0deg) translateX(0); }
+      20%    { clip-path:inset(30% 0 50% 0); transform:skewX(-4deg) translateX(-6px); }
+      40%    { clip-path:inset(70% 0 10% 0); transform:skewX(3deg) translateX(5px); }
+      60%    { clip-path:inset(10% 0 75% 0); transform:skewX(-2deg) translateX(-4px); }
+      80%    { clip-path:inset(50% 0 30% 0); transform:skewX(4deg) translateX(3px); }
+    }
+    @keyframes glitch2 {
+      0%,100%{ clip-path:inset(80% 0 0 0); transform:skewX(0deg) translateX(0); }
+      25%    { clip-path:inset(20% 0 60% 0); transform:skewX(3deg) translateX(5px); }
+      50%    { clip-path:inset(60% 0 20% 0); transform:skewX(-5deg) translateX(-7px); }
+      75%    { clip-path:inset(40% 0 40% 0); transform:skewX(2deg) translateX(4px); }
+    }
+    .h-name .ac { position: relative; display: inline-block; }
+    .h-name .ac::before,
+    .h-name .ac::after {
+      content: attr(data-text);
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      background: linear-gradient(90deg,var(--ac) 25%,#fff8e7 50%,var(--ac) 75%);
+      background-size: 200% auto;
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      opacity: 0;
+      pointer-events: none;
+    }
+    .h-name:hover .ac::before {
+      opacity: .75;
+      color: var(--a2);
+      background: var(--a2);
+      -webkit-text-fill-color: transparent;
+      animation: glitch1 .55s steps(1) infinite;
+    }
+    .h-name:hover .ac::after {
+      opacity: .65;
+      color: var(--a3);
+      background: var(--a3);
+      -webkit-text-fill-color: transparent;
+      animation: glitch2 .55s steps(1) infinite;
+    }
+  `;
+  document.head.appendChild(style);
+  function attachGlitch(){
+    const ac = document.querySelector('.h-name .ac');
+    if(ac && !ac.dataset.glitched){
+      ac.dataset.glitched = '1';
+      ac.dataset.text = ac.textContent;
+    }
+  }
+  attachGlitch();
+  const origRender = window.render;
+  if(origRender){
+    window.render = function(){
+      origRender.apply(this, arguments);
+      requestAnimationFrame(attachGlitch);
+    };
+  }
+})();
+
+/* ── B2. Neon Scanline Sweep on Section Enter ── */
+(function(){
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes scanSweep {
+      0%   { top: -2px; opacity: 1; }
+      100% { top: 100%; opacity: 0; }
+    }
+    .sec-scan-wrap { position: relative; overflow: hidden; }
+    .scan-line {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg,transparent,var(--ac),var(--a2),var(--a3),transparent);
+      pointer-events: none;
+      z-index: 10;
+      opacity: 0;
+    }
+    .scan-line.active {
+      animation: scanSweep .9s cubic-bezier(.4,0,.2,1) forwards;
+    }
+  `;
+  document.head.appendChild(style);
+  const obsScan = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      const sec = e.target;
+      if(sec.dataset.scanned) return;
+      sec.dataset.scanned = '1';
+      sec.classList.add('sec-scan-wrap');
+      const line = document.createElement('div');
+      line.className = 'scan-line';
+      sec.appendChild(line);
+      setTimeout(()=>line.classList.add('active'), 80);
+      setTimeout(()=>line.remove(), 1100);
+      obsScan.unobserve(sec);
+    });
+  },{threshold:.08});
+  document.querySelectorAll('.sec').forEach(s=>obsScan.observe(s));
+})();
+
+/* ── B3. Holographic Card Shine on Mouse Move ── */
+(function(){
+  const style = document.createElement('style');
+  style.textContent = `
+    .holo-card { position: relative; overflow: hidden; }
+    .holo-card::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at var(--mx,50%) var(--my,50%),
+        rgba(255,255,255,.13) 0%,
+        rgba(255,255,255,.05) 30%,
+        transparent 65%
+      );
+      opacity: 0;
+      transition: opacity .3s;
+      pointer-events: none;
+      z-index: 4;
+      border-radius: inherit;
+    }
+    .holo-card:hover::after { opacity: 1; }
+  `;
+  document.head.appendChild(style);
+  function applyHolo(){
+    document.querySelectorAll('.pc,.edu-card,.exp-card,.skcat').forEach(card=>{
+      if(card.dataset.holo) return;
+      card.dataset.holo = '1';
+      card.classList.add('holo-card');
+      card.addEventListener('mousemove', e=>{
+        const r = card.getBoundingClientRect();
+        const x = ((e.clientX - r.left) / r.width  * 100).toFixed(1);
+        const y = ((e.clientY - r.top)  / r.height * 100).toFixed(1);
+        card.style.setProperty('--mx', x+'%');
+        card.style.setProperty('--my', y+'%');
+      });
+    });
+  }
+  applyHolo();
+  const origRender = window.render;
+  if(origRender){
+    window.render = function(){
+      origRender.apply(this, arguments);
+      requestAnimationFrame(applyHolo);
+    };
+  }
+})();
+
+/* ── B4. Ambient Sound-wave Bars beside Hero Photo ── */
+(function(){
+  const style = document.createElement('style');
+  style.textContent = `
+    .soundwave {
+      display: flex;
+      align-items: flex-end;
+      gap: 3px;
+      height: 26px;
+      margin-top: 14px;
+      justify-content: center;
+    }
+    .sw-bar {
+      width: 3px;
+      border-radius: 2px;
+      background: var(--ac);
+      opacity: .7;
+      transform-origin: bottom;
+      animation: swBar var(--d,.8s) ease-in-out infinite alternate;
+    }
+    @keyframes swBar {
+      from { transform: scaleY(.2); opacity:.4; }
+      to   { transform: scaleY(1);  opacity:.9; }
+    }
+  `;
+  document.head.appendChild(style);
+  function buildWave(){
+    const wrap = document.querySelector('.hphw');
+    if(!wrap || wrap.querySelector('.soundwave')) return;
+    const sw = document.createElement('div');
+    sw.className = 'soundwave';
+    const heights = [8,14,20,26,18,22,12,24,16,10,20,26,14,8,18];
+    heights.forEach((h,i)=>{
+      const b = document.createElement('div');
+      b.className = 'sw-bar';
+      b.style.height = h+'px';
+      b.style.setProperty('--d', (.5 + Math.random()*.8)+'s');
+      b.style.animationDelay = (i*.06)+'s';
+      sw.appendChild(b);
+    });
+    wrap.appendChild(sw);
+  }
+  setTimeout(buildWave, 500);
+})();
+
+/* ── B5. Section Number Count-up ── */
+(function(){
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes numPop {
+      0%   { transform: scale(2.5) rotate(-15deg); opacity:0; color: var(--ac); }
+      60%  { transform: scale(.9) rotate(3deg); opacity:1; }
+      100% { transform: scale(1) rotate(0deg); opacity:1; }
+    }
+    .sn.count-pop { animation: numPop .7s cubic-bezier(.34,1.56,.64,1) both; }
+  `;
+  document.head.appendChild(style);
+  const obsN = new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      const sn = e.target.querySelector('.sn');
+      if(sn && !sn.dataset.popped){
+        sn.dataset.popped='1';
+        sn.classList.remove('count-pop');
+        void sn.offsetWidth;
+        sn.classList.add('count-pop');
+      }
+      obsN.unobserve(e.target);
+    });
+  },{threshold:.3});
+  document.querySelectorAll('.sec').forEach(s=>obsN.observe(s));
+})();
+
+/* ── B6. Floating Particle Burst on CTA Click ── */
+(function(){
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes burstFly {
+      0%   { transform: translate(0,0) scale(1); opacity:1; }
+      100% { transform: translate(var(--bx),var(--by)) scale(0); opacity:0; }
+    }
+    .burst-p {
+      position:fixed;pointer-events:none;z-index:9999;
+      border-radius:50%;width:6px;height:6px;
+      animation: burstFly .8s cubic-bezier(.4,0,.2,1) forwards;
+    }
+  `;
+  document.head.appendChild(style);
+  function burst(e){
+    const colors=['var(--ac)','var(--a2)','var(--a3)','#fff'];
+    for(let i=0;i<16;i++){
+      const p = document.createElement('div');
+      p.className='burst-p';
+      const angle = (i/16)*Math.PI*2;
+      const dist = 60+Math.random()*80;
+      p.style.left = e.clientX+'px';
+      p.style.top  = e.clientY+'px';
+      p.style.background = colors[~~(Math.random()*colors.length)];
+      p.style.setProperty('--bx', Math.cos(angle)*dist+'px');
+      p.style.setProperty('--by', Math.sin(angle)*dist+'px');
+      p.style.width = (4+Math.random()*6)+'px';
+      p.style.height = p.style.width;
+      document.body.appendChild(p);
+      setTimeout(()=>p.remove(),850);
+    }
+  }
+  document.querySelectorAll('.cfsub,.lbtn,.ahp-e').forEach(btn=>{
+    btn.addEventListener('click',burst);
+  });
+  const origRender = window.render;
+  if(origRender){
+    window.render = function(){
+      origRender.apply(this,arguments);
+      requestAnimationFrame(()=>{
+        document.querySelectorAll('.cfsub,.lbtn,.ahp-e').forEach(btn=>{
+          btn.removeEventListener('click',burst);
+          btn.addEventListener('click',burst);
+        });
+      });
+    };
+  }
+})();
+
+/* ── B7. Streak Light on Cert Cards ── */
+(function(){
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes certStreak {
+      0%   { left:-60%; opacity:0; }
+      20%  { opacity:.55; }
+      100% { left:130%; opacity:0; }
+    }
+    .cc .cert-streak {
+      position:absolute;
+      top:0;bottom:0;
+      width:40px;
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+      pointer-events:none;
+      z-index:5;
+      left:-60%;
+      opacity:0;
+    }
+    .cc:hover .cert-streak {
+      animation: certStreak .75s cubic-bezier(.4,0,.2,1) forwards;
+    }
+  `;
+  document.head.appendChild(style);
+  function addStreaks(){
+    document.querySelectorAll('.cc').forEach(c=>{
+      if(!c.querySelector('.cert-streak')){
+        const s = document.createElement('div');
+        s.className='cert-streak';
+        c.appendChild(s);
+      }
+    });
+  }
+  addStreaks();
+  const origRender = window.render;
+  if(origRender){
+    window.render = function(){
+      origRender.apply(this,arguments);
+      requestAnimationFrame(addStreaks);
+    };
+  }
+})();
+
+/* ── B8. Typewriter sub-title cycle ── */
+(function(){
+  const style = document.createElement('style');
+  style.textContent = `
+    #heroSub { border-right: 2px solid transparent; }
+    #heroSub.typing { border-right-color: var(--ac); animation: cursorBlink .7s step-end infinite; }
+    @keyframes cursorBlink { 0%,100%{border-color:var(--ac)} 50%{border-color:transparent} }
+  `;
+  document.head.appendChild(style);
+  let cycling = false;
+  function startCycle(){
+    if(cycling) return;
+    cycling = true;
+    const el = document.getElementById('heroSub');
+    if(!el) return;
+    const origText = el.textContent;
+    const texts = [origText];
+    // add extra phrases derived from tags
+    const tags = (window.D&&window.D.hero&&window.D.hero.tags)||[];
+    if(tags.length>2) texts.push(tags.slice(0,3).join(' · '));
+    if(tags.length>5) texts.push(tags.slice(3,6).join(' · '));
+    let idx=0;
+    function typeOut(text, cb){
+      el.textContent=''; el.classList.add('typing');
+      let i=0;
+      const iv=setInterval(()=>{
+        el.textContent=text.slice(0,++i);
+        if(i>=text.length){clearInterval(iv); setTimeout(cb,2800);}
+      },38);
+    }
+    function eraseOut(cb){
+      let t=el.textContent;
+      const iv=setInterval(()=>{
+        t=t.slice(0,-1); el.textContent=t;
+        if(!t.length){clearInterval(iv); el.classList.remove('typing'); cb();}
+      },22);
+    }
+    function loop(){
+      idx=(idx+1)%texts.length;
+      eraseOut(()=>setTimeout(()=>typeOut(texts[idx],loop),300));
+    }
+    setTimeout(()=>typeOut(origText,loop),1500);
+  }
+  setTimeout(startCycle,2000);
+})();
+
+/* ── B9. Magnetic Nav Logo ── */
+(function(){
+  const logo = document.querySelector('.logo');
+  if(!logo) return;
+  const style = document.createElement('style');
+  style.textContent = `
+    .logo { cursor: default; transition: letter-spacing .3s ease, color .3s; }
+    .logo:hover { letter-spacing: .18em; color: var(--a2) !important; }
+  `;
+  document.head.appendChild(style);
+})();
+
+/* ── B10. Section Divider Animated Gradient ── */
+(function(){
+  const style = document.createElement('style');
+  style.textContent = `
+    @keyframes divAnim {
+      0%   { background-position: 0% 50%; }
+      100% { background-position: 400% 50%; }
+    }
+    .sdiv {
+      background: linear-gradient(90deg,
+        transparent 0%,
+        var(--bd) 20%,
+        var(--ac) 40%,
+        var(--a2) 60%,
+        var(--bd) 80%,
+        transparent 100%
+      ) !important;
+      background-size: 400% 100% !important;
+      animation: divAnim 6s linear infinite !important;
+      opacity: .55 !important;
+    }
+  `;
+  document.head.appendChild(style);
+})();
+
+</script>
+
+<!-- ═══════════════════════════════════════════════════════════════
+     ADDON 2 — Drag & Drop Reorder in Editor Sections
+     Paste this <script> block immediately AFTER ADDON 1,
+     still before </body>.
+═══════════════════════════════════════════════════════════════ -->
+<script>
+/* ══════════════════════════════════════════════════════════════
+   🔀 DRAG & DROP REORDER for Editor Sections
+   Adds up/down arrow buttons + full drag-and-drop to every
+   .lrow list in the editor (edu, proj, exp, skills, certs, custom).
+   Does NOT touch any existing code.
+══════════════════════════════════════════════════════════════ */
+(function(){
+  /* ── CSS ── */
+  const style = document.createElement('style');
+  style.textContent = `
+    /* Drag handle button */
+    .drag-handle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 26px; height: 26px;
+      background: transparent;
+      border: 1px solid var(--bd);
+      border-radius: 6px;
+      color: var(--tm);
+      cursor: grab;
+      font-size: .8rem;
+      transition: border-color .2s, color .2s, background .2s;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .drag-handle:hover { border-color: var(--ac); color: var(--ac); }
+    .drag-handle:active { cursor: grabbing; }
+
+    /* Up/down nudge buttons */
+    .reorder-btns {
+      display: inline-flex;
+      gap: 4px;
+      flex-shrink: 0;
+    }
+    .reorder-btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px; height: 24px;
+      background: transparent;
+      border: 1px solid var(--bd);
+      border-radius: 5px;
+      color: var(--td);
+      font-size: .75rem;
+      cursor: pointer;
+      transition: border-color .2s, color .2s, transform .15s;
+      line-height: 1;
+    }
+    .reorder-btn:hover { border-color: var(--ac); color: var(--ac); transform: scale(1.15); }
+    .reorder-btn:disabled { opacity: .25; cursor: not-allowed; transform: none; }
+
+    /* Dragging state */
+    .lrow.dragging {
+      opacity: .38;
+      border: 1px dashed var(--ac) !important;
+      background: var(--gl) !important;
+    }
+    .lrow.drag-over {
+      border-color: var(--a2) !important;
+      box-shadow: 0 0 0 2px var(--a2);
+      background: rgba(122,158,232,.08) !important;
+    }
+
+    /* Row header gets flex wrap so new buttons fit */
+    .rh { flex-wrap: wrap; gap: 6px; }
+    .rh-left { display: flex; align-items: center; gap: 6px; flex: 1; }
+  `;
+  document.head.appendChild(style);
+
+  /* ── Map section ID → D key ── */
+  const SEC_MAP = {
+    eduEd:   { key:'edu',    rebuild: ()=>window._rebuildEduEd&&window._rebuildEduEd() },
+    projEd:  { key:'proj',   rebuild: ()=>window._rebuildProjEd&&window._rebuildProjEd() },
+    expEd:   { key:'exp',    rebuild: ()=>window._rebuildExpEd&&window._rebuildExpEd() },
+    skEd:    { key:'skills', rebuild: ()=>window._rebuildSkEd&&window._rebuildSkEd() },
+    certEd:  { key:'certs',  rebuild: ()=>window._rebuildCertEd&&window._rebuildCertEd() },
+    cusEd:   { key:'custom', rebuild: ()=>window._rebuildCusEd&&window._rebuildCusEd() },
+  };
+
+  /* ── Resolve which container a .lrow belongs to ── */
+  function containerOf(row){
+    return row.closest('[id]');
+  }
+
+  /* ── Move item in array ── */
+  function moveItem(arr, from, to){
+    if(to<0||to>=arr.length) return false;
+    const [item]=arr.splice(from,1);
+    arr.splice(to,0,item);
+    return true;
+  }
+
+  /* ── Get rows in a container ── */
+  function getRows(cont){ return Array.from(cont.querySelectorAll(':scope > .lrow')); }
+
+  /* ── Re-render the specific led container ── */
+  function reRenderSection(cont){
+    const id = cont.id;
+    const info = SEC_MAP[id];
+    if(!info) return;
+    // Trigger the existing builder functions that are defined in the page
+    const builderMap = {
+      eduEd:  ()=>{ if(typeof buildEduEd==='function')  buildEduEd();  },
+      projEd: ()=>{ if(typeof buildProjEd==='function') buildProjEd(); },
+      expEd:  ()=>{ if(typeof buildExpEd==='function')  buildExpEd();  },
+      skEd:   ()=>{ if(typeof buildSkEd==='function')   buildSkEd();   },
+      certEd: ()=>{ if(typeof buildCertEd==='function') buildCertEd(); },
+      cusEd:  ()=>{ if(typeof buildCusEd==='function')  buildCusEd();  },
+    };
+    if(builderMap[id]) builderMap[id]();
+    // After rebuild, re-apply drag enhancement
+    setTimeout(()=>enhanceContainer(cont), 30);
+  }
+
+  /* ── Inject drag handle + up/down buttons into .rh ── */
+  function enhanceRow(row, cont, idx, total){
+    if(row.dataset.dndDone==='1') return;
+    row.dataset.dndDone='1';
+
+    const rh = row.querySelector('.rh');
+    if(!rh) return;
+
+    /* Wrap existing .rn label + .dbtn into a flex-left group */
+    const rn  = rh.querySelector('.rn');
+    const dbt = rh.querySelector('.dbtn');
+    if(!rn) return;
+
+    const left = document.createElement('div');
+    left.className = 'rh-left';
+    rh.insertBefore(left, rn);
+    left.appendChild(rn);
+    if(dbt) left.appendChild(dbt);
+
+    /* Drag handle (⣿) */
+    const handle = document.createElement('button');
+    handle.className = 'drag-handle';
+    handle.title = 'Drag to reorder';
+    handle.type = 'button';
+    handle.innerHTML = `<svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+      <circle cx="3.5" cy="2" r="1.2"/><circle cx="8.5" cy="2" r="1.2"/>
+      <circle cx="3.5" cy="6" r="1.2"/><circle cx="8.5" cy="6" r="1.2"/>
+      <circle cx="3.5" cy="10" r="1.2"/><circle cx="8.5" cy="10" r="1.2"/>
+    </svg>`;
+    handle.draggable = false;
+    left.insertBefore(handle, rn);
+
+    /* Up / Down buttons */
+    const reorderBtns = document.createElement('div');
+    reorderBtns.className = 'reorder-btns';
+    reorderBtns.innerHTML = `
+      <button class="reorder-btn up-btn" title="Move up"   type="button">▲</button>
+      <button class="reorder-btn dn-btn" title="Move down" type="button">▼</button>
+    `;
+    rh.appendChild(reorderBtns);
+    const upBtn = reorderBtns.querySelector('.up-btn');
+    const dnBtn = reorderBtns.querySelector('.dn-btn');
+    upBtn.disabled = (idx===0);
+    dnBtn.disabled = (idx===total-1);
+
+    /* Resolve data key */
+    const id   = cont.id;
+    const info = SEC_MAP[id];
+    if(!info) return;
+    const arr  = window.D[info.key];
+
+    upBtn.addEventListener('click',()=>{
+      const rows = getRows(cont);
+      const cur  = rows.indexOf(row);
+      if(cur<=0) return;
+      moveItem(arr, cur, cur-1);
+      reRenderSection(cont);
+    });
+    dnBtn.addEventListener('click',()=>{
+      const rows = getRows(cont);
+      const cur  = rows.indexOf(row);
+      if(cur>=rows.length-1) return;
+      moveItem(arr, cur, cur+1);
+      reRenderSection(cont);
+    });
+
+    /* ── Native HTML5 Drag & Drop ── */
+    row.draggable = true;
+    handle.addEventListener('mousedown',()=>{ row.draggable=true; });
+    handle.addEventListener('mouseup',  ()=>{ setTimeout(()=>row.draggable=false,100); });
+
+    let dragSrc = null;
+
+    row.addEventListener('dragstart', e=>{
+      dragSrc = row;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain','');
+      setTimeout(()=>row.classList.add('dragging'),0);
+    });
+    row.addEventListener('dragend', ()=>{
+      row.classList.remove('dragging');
+      cont.querySelectorAll('.lrow').forEach(r=>r.classList.remove('drag-over'));
+    });
+    row.addEventListener('dragover', e=>{
+      e.preventDefault();
+      e.dataTransfer.dropEffect='move';
+      if(dragSrc && dragSrc!==row){
+        cont.querySelectorAll('.lrow').forEach(r=>r.classList.remove('drag-over'));
+        row.classList.add('drag-over');
+      }
+    });
+    row.addEventListener('dragleave', ()=>row.classList.remove('drag-over'));
+    row.addEventListener('drop', e=>{
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      if(!dragSrc || dragSrc===row) return;
+      const rows   = getRows(cont);
+      const fromI  = rows.indexOf(dragSrc);
+      const toI    = rows.indexOf(row);
+      if(fromI<0||toI<0) return;
+      moveItem(arr, fromI, toI);
+      reRenderSection(cont);
+    });
+  }
+
+  /* ── Enhance all rows in a container ── */
+  function enhanceContainer(cont){
+    if(!cont) return;
+    const rows = getRows(cont);
+    rows.forEach((row,i)=>{
+      delete row.dataset.dndDone;
+      enhanceRow(row, cont, i, rows.length);
+    });
+  }
+
+  /* ── Watch editor tabs being activated (MutationObserver) ── */
+  function watchEditor(){
+    const editorBody = document.querySelector('.ebody');
+    if(!editorBody) return;
+    const obs = new MutationObserver(()=>{
+      Object.keys(SEC_MAP).forEach(id=>{
+        const cont = document.getElementById(id);
+        if(cont) enhanceContainer(cont);
+      });
+    });
+    obs.observe(editorBody, {childList:true, subtree:true});
+  }
+
+  /* ── Hook into editor open ── */
+  const origOpenEditor = window.openEditor;
+  if(typeof origOpenEditor==='function'){
+    window.openEditor = function(){
+      origOpenEditor.apply(this, arguments);
+      setTimeout(()=>{
+        Object.keys(SEC_MAP).forEach(id=>{
+          const cont = document.getElementById(id);
+          if(cont) enhanceContainer(cont);
+        });
+        watchEditor();
+      }, 120);
+    };
+  }
+
+  /* ── Also hook into eTab (tab switching) ── */
+  const origETab = window.eTab;
+  if(typeof origETab==='function'){
+    window.eTab = function(id, btn){
+      origETab.apply(this, arguments);
+      setTimeout(()=>{
+        Object.keys(SEC_MAP).forEach(sid=>{
+          const cont = document.getElementById(sid);
+          if(cont) enhanceContainer(cont);
+        });
+      }, 80);
+    };
+  }
+
+})();
+</script>
+  
 </body>
 </html>
