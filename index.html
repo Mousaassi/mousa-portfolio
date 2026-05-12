@@ -632,8 +632,10 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 
 <!-- HEADER -->
 <header>
-<div class="logo" id="logoBtn">MA</div>
-<div class="hr">
+<div style="display:flex;align-items:center;gap:10px;">
+  <div class="logo" id="logoBtn">MA</div>
+  <button id="engineerBtn">🔒</button>
+</div>
     <div class="lang-sw">
       <button class="lb active" onclick="setLang('en')">EN</button>
       <button class="lb" onclick="setLang('tr')">TR</button>
@@ -2664,9 +2666,9 @@ render();
 
     clearTimeout(timer);
 
-    if(clicks >= 4){
+    if(clicks >= 5){
       clicks = 0;
-      openEngineerMode();
+      openLogin();
     }
 
     timer = setTimeout(() => {
@@ -2675,10 +2677,31 @@ render();
   });
 })();
 </script>
- <script>
-function openEngineerMode(){
-window.location.href = "engineer.html";
+  <script>
+const engStyle = document.createElement('style');
+engStyle.textContent = `
+#engineerBtn{
+  background:transparent;
+  border:1px solid var(--bd);
+  color:var(--td);
+  width:36px;
+  height:36px;
+  border-radius:50%;
+  cursor:pointer;
+  font-size:16px;
+  transition:.3s;
 }
+
+#engineerBtn:hover{
+  border-color:var(--ac);
+  color:var(--ac);
+}
+`;
+document.head.appendChild(engStyle);
+
+document.getElementById('engineerBtn').addEventListener('click', () => {
+  window.location.href = "engineer.html";
+});
 </script>
 </div>
 </body>
