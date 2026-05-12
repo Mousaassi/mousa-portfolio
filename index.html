@@ -202,7 +202,7 @@ window._normBullets=normBullets;
 [data-theme="rose"]  {--bg:#1a0d14;--sf:#241018;--s2:#30141e;--bd:#481830;--ac:#f0a0c0;--a2:#c080f0;--a3:#f0d060;--tx:#f8e8f0;--td:#c08090;--tm:#805060;--hb:rgba(26,13,20,.93);--gl:rgba(240,160,192,.1);}
 [data-theme="mono"]  {--bg:#111;--sf:#1c1c1c;--s2:#252525;--bd:#333;--ac:#eee;--a2:#aaa;--a3:#888;--tx:#eee;--td:#999;--tm:#555;--hb:rgba(17,17,17,.93);--gl:rgba(200,200,200,.06);}
 
-@keyframes pageIn  {from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+@keyframes pageIn  {from{opacity:0}to{opacity:1}}
 @keyframes shimmer {0%{background-position:-200% center}100%{background-position:200% center}}
 @keyframes float   {0%,100%{transform:translateY(0)}50%{transform:translateY(-9px)}}
 @keyframes sP      {0%,100%{opacity:.3}50%{opacity:1}}
@@ -416,12 +416,18 @@ header{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:
   backdrop-filter:blur(14px);
   z-index:9999;
   display:none;
+  overflow-y:auto;
+  overflow-x:hidden;
+}
+.modal-overlay.active{display:block;}
+.modal-inner{
+  min-height:100%;
+  display:flex;
   align-items:center;
   justify-content:center;
-  padding:20px;
-  overflow-y:auto;
+  padding:24px;
+  box-sizing:border-box;
 }
-.modal-overlay.active{display:flex;}
 
 .mclose{position:absolute;top:14px;right:14px;background:transparent;border:none;color:var(--td);cursor:pointer;font-size:1.2rem;padding:6px;line-height:1;transition:color .2s;z-index:5;}
 .mclose:hover{color:var(--tx);}
@@ -708,6 +714,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 
 <!-- ══ LOGIN MODAL ══ -->
 <div class="modal-overlay" id="loginOverlay" onclick="overlayClick(event,'loginOverlay')">
+  <div class="modal-inner">
   <div class="login-card">
     <button class="mclose" onclick="closeLogin()" type="button">✕</button>
     <div class="login-logo">MA</div>
@@ -737,10 +744,12 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
       Sign In
     </button>
   </div>
+  </div>
 </div>
 
 <!-- ══ EDITOR MODAL ══ -->
 <div class="modal-overlay" id="editorOverlay" onclick="overlayClick(event,'editorOverlay')">
+  <div class="modal-inner">
   <div class="editor-modal">
     <button class="mclose" onclick="closeEditor()" type="button">✕</button>
     <div class="ehead">
@@ -818,6 +827,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
         <p class="sok" id="cusOk">✓ Saved</p>
       </div>
     </div>
+  </div>
   </div>
 </div>
 
@@ -909,7 +919,8 @@ async function doLogout(){if(window._firebaseLogout)await window._firebaseLogout
 
 /* Close modal when clicking overlay backdrop */
 function overlayClick(e,id){
-  if(e.target===document.getElementById(id)){
+  // Close only if clicking the overlay itself or the modal-inner wrapper (not the card)
+  if(e.target===document.getElementById(id)||e.target.classList.contains('modal-inner')){
     if(id==='loginOverlay')closeLogin();
     else if(id==='editorOverlay')closeEditor();
   }
@@ -1437,148 +1448,258 @@ buildTG();
 render();
 
 /* ════════════════════════════════════════
-   ✨ ANIMATIONS & EFFECTS
+   ✨ PROFESSIONAL ANIMATIONS
 ════════════════════════════════════════ */
 
-/* ── Scroll Progress Bar ── */
-window.addEventListener('scroll',()=>{
-  const p=(window.scrollY/(document.documentElement.scrollHeight-window.innerHeight))*100;
-  document.getElementById('scrollProg').style.width=Math.min(p,100)+'%';
-},{passive:true});
+/* ── 1. Scroll Progress Bar ── */
+(function(){
+  const bar=document.getElementById('scrollProg');
+  window.addEventListener('scroll',()=>{
+    const pct=(window.scrollY/(document.documentElement.scrollHeight-window.innerHeight))*100;
+    bar.style.width=Math.min(pct,100)+'%';
+  },{passive:true});
+})();
 
-/* ── Particle Canvas ── */
+/* ── 2. Particle Network Background ── */
 (function(){
   const canvas=document.getElementById('particleCanvas');
+  if(!canvas)return;
   const ctx=canvas.getContext('2d');
   let W,H;
-  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+  const resize=()=>{W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;};
   resize();
   window.addEventListener('resize',resize,{passive:true});
 
-  const pts=Array.from({length:50},()=>({
+  const N=55;
+  const pts=Array.from({length:N},()=>({
     x:Math.random()*window.innerWidth,
     y:Math.random()*window.innerHeight,
-    vx:(Math.random()-.5)*.3,
-    vy:(Math.random()-.5)*.3,
-    r:Math.random()*1.4+.4
+    vx:(Math.random()-.5)*.28,
+    vy:(Math.random()-.5)*.28,
+    r:Math.random()*1.3+.5,
+    pulse:Math.random()*Math.PI*2
   }));
+
+  let mouse={x:-999,y:-999};
+  window.addEventListener('mousemove',e=>{mouse.x=e.clientX;mouse.y=e.clientY;},{passive:true});
 
   function getAc(){
     return getComputedStyle(document.documentElement).getPropertyValue('--ac').trim()||'#e8c87a';
   }
+  let cachedAc='#e8c87a',acTimer=0;
 
-  let lastAc='',acColor='';
-  function tick(){
+  function tick(t){
     ctx.clearRect(0,0,W,H);
-    const nowAc=getAc();
-    if(nowAc!==lastAc){lastAc=nowAc;acColor=nowAc;}
+    if(t-acTimer>2000){cachedAc=getAc();acTimer=t;}
 
-    pts.forEach(p=>{
-      p.x+=p.vx;p.y+=p.vy;
-      if(p.x<0)p.x=W;if(p.x>W)p.x=0;
-      if(p.y<0)p.y=H;if(p.y>H)p.y=0;
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle=acColor;ctx.globalAlpha=.5;ctx.fill();
+    pts.forEach((p,i)=>{
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0)p.x=W; if(p.x>W)p.x=0;
+      if(p.y<0)p.y=H; if(p.y>H)p.y=0;
+      p.pulse+=.02;
+
+      // Mouse repel
+      const mdx=p.x-mouse.x,mdy=p.y-mouse.y;
+      const md=Math.sqrt(mdx*mdx+mdy*mdy);
+      if(md<100){const f=(100-md)/100*.6;p.vx+=mdx/md*f;p.vy+=mdy/md*f;}
+      // Speed limit
+      const spd=Math.sqrt(p.vx*p.vx+p.vy*p.vy);
+      if(spd>1.2){p.vx=(p.vx/spd)*1.2;p.vy=(p.vy/spd)*1.2;}
+
+      const pr=p.r*(1+.3*Math.sin(p.pulse));
+      ctx.beginPath();ctx.arc(p.x,p.y,pr,0,Math.PI*2);
+      ctx.fillStyle=cachedAc;ctx.globalAlpha=.45+.2*Math.sin(p.pulse);ctx.fill();
     });
 
-    for(let i=0;i<pts.length;i++){
-      for(let j=i+1;j<pts.length;j++){
+    // Connections
+    for(let i=0;i<N;i++){
+      for(let j=i+1;j<N;j++){
         const dx=pts[i].x-pts[j].x,dy=pts[i].y-pts[j].y;
         const d=Math.sqrt(dx*dx+dy*dy);
-        if(d<120){
-          ctx.globalAlpha=(1-d/120)*.15;
-          ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);
-          ctx.strokeStyle=acColor;ctx.lineWidth=.7;ctx.stroke();
+        if(d<130){
+          ctx.globalAlpha=(1-d/130)*.13;
+          ctx.strokeStyle=cachedAc;ctx.lineWidth=.6;
+          ctx.beginPath();ctx.moveTo(pts[i].x,pts[i].y);ctx.lineTo(pts[j].x,pts[j].y);ctx.stroke();
         }
       }
     }
     ctx.globalAlpha=1;
     requestAnimationFrame(tick);
   }
-  tick();
+  requestAnimationFrame(tick);
 })();
 
-/* ── Cursor Glow ── */
+/* ── 3. Smooth Cursor Glow ── */
 (function(){
   const glow=document.getElementById('cursorGlow');
-  let tx=0,ty=0,cx=0,cy=0;
+  if(!glow)return;
+  let tx=window.innerWidth/2,ty=window.innerHeight/2,cx=tx,cy=ty;
   document.addEventListener('mousemove',e=>{tx=e.clientX;ty=e.clientY;glow.style.opacity='1';},{passive:true});
   document.addEventListener('mouseleave',()=>glow.style.opacity='0');
-  function smoothGlow(){
-    cx+=(tx-cx)*.1;cy+=(ty-cy)*.1;
+  // Hover on interactive = bigger glow
+  document.querySelectorAll('a,button,.cc,.pc,.edu-card,.exp-card,.skcat').forEach(el=>{
+    el.addEventListener('mouseenter',()=>glow.style.transform=`scale(1.6) translate(${(cx-130)/1.6}px,${(cy-130)/1.6}px)`);
+    el.addEventListener('mouseleave',()=>{});
+  });
+  (function loop(){
+    cx+=(tx-cx)*.09; cy+=(ty-cy)*.09;
     glow.style.transform=`translate(${cx-130}px,${cy-130}px)`;
-    requestAnimationFrame(smoothGlow);
-  }
-  smoothGlow();
+    requestAnimationFrame(loop);
+  })();
 })();
 
-/* ── Stagger Reveal on Scroll ── */
+/* ── 4. Stagger Card Reveal ── */
 (function(){
   const obsS=new IntersectionObserver(entries=>{
     entries.forEach(entry=>{
       if(!entry.isIntersecting)return;
-      const cards=entry.target.querySelectorAll(
-        '.edu-card,.pc,.exp-card,.skcat,.cc,.contact-box'
-      );
-      cards.forEach((el,i)=>{
-        el.style.opacity='0';
-        el.style.transform='translateY(30px)';
-        el.style.transition='none';
-        requestAnimationFrame(()=>{
-          setTimeout(()=>{
-            el.style.transition=`opacity .6s cubic-bezier(.4,0,.2,1) ${i*75}ms, transform .6s cubic-bezier(.4,0,.2,1) ${i*75}ms`;
-            el.style.opacity='1';
-            el.style.transform='translateY(0)';
-          },30);
-        });
+      const items=entry.target.querySelectorAll('.edu-card,.pc,.exp-card,.skcat,.cc');
+      items.forEach((el,i)=>{
+        el.style.cssText='opacity:0;transform:translateY(36px) scale(.97);transition:none;';
+        requestAnimationFrame(()=>setTimeout(()=>{
+          el.style.cssText=`opacity:1;transform:none;transition:opacity .65s cubic-bezier(.4,0,.2,1) ${i*80}ms,transform .65s cubic-bezier(.34,1.1,.64,1) ${i*80}ms;`;
+        },20));
       });
+      // Section title animation
+      const title=entry.target.querySelector('.st');
+      if(title){
+        title.style.cssText='opacity:0;transform:translateX(-20px);transition:none;';
+        setTimeout(()=>{title.style.cssText='opacity:1;transform:none;transition:opacity .6s ease,transform .6s cubic-bezier(.4,0,.2,1);';},50);
+      }
       obsS.unobserve(entry.target);
     });
   },{threshold:.06});
   document.querySelectorAll('.sec,.contact-wrap').forEach(s=>obsS.observe(s));
 })();
 
-/* ── Magnetic Buttons ── */
+/* ── 5. Magnetic Buttons ── */
 (function(){
-  function applyMagnetic(selector,strength=0.28){
-    document.querySelectorAll(selector).forEach(btn=>{
+  function magnetic(sel,str=.28){
+    document.querySelectorAll(sel).forEach(btn=>{
       btn.addEventListener('mousemove',e=>{
         const r=btn.getBoundingClientRect();
-        const x=(e.clientX-r.left-r.width/2)*strength;
-        const y=(e.clientY-r.top-r.height/2)*strength;
+        const x=(e.clientX-r.left-r.width/2)*str;
+        const y=(e.clientY-r.top-r.height/2)*str;
         btn.style.transform=`translate(${x}px,${y}px)`;
       });
       btn.addEventListener('mouseleave',()=>{
-        btn.style.transition='transform .4s cubic-bezier(.34,1.56,.64,1)';
+        btn.style.transition='transform .5s cubic-bezier(.34,1.56,.64,1)';
         btn.style.transform='';
-        setTimeout(()=>btn.style.transition='',400);
+        setTimeout(()=>btn.style.transition='',500);
       });
     });
   }
-  applyMagnetic('.ahp',0.3);
-  applyMagnetic('.lbtn',0.2);
-  applyMagnetic('.cfsub',0.2);
-  applyMagnetic('.sbtn',0.2);
+  magnetic('.ahp',.3);
+  magnetic('.lbtn',.22);
+  magnetic('.cfsub',.22);
+  magnetic('.sbtn',.2);
+  magnetic('.admin-login-btn',.25);
 })();
 
-/* ── Hero section number counter ── */
+/* ── 6. Button Ripple Effect ── */
 (function(){
-  const heroObs=new IntersectionObserver(entries=>{
-    if(entries[0].isIntersecting){
-      const tags=document.querySelectorAll('.tag');
-      tags.forEach((t,i)=>{
-        t.style.opacity='0';t.style.transform='translateY(12px)';
-        setTimeout(()=>{
-          t.style.transition=`opacity .5s ease ${i*60}ms, transform .5s ease ${i*60}ms`;
-          t.style.opacity='1';t.style.transform='';
-        },200+i*60);
-      });
-      heroObs.disconnect();
-    }
-  },{threshold:.2});
-  const hero=document.querySelector('.hero');
-  if(hero)heroObs.observe(hero);
+  function addRipple(e){
+    const btn=e.currentTarget;
+    const r=btn.getBoundingClientRect();
+    const rpl=document.createElement('span');
+    const size=Math.max(r.width,r.height)*2;
+    rpl.style.cssText=`
+      position:absolute;border-radius:50%;
+      width:${size}px;height:${size}px;
+      left:${e.clientX-r.left-size/2}px;
+      top:${e.clientY-r.top-size/2}px;
+      background:rgba(255,255,255,.18);
+      transform:scale(0);pointer-events:none;
+      animation:rippleAnim .55s cubic-bezier(.4,0,.2,1) forwards;
+    `;
+    btn.style.position='relative';btn.style.overflow='hidden';
+    btn.appendChild(rpl);
+    setTimeout(()=>rpl.remove(),600);
+  }
+  // Inject ripple keyframe
+  const st=document.createElement('style');
+  st.textContent='@keyframes rippleAnim{to{transform:scale(1);opacity:0;}}';
+  document.head.appendChild(st);
+  document.querySelectorAll('.ahp,.lbtn,.cfsub,.sbtn,.admin-login-btn').forEach(b=>{
+    b.addEventListener('click',addRipple);
+  });
 })();
+
+/* ── 7. Hero Tags Stagger on Load ── */
+(function(){
+  const tags=document.querySelectorAll('.tag');
+  tags.forEach((t,i)=>{
+    t.style.opacity='0';t.style.transform='translateY(14px) scale(.92)';
+    setTimeout(()=>{
+      t.style.transition=`opacity .55s ease ${300+i*55}ms,transform .55s cubic-bezier(.34,1.2,.64,1) ${300+i*55}ms`;
+      t.style.opacity='1';t.style.transform='none';
+    },50);
+  });
+})();
+
+/* ── 8. Hero Name Letter Split Animate ── */
+(function(){
+  setTimeout(()=>{
+    const sub=document.getElementById('heroSub');
+    if(sub&&!sub.dataset.animated){
+      sub.dataset.animated='1';
+      sub.style.opacity='0';sub.style.transform='translateY(10px)';
+      setTimeout(()=>{
+        sub.style.transition='opacity .7s ease 200ms,transform .7s cubic-bezier(.4,0,.2,1) 200ms';
+        sub.style.opacity='1';sub.style.transform='none';
+      },400);
+    }
+    const desc=document.getElementById('heroDesc');
+    if(desc&&!desc.dataset.animated){
+      desc.dataset.animated='1';
+      desc.style.opacity='0';desc.style.transform='translateY(10px)';
+      setTimeout(()=>{
+        desc.style.transition='opacity .7s ease 400ms,transform .7s ease 400ms';
+        desc.style.opacity='1';desc.style.transform='none';
+      },400);
+    }
+  },100);
+})();
+
+/* ── 9. Skill Tags Pop on Hover ── */
+(function(){
+  document.addEventListener('mouseover',e=>{
+    if(e.target.classList.contains('sktag')){
+      e.target.style.transform='translateY(-3px) scale(1.06)';
+    }
+  });
+  document.addEventListener('mouseout',e=>{
+    if(e.target.classList.contains('sktag')){
+      e.target.style.transform='';
+    }
+  });
+})();
+
+/* ── 10. Cert card tilt 3D on hover ── */
+(function(){
+  function addTilt(el){
+    el.addEventListener('mousemove',e=>{
+      const r=el.getBoundingClientRect();
+      const x=(e.clientX-r.left)/r.width-.5;
+      const y=(e.clientY-r.top)/r.height-.5;
+      el.style.transform=`perspective(600px) rotateY(${x*10}deg) rotateX(${-y*10}deg) translateY(-5px) scale(1.02)`;
+    });
+    el.addEventListener('mouseleave',()=>{
+      el.style.transition='transform .5s cubic-bezier(.34,1.1,.64,1)';
+      el.style.transform='';
+      setTimeout(()=>el.style.transition='',500);
+    });
+    el.addEventListener('mouseenter',()=>{el.style.transition='none';});
+  }
+  document.querySelectorAll('.cc').forEach(addTilt);
+  // Re-apply after render (since certs are dynamically built)
+  const origRender=window.render;
+  window.render=function(){
+    origRender.apply(this,arguments);
+    requestAnimationFrame(()=>document.querySelectorAll('.cc').forEach(addTilt));
+  };
+})();
+
 </script>
 </body>
 </html>
