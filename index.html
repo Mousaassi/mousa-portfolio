@@ -255,7 +255,20 @@ header{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:
 .tsw:hover,.tsw.active{border-color:var(--ac);background:var(--s2);}
 .swc{width:26px;height:26px;border-radius:50%;border:2px solid rgba(255,255,255,.15);}
 .swl{font-size:.62rem;color:var(--td);font-family:var(--fm);}
-.admin-login-btn{display:flex;align-items:center;gap:6px;padding:7px 13px;background:transparent;border:1px solid var(--bd);color:var(--td);font-family:var(--fb);font-size:.78rem;cursor:pointer;border-radius:50px;transition:var(--tr);}
+.admin-login-btn{
+  display:none !important;
+  align-items:center;
+  gap:6px;
+  padding:7px 13px;
+  background:transparent;
+  border:1px solid var(--bd);
+  color:var(--td);
+  font-family:var(--fb);
+  font-size:.78rem;
+  cursor:pointer;
+  border-radius:50px;
+  transition:var(--tr);
+}
 .admin-login-btn:hover{border-color:var(--ac);color:var(--ac);}
 .admin-login-btn svg{width:13px;height:13px;}
 .admin-bar{display:none;align-items:center;gap:7px;padding:5px 5px 5px 13px;background:rgba(0,0,0,.2);border:1px solid var(--ac);border-radius:50px;animation:admIn .4s cubic-bezier(.34,1.56,.64,1) both;}
@@ -619,8 +632,8 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 
 <!-- HEADER -->
 <header>
-<div class="logo" ondblclick="openLogin()">MA</div>
-  <div class="hr">
+<div class="logo" id="logoBtn">MA</div>
+<div class="hr">
     <div class="lang-sw">
       <button class="lb active" onclick="setLang('en')">EN</button>
       <button class="lb" onclick="setLang('tr')">TR</button>
@@ -2638,6 +2651,29 @@ render();
 
 })();
 </script>
-  
+  <script>
+(function(){
+  const logo = document.getElementById('logoBtn');
+  if(!logo) return;
+
+  let clicks = 0;
+  let timer;
+
+  logo.addEventListener('click', () => {
+    clicks++;
+
+    clearTimeout(timer);
+
+    if(clicks >= 4){
+      clicks = 0;
+      openLogin();
+    }
+
+    timer = setTimeout(() => {
+      clicks = 0;
+    }, 2000);
+  });
+})();
+</script>
 </body>
 </html>
