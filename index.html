@@ -2371,5 +2371,831 @@ render();
   setTimeout(startCycle, 1000);
 })();
 </script>
+  <!--
+  ═══════════════════════════════════════════════════════════
+  🚀 PROJECT DEEP-DIVE ADDON
+  Paste this entire block just before </body> in index.html
+  AFTER the existing scripts.
+  ═══════════════════════════════════════════════════════════
+-->
+
+<style>
+/* ════ Deep-Dive Modal Overlay ════ */
+@keyframes ddIn  { from{opacity:0;transform:translateY(32px) scale(.97)} to{opacity:1;transform:none} }
+@keyframes ddOut { from{opacity:1;transform:none} to{opacity:0;transform:translateY(20px) scale(.97)} }
+@keyframes tagSlide { from{opacity:0;transform:translateX(-10px)} to{opacity:1;transform:none} }
+@keyframes heroImg { from{opacity:0;transform:scale(1.04)} to{opacity:1;transform:scale(1)} }
+@keyframes statPop { from{opacity:0;transform:translateY(10px) scale(.9)} to{opacity:1;transform:none} }
+@keyframes lineGrow { from{width:0} to{width:100%} }
+
+.dd-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.88);
+  backdrop-filter: blur(18px);
+  z-index: 8500;
+  display: none;
+  overflow-y: auto;
+  padding: 24px 16px;
+}
+.dd-overlay.active { display: block; }
+
+.dd-modal {
+  max-width: 780px;
+  margin: 0 auto;
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-radius: 22px;
+  overflow: hidden;
+  position: relative;
+  animation: ddIn .4s cubic-bezier(.34,1.1,.64,1) both;
+}
+.dd-modal.closing { animation: ddOut .22s ease both; }
+
+/* Close btn */
+.dd-close {
+  position: absolute;
+  top: 16px; right: 16px;
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  background: rgba(0,0,0,.35);
+  border: 1px solid rgba(255,255,255,.15);
+  color: #fff;
+  font-size: .95rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: background .2s, transform .2s;
+  backdrop-filter: blur(8px);
+}
+.dd-close:hover { background: rgba(255,255,255,.18); transform: scale(1.1); }
+
+/* ── Hero Banner ── */
+.dd-hero {
+  position: relative;
+  height: 240px;
+  overflow: hidden;
+  background: var(--s2);
+}
+.dd-hero-bg {
+  position: absolute;
+  inset: 0;
+  animation: heroImg .6s ease both;
+}
+.dd-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.82) 0%, rgba(0,0,0,.3) 55%, transparent 100%);
+}
+.dd-hero-content {
+  position: absolute;
+  bottom: 22px;
+  left: 28px;
+  right: 60px;
+}
+.dd-year-badge {
+  display: inline-block;
+  font-family: var(--fm);
+  font-size: .65rem;
+  color: var(--bg);
+  background: var(--ac);
+  padding: 3px 11px;
+  border-radius: 50px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  letter-spacing: .06em;
+}
+.dd-hero-title {
+  font-family: var(--fd);
+  font-size: clamp(1.3rem, 4vw, 2rem);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.1;
+  text-shadow: 0 2px 12px rgba(0,0,0,.5);
+}
+
+/* ── Body ── */
+.dd-body { padding: 28px 28px 32px; }
+
+/* Nav tabs */
+.dd-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 24px;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 4px;
+}
+.dd-tab {
+  flex: 1;
+  padding: 8px 6px;
+  background: transparent;
+  border: none;
+  border-radius: 9px;
+  color: var(--td);
+  font-family: var(--fb);
+  font-size: .78rem;
+  cursor: pointer;
+  transition: all .2s;
+  font-weight: 500;
+}
+.dd-tab.active {
+  background: var(--sf);
+  color: var(--ac);
+  font-weight: 600;
+  box-shadow: 0 1px 6px rgba(0,0,0,.2);
+}
+.dd-tab:hover:not(.active) { color: var(--tx); }
+
+/* Tab panels */
+.dd-panel { display: none; }
+.dd-panel.active { display: block; }
+
+/* Overview */
+.dd-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+@media(max-width:520px){ .dd-overview-grid{ grid-template-columns:1fr; } }
+
+.dd-desc {
+  grid-column: 1 / -1;
+  font-size: .9rem;
+  color: var(--td);
+  line-height: 1.85;
+  padding: 16px;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+}
+
+/* Stats */
+.dd-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  margin-bottom: 22px;
+}
+.dd-stat {
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 14px;
+  text-align: center;
+  animation: statPop .5s cubic-bezier(.34,1.2,.64,1) both;
+  animation-delay: calc(var(--si, 0) * 80ms);
+}
+.dd-stat-val {
+  font-family: var(--fd);
+  font-size: 1.4rem;
+  font-weight: 900;
+  color: var(--ac);
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.dd-stat-lbl {
+  font-family: var(--fm);
+  font-size: .63rem;
+  color: var(--tm);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+
+/* Features / bullets */
+.dd-features { display: flex; flex-direction: column; gap: 10px; }
+.dd-feat {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 10px;
+  transition: border-color .2s, transform .2s;
+}
+.dd-feat:hover { border-color: var(--ac); transform: translateX(4px); }
+.dd-feat-icon {
+  width: 28px; height: 28px;
+  border-radius: 8px;
+  background: var(--gl);
+  border: 1px solid var(--bd);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: .85rem;
+}
+.dd-feat-txt { font-size: .84rem; color: var(--td); line-height: 1.5; flex: 1; }
+.dd-feat-txt strong { color: var(--tx); font-weight: 600; display: block; margin-bottom: 2px; font-size: .85rem; }
+
+/* Tech stack */
+.dd-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.dd-stack-tag {
+  padding: 6px 13px;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  font-family: var(--fm);
+  font-size: .75rem;
+  color: var(--td);
+  animation: tagSlide .4s ease both;
+  animation-delay: calc(var(--ti, 0) * 50ms);
+  transition: border-color .2s, color .2s;
+}
+.dd-stack-tag:hover { border-color: var(--a2); color: var(--a2); }
+.dd-stack-tag.hl { border-color: var(--ac); color: var(--ac); background: var(--gl); }
+
+/* Section label */
+.dd-sec-lbl {
+  font-family: var(--fm);
+  font-size: .67rem;
+  color: var(--ac);
+  text-transform: uppercase;
+  letter-spacing: .12em;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.dd-sec-lbl::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--bd);
+  animation: lineGrow .5s ease both;
+}
+
+/* Gallery tab */
+.dd-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
+}
+.dd-gal-item {
+  aspect-ratio: 4/3;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  cursor: zoom-in;
+  position: relative;
+  transition: transform .3s, border-color .3s;
+}
+.dd-gal-item:hover { transform: scale(1.03); border-color: var(--ac); }
+.dd-gal-item img { width: 100%; height: 100%; object-fit: cover; }
+.dd-gal-ph {
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--tm);
+  font-size: .75rem;
+  font-family: var(--fm);
+}
+.dd-gal-ph svg { width: 28px; height: 28px; }
+
+/* PDF viewer tab */
+.dd-pdf-area {
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  padding: 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.dd-pdf-icon { font-size: 3rem; }
+.dd-pdf-name {
+  font-family: var(--fm);
+  font-size: .82rem;
+  color: var(--td);
+}
+.dd-pdf-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 24px;
+  background: var(--ac);
+  border: none;
+  border-radius: 10px;
+  color: var(--bg);
+  font-family: var(--fb);
+  font-size: .9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .2s, transform .15s;
+}
+.dd-pdf-btn:hover { opacity: .88; transform: translateY(-2px); }
+
+/* No-PDF placeholder */
+.dd-no-pdf {
+  background: var(--s2);
+  border: 1px dashed var(--bd);
+  border-radius: 12px;
+  padding: 48px 32px;
+  text-align: center;
+  color: var(--tm);
+  font-size: .85rem;
+  font-family: var(--fm);
+}
+
+/* View PDF button on project card — replaces existing .pdf-link style */
+.pc .dd-open-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 9px 16px;
+  background: var(--gl);
+  border: 1px solid var(--ac);
+  border-radius: 8px;
+  color: var(--ac);
+  font-size: .78rem;
+  font-family: var(--fm);
+  cursor: pointer;
+  transition: all .2s;
+  width: fit-content;
+}
+.pc .dd-open-btn:hover {
+  background: var(--ac);
+  color: var(--bg);
+  transform: translateY(-1px);
+}
+.pc .dd-open-btn svg { width: 14px; height: 14px; }
+
+/* "Deep Dive" small button on every project card */
+.dd-card-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding: 7px 14px;
+  background: transparent;
+  border: 1px solid var(--bd);
+  border-radius: 8px;
+  color: var(--td);
+  font-size: .77rem;
+  font-family: var(--fm);
+  cursor: pointer;
+  transition: all .2s;
+  width: fit-content;
+}
+.dd-card-btn:hover {
+  border-color: var(--a2);
+  color: var(--a2);
+  background: rgba(122,158,232,.06);
+  transform: translateY(-1px);
+}
+.dd-card-btn svg { width: 13px; height: 13px; }
+</style>
+
+<!-- ── MODAL SKELETON ── -->
+<div class="dd-overlay" id="ddOverlay" onclick="ddOverlayClick(event)">
+  <div class="dd-modal" id="ddModal">
+    <button class="dd-close" onclick="closeDD()">✕</button>
+
+    <!-- Hero Banner -->
+    <div class="dd-hero" id="ddHero">
+      <div class="dd-hero-bg" id="ddHeroBg"></div>
+      <div class="dd-hero-overlay"></div>
+      <div class="dd-hero-content">
+        <span class="dd-year-badge" id="ddYear"></span>
+        <div class="dd-hero-title" id="ddTitle"></div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="dd-body">
+
+      <!-- Tabs -->
+      <div class="dd-tabs">
+        <button class="dd-tab active" onclick="ddTab('overview',this)">📋 Overview</button>
+        <button class="dd-tab" onclick="ddTab('tech',this)">⚙️ Tech Stack</button>
+        <button class="dd-tab" onclick="ddTab('gallery',this)">🖼 Gallery</button>
+        <button class="dd-tab" onclick="ddTab('report',this)">📄 Report</button>
+      </div>
+
+      <!-- Overview Panel -->
+      <div class="dd-panel active" id="ddPanelOverview">
+        <div class="dd-stats" id="ddStats"></div>
+        <div class="dd-sec-lbl">About this project</div>
+        <div class="dd-desc" id="ddDesc"></div>
+        <br>
+        <div class="dd-sec-lbl">Key features</div>
+        <div class="dd-features" id="ddFeatures"></div>
+      </div>
+
+      <!-- Tech Stack Panel -->
+      <div class="dd-panel" id="ddPanelTech">
+        <div class="dd-sec-lbl">Technologies used</div>
+        <div class="dd-stack" id="ddStack"></div>
+        <br>
+        <div class="dd-sec-lbl" id="ddCatLbl" style="display:none">Category</div>
+        <div id="ddCatContent"></div>
+      </div>
+
+      <!-- Gallery Panel -->
+      <div class="dd-panel" id="ddPanelGallery">
+        <div class="dd-sec-lbl">Project images</div>
+        <div class="dd-gallery" id="ddGallery"></div>
+      </div>
+
+      <!-- Report Panel -->
+      <div class="dd-panel" id="ddPanelReport">
+        <div id="ddReportContent"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════
+   PROJECT DEEP-DIVE DATA
+   Each project keyed by its array index in D.proj
+   (same order as DEFS.proj — 0-based)
+   Add/edit entries here to update deep-dive info.
+════════════════════════════════════════════ */
+const DD_DATA = {
+  0: { /* 3D Printing Systems Study */
+    color: '#7a9ee8',
+    icon: '🖨️',
+    heroPattern: 'print',
+    desc: 'A comprehensive study of Fused Deposition Modeling (FDM) 3D printing technology covering hardware architecture, slicing software pipelines, material science, and mechanical performance evaluation. This research was conducted as part of the Mechanical Engineering undergraduate program at Selçuk University.',
+    stats: [
+      { val: '2022', lbl: 'Year' },
+      { val: 'FDM', lbl: 'Technology' },
+      { val: 'PLA/PETG', lbl: 'Materials' },
+      { val: 'Research', lbl: 'Type' }
+    ],
+    features: [
+      { icon: '⚙️', title: 'Hardware Architecture', desc: 'Stepper motors, extruder mechanisms, heated bed, frame rigidity analysis and calibration procedures.' },
+      { icon: '💻', title: 'Slicing Software', desc: 'Layer height, infill patterns, support structures, print speed — comparative study across major slicers.' },
+      { icon: '🧪', title: 'Materials Science', desc: 'PLA vs PETG properties: tensile strength, thermal resistance, layer adhesion, and post-processing.' },
+      { icon: '📊', title: 'Performance Evaluation', desc: 'Dimensional accuracy testing, mechanical testing of printed specimens, print quality scoring rubric.' }
+    ],
+    stack: ['SolidWorks','Cura Slicer','PrusaSlicer','PLA','PETG','Tensile Testing','Dimensional Analysis'],
+    hl: [0,1,2],
+    images: []
+  },
+
+  1: { /* RRP Robotic Arm */
+    color: '#e87a9e',
+    icon: '🦾',
+    heroPattern: 'arm',
+    desc: 'A 3-DOF RRP (Revolute-Revolute-Prismatic) robotic arm designed, 3D-printed, and assembled from scratch. Features full servo-motor actuation with forward and inverse kinematics implemented in firmware. Designed for pick-and-place tasks and educational demonstrations.',
+    stats: [
+      { val: '3', lbl: 'DOF' },
+      { val: 'RRP', lbl: 'Config' },
+      { val: '3D', lbl: 'Printed' },
+      { val: '2024', lbl: 'Year' }
+    ],
+    features: [
+      { icon: '🖨️', title: '3D Printed Structure', desc: 'Full chassis and link assemblies printed in PLA; optimized for strength-to-weight ratio.' },
+      { icon: '🔄', title: 'Servo Actuation', desc: 'High-torque RC servo motors with PWM control for joint rotation and prismatic extension.' },
+      { icon: '📐', title: 'Forward Kinematics', desc: 'DH parameter-based FK to compute end-effector position from joint angles.' },
+      { icon: '🎯', title: 'Inverse Kinematics', desc: 'Geometric IK solver for real-time trajectory calculation to target coordinates.' }
+    ],
+    stack: ['SolidWorks','Fusion 360','Arduino','Servo PWM','PLA','DH Parameters','IK/FK','3D Printing'],
+    hl: [0,1,2,3],
+    images: []
+  },
+
+  2: { /* Medical Delivery Drone */
+    color: '#e8c87a',
+    icon: '🚁',
+    heroPattern: 'drone',
+    desc: 'An autonomous medical supply delivery drone designed for disaster-zone operations in Turkey. The system integrates GPS waypoint navigation, multi-sensor fusion, 4G LTE real-time telemetry, and a UV sterilization chamber for payload integrity. Developed with teammate Mousab Jafari. Presented at TEKNO-SEL 2025 and submitted to the Boardoza Sense-Tech Challenge.',
+    stats: [
+      { val: '4G', lbl: 'Telemetry' },
+      { val: 'GPS', lbl: 'Navigation' },
+      { val: 'UV', lbl: 'Sterilization' },
+      { val: '2025', lbl: 'Year' }
+    ],
+    features: [
+      { icon: '🛰️', title: 'GPS Waypoint Navigation', desc: 'Autonomous flight path planning with obstacle avoidance capability for disaster-zone environments.' },
+      { icon: '📡', title: '4G LTE Telemetry', desc: 'Real-time data link for command, control, and live status monitoring from ground station.' },
+      { icon: '🔬', title: 'UV Sterilization Chamber', desc: 'Integrated UV-C light payload bay to maintain sterility of medical supplies during transit.' },
+      { icon: '🧠', title: 'Sensor Fusion', desc: 'IMU + barometer + GPS fusion for stable autonomous flight in challenging conditions.' },
+      { icon: '🏥', title: 'Medical Focus', desc: 'Payload optimized for medications, blood bags, and emergency supplies. Submitted to Boardoza Sense-Tech Challenge.' },
+      { icon: '🤝', title: 'Team Project', desc: 'Developed collaboratively with Mousab Jafari — structural design, electronics, and software integration.' }
+    ],
+    stack: ['SolidWorks','Fusion 360','Pixhawk/APM','GPS Module','MPU6050','4G LTE Module','UV-C LED','Arduino','Python','Mission Planner'],
+    hl: [0,1,3,4],
+    images: []
+  },
+
+  3: { /* Reaction Wheel */
+    color: '#7dd87a',
+    icon: '⚙️',
+    heroPattern: 'wheel',
+    desc: 'A single-axis attitude control system using a reaction wheel — the same technology used in real satellites. A NEMA-17 stepper motor spins a flywheel mass; an MPU6050 IMU measures tilt; an Arduino Nano runs a PID control loop to maintain balance. Built as a testbed for spacecraft attitude control research.',
+    stats: [
+      { val: 'PID', lbl: 'Control' },
+      { val: 'IMU', lbl: 'Sensing' },
+      { val: '1-Axis', lbl: 'DOF' },
+      { val: '2026', lbl: 'Year' }
+    ],
+    features: [
+      { icon: '🔄', title: 'NEMA-17 Reaction Wheel', desc: 'Stepper motor spinning a precision-machined flywheel for angular momentum storage and transfer.' },
+      { icon: '📡', title: 'MPU6050 IMU', desc: '6-DOF inertial measurement: 3-axis gyroscope + 3-axis accelerometer for real-time tilt sensing.' },
+      { icon: '🎮', title: 'PID Control Loop', desc: 'Tuned proportional-integral-derivative controller running on Arduino for stable attitude hold.' },
+      { icon: '🛸', title: 'Spacecraft Technology', desc: 'Demonstrates the core principle behind reaction control systems in real satellites and space probes.' }
+    ],
+    stack: ['Arduino Nano','NEMA-17','MPU6050','A4988 Driver','PID Algorithm','C++','SolidWorks','3D Printing'],
+    hl: [0,1,2],
+    images: []
+  },
+
+  4: { /* 4-Axis Robotic Arm */
+    color: '#f0a0c0',
+    icon: '🤖',
+    heroPattern: 'arm4',
+    desc: 'A 4-degree-of-freedom robotic arm with modular end-effector system, capable of pick-and-place, stacking, and trajectory following. High-torque servo motors at each joint allow for precise multi-axis motion control via Arduino-based firmware with serial command interface.',
+    stats: [
+      { val: '4', lbl: 'DOF' },
+      { val: 'Modular', lbl: 'End-Effector' },
+      { val: 'Arduino', lbl: 'Controller' },
+      { val: '2026', lbl: 'Year' }
+    ],
+    features: [
+      { icon: '💪', title: 'High-Torque Servos', desc: 'MG996R / DS3218 servos at each joint for strong, precise positioning under load.' },
+      { icon: '🔩', title: 'Modular End-Effector', desc: 'Swappable gripper, suction cup, and pen-holder modules for different task configurations.' },
+      { icon: '📱', title: 'Serial Control Interface', desc: 'Command the arm via serial terminal or connect to a GUI for real-time joint angle control.' },
+      { icon: '🎯', title: 'Multi-Axis Motion', desc: 'Smooth coordinated motion across all 4 axes for trajectory following and pick-and-place tasks.' }
+    ],
+    stack: ['Arduino Uno','MG996R Servos','Fusion 360','PLA','PWM Control','Serial Interface','Inverse Kinematics','3D Printing'],
+    hl: [0,1,2,3],
+    images: []
+  }
+};
+
+/* ── Hero background SVG patterns (generated inline) ── */
+function heroPattern(type, color){
+  const c = color || '#e8c87a';
+  const alpha = c + '22';
+
+  const patterns = {
+    drone: `
+      <svg width="100%" height="100%" viewBox="0 0 780 240" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <rect width="780" height="240" fill="#0a0a0f"/>
+        <circle cx="390" cy="120" r="80" fill="none" stroke="${c}" stroke-width="1" opacity=".18"/>
+        <circle cx="390" cy="120" r="130" fill="none" stroke="${c}" stroke-width=".5" opacity=".1"/>
+        <circle cx="390" cy="120" r="180" fill="none" stroke="${c}" stroke-width=".5" opacity=".07"/>
+        <!-- Drone body -->
+        <rect x="360" y="108" width="60" height="24" rx="12" fill="${c}" opacity=".25"/>
+        <!-- Arms -->
+        <line x1="310" y1="90" x2="360" y2="120" stroke="${c}" stroke-width="2.5" opacity=".35"/>
+        <line x1="470" y1="90" x2="420" y2="120" stroke="${c}" stroke-width="2.5" opacity=".35"/>
+        <line x1="310" y1="150" x2="360" y2="120" stroke="${c}" stroke-width="2.5" opacity=".35"/>
+        <line x1="470" y1="150" x2="420" y2="120" stroke="${c}" stroke-width="2.5" opacity=".35"/>
+        <!-- Propellers -->
+        <ellipse cx="305" cy="88" rx="28" ry="6" fill="${c}" opacity=".2" transform="rotate(-15 305 88)"/>
+        <ellipse cx="475" cy="88" rx="28" ry="6" fill="${c}" opacity=".2" transform="rotate(15 475 88)"/>
+        <ellipse cx="305" cy="152" rx="28" ry="6" fill="${c}" opacity=".2" transform="rotate(15 305 152)"/>
+        <ellipse cx="475" cy="152" rx="28" ry="6" fill="${c}" opacity=".2" transform="rotate(-15 475 152)"/>
+        <!-- Signal dots -->
+        <circle cx="200" cy="60" r="3" fill="${c}" opacity=".4"/>
+        <circle cx="580" cy="180" r="2" fill="${c}" opacity=".3"/>
+        <circle cx="100" cy="160" r="2" fill="${c}" opacity=".25"/>
+        <circle cx="680" cy="70" r="3" fill="${c}" opacity=".35"/>
+        <!-- Grid lines subtle -->
+        <line x1="0" y1="120" x2="780" y2="120" stroke="${c}" stroke-width=".3" opacity=".08" stroke-dasharray="8,16"/>
+        <line x1="390" y1="0" x2="390" y2="240" stroke="${c}" stroke-width=".3" opacity=".08" stroke-dasharray="8,16"/>
+      </svg>`,
+
+    arm: `
+      <svg width="100%" height="100%" viewBox="0 0 780 240" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <rect width="780" height="240" fill="#0a0a0f"/>
+        <!-- Base -->
+        <rect x="350" y="190" width="80" height="20" rx="4" fill="${c}" opacity=".3"/>
+        <!-- Links -->
+        <line x1="390" y1="190" x2="350" y2="130" stroke="${c}" stroke-width="5" stroke-linecap="round" opacity=".4"/>
+        <line x1="350" y1="130" x2="300" y2="80" stroke="${c}" stroke-width="4" stroke-linecap="round" opacity=".35"/>
+        <line x1="300" y1="80" x2="260" y2="50" stroke="${c}" stroke-width="3" stroke-linecap="round" opacity=".3"/>
+        <!-- Joints -->
+        <circle cx="390" cy="190" r="10" fill="${c}" opacity=".5"/>
+        <circle cx="350" cy="130" r="8" fill="${c}" opacity=".45"/>
+        <circle cx="300" cy="80" r="7" fill="${c}" opacity=".4"/>
+        <circle cx="260" cy="50" r="6" fill="${c}" opacity=".35"/>
+        <!-- Grid -->
+        <line x1="0" y1="0" x2="780" y2="240" stroke="${c}" stroke-width=".3" opacity=".05"/>
+        <circle cx="600" cy="80" r="40" fill="none" stroke="${c}" stroke-width=".5" opacity=".1"/>
+        <circle cx="150" cy="160" r="60" fill="none" stroke="${c}" stroke-width=".5" opacity=".08"/>
+      </svg>`,
+
+    arm4: `
+      <svg width="100%" height="100%" viewBox="0 0 780 240" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <rect width="780" height="240" fill="#0a0a0f"/>
+        <rect x="340" y="195" width="100" height="18" rx="4" fill="${c}" opacity=".3"/>
+        <line x1="390" y1="195" x2="420" y2="145" stroke="${c}" stroke-width="6" stroke-linecap="round" opacity=".45"/>
+        <line x1="420" y1="145" x2="380" y2="95" stroke="${c}" stroke-width="5" stroke-linecap="round" opacity=".4"/>
+        <line x1="380" y1="95" x2="330" y2="60" stroke="${c}" stroke-width="4" stroke-linecap="round" opacity=".35"/>
+        <line x1="330" y1="60" x2="295" y2="40" stroke="${c}" stroke-width="3" stroke-linecap="round" opacity=".3"/>
+        <circle cx="390" cy="195" r="11" fill="${c}" opacity=".55"/>
+        <circle cx="420" cy="145" r="9" fill="${c}" opacity=".5"/>
+        <circle cx="380" cy="95" r="8" fill="${c}" opacity=".45"/>
+        <circle cx="330" cy="60" r="7" fill="${c}" opacity=".4"/>
+        <circle cx="295" cy="40" r="5" fill="${c}" opacity=".35"/>
+        <!-- Gripper -->
+        <line x1="278" y1="28" x2="265" y2="18" stroke="${c}" stroke-width="2.5" stroke-linecap="round" opacity=".4"/>
+        <line x1="278" y1="28" x2="265" y2="38" stroke="${c}" stroke-width="2.5" stroke-linecap="round" opacity=".4"/>
+        <circle cx="580" cy="100" r="50" fill="none" stroke="${c}" stroke-width=".5" opacity=".1"/>
+        <circle cx="640" cy="170" r="30" fill="none" stroke="${c}" stroke-width=".4" opacity=".07"/>
+      </svg>`,
+
+    wheel: `
+      <svg width="100%" height="100%" viewBox="0 0 780 240" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <rect width="780" height="240" fill="#0a0a0f"/>
+        <circle cx="390" cy="120" r="90" fill="none" stroke="${c}" stroke-width="3" opacity=".3"/>
+        <circle cx="390" cy="120" r="60" fill="none" stroke="${c}" stroke-width="1.5" opacity=".2"/>
+        <circle cx="390" cy="120" r="15" fill="${c}" opacity=".4"/>
+        <!-- Spokes -->
+        ${[0,45,90,135,180,225,270,315].map(a=>`<line x1="390" y1="120" x2="${390+90*Math.cos(a*Math.PI/180)}" y2="${120+90*Math.sin(a*Math.PI/180)}" stroke="${c}" stroke-width="1.5" opacity=".25"/>`).join('')}
+        <!-- Rotation arrows -->
+        <path d="M 390 22 A 98 98 0 0 1 480 72" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="8,6" opacity=".35" marker-end="url(#arr)"/>
+        <circle cx="580" cy="60" r="3" fill="${c}" opacity=".3"/>
+        <circle cx="180" cy="180" r="4" fill="${c}" opacity=".25"/>
+        <circle cx="650" cy="160" r="2" fill="${c}" opacity=".2"/>
+      </svg>`,
+
+    print: `
+      <svg width="100%" height="100%" viewBox="0 0 780 240" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <rect width="780" height="240" fill="#0a0a0f"/>
+        <!-- Printer body -->
+        <rect x="290" y="90" width="200" height="100" rx="8" fill="${c}" opacity=".15" stroke="${c}" stroke-width="1" opacity=".25"/>
+        <!-- Print head -->
+        <rect x="370" y="80" width="40" height="20" rx="4" fill="${c}" opacity=".3"/>
+        <!-- Print lines (layers) -->
+        ${[0,1,2,3,4,5,6,7].map(i=>`<rect x="320" y="${140+i*6}" width="${120-i*8}" height="3" rx="1.5" fill="${c}" opacity="${.35-i*.03}"/>`).join('')}
+        <!-- Bed -->
+        <rect x="270" y="200" width="240" height="6" rx="3" fill="${c}" opacity=".2"/>
+        <!-- Frame rods -->
+        <line x1="290" y1="60" x2="290" y2="200" stroke="${c}" stroke-width="2" opacity=".2"/>
+        <line x1="490" y1="60" x2="490" y2="200" stroke="${c}" stroke-width="2" opacity=".2"/>
+        <circle cx="600" cy="80" r="45" fill="none" stroke="${c}" stroke-width=".5" opacity=".1"/>
+        <circle cx="140" cy="130" r="60" fill="none" stroke="${c}" stroke-width=".5" opacity=".08"/>
+      </svg>`
+  };
+
+  return patterns[type] || patterns['drone'];
+}
+
+/* ════ Open / Close ════ */
+window.openDeepDive = function(idx){
+  const proj = window.D && window.D.proj ? window.D.proj[idx] : null;
+  const dd   = DD_DATA[idx];
+  if(!proj || !dd) return;
+
+  const lang = window.lang || 'en';
+  function GL(o){ if(!o)return''; if(typeof o==='string')return o; return o[lang]||o.en||o.tr||o.ar||''; }
+
+  /* Hero */
+  document.getElementById('ddYear').textContent  = proj.year || '';
+  document.getElementById('ddTitle').textContent = GL(proj.title);
+  document.getElementById('ddHeroBg').innerHTML  = heroPattern(dd.heroPattern, dd.color);
+
+  /* Stats */
+  document.getElementById('ddStats').innerHTML = dd.stats.map((s,i)=>`
+    <div class="dd-stat" style="--si:${i}">
+      <div class="dd-stat-val">${s.val}</div>
+      <div class="dd-stat-lbl">${s.lbl}</div>
+    </div>`).join('');
+
+  /* Description */
+  document.getElementById('ddDesc').textContent = dd.desc;
+
+  /* Features */
+  document.getElementById('ddFeatures').innerHTML = dd.features.map(f=>`
+    <div class="dd-feat">
+      <div class="dd-feat-icon">${f.icon}</div>
+      <div class="dd-feat-txt"><strong>${f.title}</strong>${f.desc}</div>
+    </div>`).join('');
+
+  /* Tech Stack */
+  document.getElementById('ddStack').innerHTML = dd.stack.map((t,i)=>`
+    <span class="dd-stack-tag ${dd.hl.includes(i)?'hl':''}" style="--ti:${i}">${t}</span>`).join('');
+
+  /* Gallery */
+  const galItems = (dd.images && dd.images.length)
+    ? dd.images.map(src=>`<div class="dd-gal-item" onclick="openLB('${src}')"><img src="${src}" alt="project"></div>`)
+    : Array(4).fill(0).map((_,i)=>`
+        <div class="dd-gal-item" style="cursor:default">
+          <div class="dd-gal-ph">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+            <span>Image ${i+1}</span>
+          </div>
+        </div>`);
+  document.getElementById('ddGallery').innerHTML = galItems.join('');
+
+  /* Report */
+  if(proj.pdf){
+    document.getElementById('ddReportContent').innerHTML = `
+      <div class="dd-pdf-area">
+        <div class="dd-pdf-icon">📄</div>
+        <div class="dd-pdf-name">${proj.pdfName || 'Project Report'}</div>
+        <button class="dd-pdf-btn" onclick="openPDF(${idx})">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+          </svg>
+          Open PDF Report
+        </button>
+      </div>`;
+  } else {
+    document.getElementById('ddReportContent').innerHTML = `
+      <div class="dd-no-pdf">
+        <div style="font-size:2.5rem;margin-bottom:12px">📂</div>
+        <div>No PDF report uploaded yet.</div>
+        <div style="margin-top:6px;font-size:.75rem;opacity:.6">Admin can upload a report via the editor.</div>
+      </div>`;
+  }
+
+  /* Reset to first tab */
+  ddTab('overview', document.querySelector('.dd-tab'));
+
+  /* Show */
+  document.getElementById('ddOverlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+};
+
+window.closeDD = function(){
+  const modal = document.getElementById('ddModal');
+  modal.classList.add('closing');
+  setTimeout(()=>{
+    document.getElementById('ddOverlay').classList.remove('active');
+    modal.classList.remove('closing');
+    document.body.style.overflow = '';
+  }, 240);
+};
+
+window.ddOverlayClick = function(e){
+  if(e.target === document.getElementById('ddOverlay')) closeDD();
+};
+
+window.ddTab = function(name, btn){
+  document.querySelectorAll('.dd-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.dd-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('ddPanel' + name.charAt(0).toUpperCase() + name.slice(1)).classList.add('active');
+  if(btn) btn.classList.add('active');
+  else {
+    // activate first tab
+    const tabs = document.querySelectorAll('.dd-tab');
+    if(tabs[0]) tabs[0].classList.add('active');
+  }
+};
+
+/* ESC to close */
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape' && document.getElementById('ddOverlay').classList.contains('active')){
+    closeDD();
+  }
+});
+
+/* ════ Inject "Deep Dive" buttons into project cards ════ */
+function injectDDButtons(){
+  const cards = document.querySelectorAll('#projGrid .pc');
+  cards.forEach((card, i)=>{
+    if(card.dataset.ddDone) return;
+    card.dataset.ddDone = '1';
+
+    const btn = document.createElement('button');
+    btn.className = 'dd-card-btn';
+    btn.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        <line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/>
+      </svg>
+      Deep Dive
+    `;
+    btn.onclick = (e) => { e.stopPropagation(); openDeepDive(i); };
+    card.appendChild(btn);
+  });
+}
+
+/* Hook into render */
+const _origRenderDD = window.render;
+if(typeof _origRenderDD === 'function'){
+  window.render = function(){
+    _origRenderDD.apply(this, arguments);
+    requestAnimationFrame(injectDDButtons);
+  };
+}
+injectDDButtons();
+
+</script>
+<!-- ═══════════════════════════════════════════════════════════ -->
 </body>
 </html>
