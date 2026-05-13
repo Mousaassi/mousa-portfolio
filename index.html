@@ -3975,8 +3975,8 @@ render();
 
 <span class="dd-ed-proj-arrow">▼</span>
 
-  function ddRenameProject(i, val){
-  if(!window.D.proj[i]) return;
+function ddRenameProject(i, val){
+  if(!window.D || !window.D.proj || !window.D.proj[i]) return;
 
   window.D.proj[i].title = {
     en: val,
@@ -3986,18 +3986,26 @@ render();
 }
 
 function ddChangeYear(i, val){
-  if(!window.D.proj[i]) return;
+  if(!window.D || !window.D.proj || !window.D.proj[i]) return;
   window.D.proj[i].year = val;
 }
 
 function deleteDDProject(i){
   if(!confirm('Delete this project?')) return;
 
-  window.D.proj.splice(i, 1);
-  window.DD_DATA.splice(i, 1);
+  if(window.D && window.D.proj){
+    window.D.proj.splice(i,1);
+  }
+
+  if(window.DD_DATA){
+    window.DD_DATA.splice(i,1);
+  }
 
   renderDDEditor();
-  render();
+
+  if(typeof render === 'function'){
+    render();
+  }
 }
 </script>
 <!-- ═══════════════════════════════════════════════════════════ -->
