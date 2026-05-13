@@ -3555,9 +3555,34 @@ projs.forEach((proj, i) => {
     item.innerHTML = `
       <div class="dd-ed-proj-head" onclick="toggleDDProj(${i})">
         <span class="dd-ed-proj-icon">${dd.icon||'📁'}</span>
-        <span class="dd-ed-proj-name">${GL(proj.title)||'Project '+(i+1)}</span>
-        <span class="dd-ed-proj-yr">${proj.year||''}</span>
-        <span class="dd-ed-proj-arrow">▼</span>
+
+<div style="display:flex;align-items:center;gap:10px;flex:1;">
+  <input
+    class="ei"
+    style="max-width:260px;"
+    value="${GL(proj.title)||''}"
+    onchange="ddRenameProject(${i}, this.value)"
+    placeholder="Project name"
+  >
+
+  <input
+    class="ei"
+    style="max-width:90px;"
+    value="${proj.year||''}"
+    onchange="ddChangeYear(${i}, this.value)"
+    placeholder="Year"
+  >
+</div>
+
+<button
+  class="dbtn"
+  onclick="event.stopPropagation(); deleteDDProject(${i})"
+  type="button"
+>
+  Delete
+</button>
+
+<span class="dd-ed-proj-arrow">▼</span>
       </div>
       <div class="dd-ed-proj-body">
 
@@ -3916,7 +3941,63 @@ if(document.readyState === 'loading'){
     images:[]
   });
 
+renderDDEditor();
+render();
+}
+
+  <span class="dd-ed-proj-icon">${dd.icon||'📁'}</span>
+
+<div style="display:flex;align-items:center;gap:10px;flex:1;">
+  <input
+    class="ei"
+    style="max-width:260px;"
+    value="${GL(proj.title)||''}"
+    onchange="ddRenameProject(${i}, this.value)"
+    placeholder="Project name"
+  >
+
+  <input
+    class="ei"
+    style="max-width:90px;"
+    value="${proj.year||''}"
+    onchange="ddChangeYear(${i}, this.value)"
+    placeholder="Year"
+  >
+</div>
+
+<button
+  class="dbtn"
+  onclick="event.stopPropagation(); deleteDDProject(${i})"
+  type="button"
+>
+  Delete
+</button>
+
+<span class="dd-ed-proj-arrow">▼</span>
+
+  function ddRenameProject(i, val){
+  if(!window.D.proj[i]) return;
+
+  window.D.proj[i].title = {
+    en: val,
+    tr: val,
+    ar: val
+  };
+}
+
+function ddChangeYear(i, val){
+  if(!window.D.proj[i]) return;
+  window.D.proj[i].year = val;
+}
+
+function deleteDDProject(i){
+  if(!confirm('Delete this project?')) return;
+
+  window.D.proj.splice(i, 1);
+  window.DD_DATA.splice(i, 1);
+
   renderDDEditor();
+  render();
 }
 </script>
 <!-- ═══════════════════════════════════════════════════════════ -->
