@@ -3504,5 +3504,657 @@ injectDDButtons();
 
 </script>
 <!-- ═══════════════════════════════════════════════════════════ -->
+  <!--
+  ═══════════════════════════════════════════════════════════
+  🔍 DEEP-DIVE EDITOR TAB ADDON
+  
+  التثبيت:
+  1. تأكد أنك حطيت addon الـ Deep-Dive الأول قبل هاد
+  2. الصق هاد الكود قبل </body> — بعد كل الـ addons السابقة
+  ═══════════════════════════════════════════════════════════
+-->
+
+<style>
+/* ── Deep Dive Editor Styles ── */
+.dd-ed-proj {
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 12px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  transition: border-color .2s;
+}
+.dd-ed-proj.open { border-color: var(--ac); }
+
+.dd-ed-proj-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  cursor: pointer;
+  user-select: none;
+  transition: background .2s;
+}
+.dd-ed-proj-head:hover { background: var(--gl); }
+
+.dd-ed-proj-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+.dd-ed-proj-name {
+  flex: 1;
+  font-family: var(--fd);
+  font-size: .92rem;
+  font-weight: 700;
+  color: var(--tx);
+}
+.dd-ed-proj-yr {
+  font-family: var(--fm);
+  font-size: .68rem;
+  color: var(--ac);
+  background: var(--gl);
+  border: 1px solid var(--bd);
+  padding: 2px 9px;
+  border-radius: 50px;
+}
+.dd-ed-proj-arrow {
+  font-size: .75rem;
+  color: var(--tm);
+  transition: transform .25s;
+}
+.dd-ed-proj.open .dd-ed-proj-arrow { transform: rotate(180deg); }
+
+.dd-ed-proj-body {
+  display: none;
+  padding: 0 16px 16px;
+  border-top: 1px solid var(--bd);
+}
+.dd-ed-proj.open .dd-ed-proj-body { display: block; }
+
+/* Sub-tabs inside each project */
+.dd-sub-tabs {
+  display: flex;
+  gap: 3px;
+  margin: 12px 0 14px;
+  background: var(--bg);
+  border: 1px solid var(--bd);
+  border-radius: 9px;
+  padding: 3px;
+}
+.dd-sub-tab {
+  flex: 1;
+  padding: 6px 4px;
+  background: transparent;
+  border: none;
+  border-radius: 7px;
+  color: var(--td);
+  font-family: var(--fb);
+  font-size: .72rem;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.dd-sub-tab.active {
+  background: var(--sf);
+  color: var(--ac);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+
+.dd-sub-panel { display: none; }
+.dd-sub-panel.active { display: block; }
+
+/* Color picker row */
+.dd-color-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.dd-color-swatch {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: transform .2s, border-color .2s;
+  flex-shrink: 0;
+}
+.dd-color-swatch:hover { transform: scale(1.2); }
+.dd-color-swatch.selected { border-color: var(--tx); transform: scale(1.15); }
+
+/* Stats editor */
+.dd-stats-ed {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.dd-stat-row {
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-radius: 9px;
+  padding: 10px;
+}
+.dd-stat-row label {
+  display: block;
+  font-family: var(--fm);
+  font-size: .63rem;
+  color: var(--tm);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+}
+
+/* Features editor */
+.dd-feat-row {
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-radius: 9px;
+  padding: 11px;
+  margin-bottom: 8px;
+}
+.dd-feat-row-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.dd-feat-row-head span {
+  font-family: var(--fm);
+  font-size: .65rem;
+  color: var(--ac);
+}
+
+/* Stack editor */
+.dd-stack-ed-wrap {
+  background: var(--sf);
+  border: 1px solid var(--bd);
+  border-radius: 9px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.dd-stack-tags-live {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.dd-stack-tag-ed {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  background: var(--s2);
+  border: 1px solid var(--bd);
+  border-radius: 6px;
+  font-family: var(--fm);
+  font-size: .74rem;
+  color: var(--td);
+}
+.dd-stack-tag-ed.hl { border-color: var(--ac); color: var(--ac); }
+.dd-stack-tag-rm {
+  background: transparent;
+  border: none;
+  color: var(--tm);
+  cursor: pointer;
+  font-size: .8rem;
+  padding: 0;
+  line-height: 1;
+  transition: color .15s;
+}
+.dd-stack-tag-rm:hover { color: #e87a7a; }
+
+/* Images editor */
+.dd-img-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.dd-img-item {
+  aspect-ratio: 4/3;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--bd);
+  position: relative;
+  background: var(--bg);
+}
+.dd-img-item img { width: 100%; height: 100%; object-fit: cover; }
+.dd-img-rm {
+  position: absolute;
+  top: 4px; right: 4px;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: rgba(232,122,122,.85);
+  border: none;
+  color: #fff;
+  font-size: .7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.dd-img-url-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.dd-img-url-row input { flex: 1; }
+.dd-img-add-btn {
+  padding: 9px 16px;
+  background: transparent;
+  border: 1px solid var(--a2);
+  border-radius: 8px;
+  color: var(--a2);
+  font-family: var(--fb);
+  font-size: .8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.dd-img-add-btn:hover { background: rgba(122,158,232,.08); }
+
+/* Save feedback */
+.dd-save-ok {
+  display: none;
+  color: #4ecb71;
+  font-size: .77rem;
+  margin-top: 8px;
+}
+.dd-save-ok.show { display: block; }
+</style>
+
+<script>
+(function(){
+
+/* ════ 1. Add "🔍 Deep Dive" tab to the editor ════ */
+function injectDDEditorTab(){
+  const tabsEl = document.querySelector('.etabs');
+  if(!tabsEl || tabsEl.dataset.ddTabInjected) return;
+  tabsEl.dataset.ddTabInjected = '1';
+
+  const tab = document.createElement('button');
+  tab.className = 'etab';
+  tab.type = 'button';
+  tab.textContent = '🔍 Deep Dive';
+  tab.onclick = function(){ eTab('epDeepDive', this); };
+  tabsEl.appendChild(tab);
+
+  /* Add the panel to .ebody */
+  const ebody = document.querySelector('.ebody');
+  if(!ebody || document.getElementById('epDeepDive')) return;
+
+  const panel = document.createElement('div');
+  panel.className = 'ep';
+  panel.id = 'epDeepDive';
+  panel.innerHTML = `
+    <div class="cinfo-box" style="margin-bottom:16px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--ac);flex-shrink:0;"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      عدّل معلومات Deep-Dive لكل مشروع — بعد الحفظ اضغط ☁ Sync لنشرها.
+    </div>
+    <div id="ddEdList"></div>
+    <button class="sbtn" onclick="saveDDData()" type="button">Save Deep-Dive</button>
+    <p class="sok dd-save-ok" id="ddSaveOk">✓ Saved — press ☁ Sync</p>
+  `;
+  ebody.appendChild(panel);
+}
+
+/* ════ 2. Build the editor list ════ */
+function buildDDEdList(){
+  if(!window.DD_DATA) return;
+  const projs = (window.D && window.D.proj) || [];
+  const el    = document.getElementById('ddEdList');
+  if(!el) return;
+
+  el.innerHTML = '';
+
+  projs.forEach((proj, i) => {
+    if(!window.DD_DATA[i]) return;
+    const dd   = window.DD_DATA[i];
+    const lang = window.lang || 'en';
+    function GL(o){ if(!o)return''; if(typeof o==='string')return o; return o[lang]||o.en||o.tr||o.ar||''; }
+
+    const item = document.createElement('div');
+    item.className = 'dd-ed-proj';
+    item.id = `ddEdProj_${i}`;
+
+    const COLORS = ['#e8c87a','#7a9ee8','#e87a9e','#7dd87a','#f0a0c0','#7adde8','#e8a87a','#c87ae8'];
+    const colorSwatches = COLORS.map(c =>
+      `<div class="dd-color-swatch${dd.color===c?' selected':''}"
+        style="background:${c}"
+        onclick="ddSetColor(${i},'${c}')"
+        title="${c}"></div>`
+    ).join('');
+
+    item.innerHTML = `
+      <div class="dd-ed-proj-head" onclick="toggleDDProj(${i})">
+        <span class="dd-ed-proj-icon">${dd.icon||'📁'}</span>
+        <span class="dd-ed-proj-name">${GL(proj.title)||'Project '+(i+1)}</span>
+        <span class="dd-ed-proj-yr">${proj.year||''}</span>
+        <span class="dd-ed-proj-arrow">▼</span>
+      </div>
+      <div class="dd-ed-proj-body">
+
+        <!-- Sub-tabs -->
+        <div class="dd-sub-tabs">
+          <button class="dd-sub-tab active" onclick="ddSubTab(${i},'info',this)" type="button">📋 Info</button>
+          <button class="dd-sub-tab" onclick="ddSubTab(${i},'stats',this)" type="button">📊 Stats</button>
+          <button class="dd-sub-tab" onclick="ddSubTab(${i},'features',this)" type="button">⚙️ Features</button>
+          <button class="dd-sub-tab" onclick="ddSubTab(${i},'stack',this)" type="button">🛠 Stack</button>
+          <button class="dd-sub-tab" onclick="ddSubTab(${i},'images',this)" type="button">🖼 Images</button>
+        </div>
+
+        <!-- INFO panel -->
+        <div class="dd-sub-panel active" id="ddSub_${i}_info">
+          <div class="ef">
+            <label class="el">Icon (emoji)</label>
+            <input class="ei" id="ddIcon_${i}" value="${dd.icon||'📁'}"
+              oninput="window.DD_DATA[${i}].icon=this.value; document.querySelector('#ddEdProj_${i} .dd-ed-proj-icon').textContent=this.value">
+          </div>
+          <div class="ef">
+            <label class="el">Accent Color</label>
+            <div class="dd-color-row" id="ddColorRow_${i}">${colorSwatches}</div>
+          </div>
+          <div class="ef">
+            <label class="el">Description</label>
+            <textarea class="eta" id="ddDesc_${i}" style="min-height:100px"
+              oninput="window.DD_DATA[${i}].desc=this.value">${escDD(dd.desc||'')}</textarea>
+          </div>
+        </div>
+
+        <!-- STATS panel -->
+        <div class="dd-sub-panel" id="ddSub_${i}_stats">
+          <div class="dd-stats-ed" id="ddStatsEd_${i}">
+            ${dd.stats.map((s,si)=>`
+              <div class="dd-stat-row">
+                <label>Stat ${si+1} — Value</label>
+                <input class="ei" style="margin-bottom:6px" value="${escDD(s.val)}"
+                  oninput="window.DD_DATA[${i}].stats[${si}].val=this.value">
+                <label>Label</label>
+                <input class="ei" value="${escDD(s.lbl)}"
+                  oninput="window.DD_DATA[${i}].stats[${si}].lbl=this.value">
+              </div>`).join('')}
+          </div>
+        </div>
+
+        <!-- FEATURES panel -->
+        <div class="dd-sub-panel" id="ddSub_${i}_features">
+          <div id="ddFeatEd_${i}">
+            ${dd.features.map((f,fi)=>`
+              <div class="dd-feat-row" id="ddFeat_${i}_${fi}">
+                <div class="dd-feat-row-head">
+                  <span>Feature ${fi+1}</span>
+                  <button class="dbtn" onclick="ddRemoveFeat(${i},${fi})" type="button">Remove</button>
+                </div>
+                <div class="thr" style="margin-bottom:6px">
+                  <div class="ef"><label class="el">Icon</label>
+                    <input class="ei" value="${escDD(f.icon)}" oninput="window.DD_DATA[${i}].features[${fi}].icon=this.value"></div>
+                  <div class="ef" style="grid-column:span 2"><label class="el">Title</label>
+                    <input class="ei" value="${escDD(f.title)}" oninput="window.DD_DATA[${i}].features[${fi}].title=this.value"></div>
+                </div>
+                <div class="ef"><label class="el">Description</label>
+                  <textarea class="eta" style="min-height:56px"
+                    oninput="window.DD_DATA[${i}].features[${fi}].desc=this.value">${escDD(f.desc)}</textarea>
+                </div>
+              </div>`).join('')}
+          </div>
+          <button class="addbtn" onclick="ddAddFeat(${i})" type="button">+ Add Feature</button>
+        </div>
+
+        <!-- STACK panel -->
+        <div class="dd-sub-panel" id="ddSub_${i}_stack">
+          <div class="dd-stack-ed-wrap">
+            <label class="el">Add technology (press Enter)</label>
+            <div style="display:flex;gap:8px;margin-top:6px">
+              <input class="ei" id="ddStackInput_${i}" placeholder="e.g. Arduino"
+                onkeydown="if(event.key==='Enter'){event.preventDefault();ddAddTag(${i});}">
+              <button class="addbtn" style="width:auto;padding:8px 14px;margin:0" onclick="ddAddTag(${i})" type="button">Add</button>
+            </div>
+            <div class="dd-stack-tags-live" id="ddStackTags_${i}">
+              ${dd.stack.map((t,ti)=>`
+                <span class="dd-stack-tag-ed ${dd.hl.includes(ti)?'hl':''}" id="ddTag_${i}_${ti}">
+                  <span onclick="ddToggleHL(${i},${ti})" style="cursor:pointer" title="Click to highlight">${escDD(t)}</span>
+                  <button class="dd-stack-tag-rm" onclick="ddRemoveTag(${i},${ti})" type="button">✕</button>
+                </span>`).join('')}
+            </div>
+            <p style="font-size:.68rem;color:var(--tm);margin-top:8px;font-family:var(--fm);">
+              💡 Click a tag to toggle highlight (gold color in Deep-Dive view)
+            </p>
+          </div>
+        </div>
+
+        <!-- IMAGES panel -->
+        <div class="dd-sub-panel" id="ddSub_${i}_images">
+          <div class="dd-img-url-row">
+            <input class="ei" id="ddImgUrl_${i}" placeholder="https://... (image URL)">
+            <button class="dd-img-add-btn" onclick="ddAddImage(${i})" type="button">+ Add Image</button>
+          </div>
+          <div class="dd-img-grid" id="ddImgGrid_${i}">
+            ${(dd.images||[]).map((src,ii)=>`
+              <div class="dd-img-item">
+                <img src="${escDD(src)}" alt="img">
+                <button class="dd-img-rm" onclick="ddRemoveImage(${i},${ii})" type="button">✕</button>
+              </div>`).join('')||'<p style="font-size:.78rem;color:var(--tm);font-family:var(--fm);">No images yet — paste an image URL above.</p>'}
+          </div>
+        </div>
+
+      </div>
+    `;
+    el.appendChild(item);
+  });
+}
+
+/* ════ 3. Helpers ════ */
+function escDD(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+window.toggleDDProj = function(i){
+  const el = document.getElementById('ddEdProj_'+i);
+  if(el) el.classList.toggle('open');
+};
+
+window.ddSubTab = function(i, name, btn){
+  const body = document.getElementById('ddEdProj_'+i).querySelector('.dd-ed-proj-body');
+  body.querySelectorAll('.dd-sub-panel').forEach(p=>p.classList.remove('active'));
+  body.querySelectorAll('.dd-sub-tab').forEach(b=>b.classList.remove('active'));
+  const panel = document.getElementById(`ddSub_${i}_${name}`);
+  if(panel) panel.classList.add('active');
+  if(btn)   btn.classList.add('active');
+};
+
+window.ddSetColor = function(i, color){
+  window.DD_DATA[i].color = color;
+  saveDDLocal();
+  /* Update swatches */
+  const row = document.getElementById('ddColorRow_'+i);
+  if(row) row.querySelectorAll('.dd-color-swatch').forEach(s=>{
+    s.classList.toggle('selected', s.style.background === color || s.title === color);
+  });
+};
+
+window.ddAddFeat = function(i){
+  window.DD_DATA[i].features.push({ icon:'✨', title:'New Feature', desc:'Description here.' });
+  saveDDLocal();
+  rebuildFeatEd(i);
+};
+
+window.ddRemoveFeat = function(i, fi){
+  window.DD_DATA[i].features.splice(fi, 1);
+  saveDDLocal();
+  rebuildFeatEd(i);
+};
+
+function rebuildFeatEd(i){
+  const dd  = window.DD_DATA[i];
+  const el  = document.getElementById('ddFeatEd_'+i);
+  if(!el) return;
+  el.innerHTML = dd.features.map((f,fi)=>`
+    <div class="dd-feat-row" id="ddFeat_${i}_${fi}">
+      <div class="dd-feat-row-head">
+        <span>Feature ${fi+1}</span>
+        <button class="dbtn" onclick="ddRemoveFeat(${i},${fi})" type="button">Remove</button>
+      </div>
+      <div class="thr" style="margin-bottom:6px">
+        <div class="ef"><label class="el">Icon</label>
+          <input class="ei" value="${escDD(f.icon)}" oninput="window.DD_DATA[${i}].features[${fi}].icon=this.value"></div>
+        <div class="ef" style="grid-column:span 2"><label class="el">Title</label>
+          <input class="ei" value="${escDD(f.title)}" oninput="window.DD_DATA[${i}].features[${fi}].title=this.value"></div>
+      </div>
+      <div class="ef"><label class="el">Description</label>
+        <textarea class="eta" style="min-height:56px"
+          oninput="window.DD_DATA[${i}].features[${fi}].desc=this.value">${escDD(f.desc)}</textarea>
+      </div>
+    </div>`).join('');
+}
+
+window.ddAddTag = function(i){
+  const inp = document.getElementById('ddStackInput_'+i);
+  const val = (inp.value||'').trim();
+  if(!val) return;
+  window.DD_DATA[i].stack.push(val);
+  inp.value = '';
+  saveDDLocal();
+  rebuildStackTags(i);
+};
+
+window.ddRemoveTag = function(i, ti){
+  window.DD_DATA[i].stack.splice(ti, 1);
+  window.DD_DATA[i].hl = window.DD_DATA[i].hl.filter(h => h < window.DD_DATA[i].stack.length);
+  saveDDLocal();
+  rebuildStackTags(i);
+};
+
+window.ddToggleHL = function(i, ti){
+  const hl = window.DD_DATA[i].hl;
+  const idx = hl.indexOf(ti);
+  if(idx === -1) hl.push(ti); else hl.splice(idx,1);
+  saveDDLocal();
+  rebuildStackTags(i);
+};
+
+function rebuildStackTags(i){
+  const dd = window.DD_DATA[i];
+  const el = document.getElementById('ddStackTags_'+i);
+  if(!el) return;
+  el.innerHTML = dd.stack.map((t,ti)=>`
+    <span class="dd-stack-tag-ed ${dd.hl.includes(ti)?'hl':''}" id="ddTag_${i}_${ti}">
+      <span onclick="ddToggleHL(${i},${ti})" style="cursor:pointer" title="Click to highlight">${escDD(t)}</span>
+      <button class="dd-stack-tag-rm" onclick="ddRemoveTag(${i},${ti})" type="button">✕</button>
+    </span>`).join('');
+}
+
+window.ddAddImage = function(i){
+  const inp = document.getElementById('ddImgUrl_'+i);
+  const url = (inp.value||'').trim();
+  if(!url || !url.startsWith('http')){ alert('Please enter a valid image URL starting with https://'); return; }
+  if(!window.DD_DATA[i].images) window.DD_DATA[i].images = [];
+  window.DD_DATA[i].images.push(url);
+  inp.value = '';
+  saveDDLocal();
+  rebuildImgGrid(i);
+};
+
+window.ddRemoveImage = function(i, ii){
+  window.DD_DATA[i].images.splice(ii, 1);
+  saveDDLocal();
+  rebuildImgGrid(i);
+};
+
+function rebuildImgGrid(i){
+  const dd = window.DD_DATA[i];
+  const el = document.getElementById('ddImgGrid_'+i);
+  if(!el) return;
+  const imgs = dd.images || [];
+  el.innerHTML = imgs.length
+    ? imgs.map((src,ii)=>`
+        <div class="dd-img-item">
+          <img src="${escDD(src)}" alt="img" onerror="this.style.opacity='.3'">
+          <button class="dd-img-rm" onclick="ddRemoveImage(${i},${ii})" type="button">✕</button>
+        </div>`).join('')
+    : '<p style="font-size:.78rem;color:var(--tm);font-family:var(--fm);">No images yet.</p>';
+}
+
+/* ════ 4. Save ════ */
+function saveDDLocal(){
+  try { localStorage.setItem('ma_dddata_v1', JSON.stringify(window.DD_DATA)); } catch(e){}
+}
+
+window.saveDDData = function(){
+  saveDDLocal();
+  /* Also try to save into Firebase via the existing _saveToFirebase
+     by attaching DD_DATA onto window.D so it travels with the batch */
+  if(window.D) window.D._ddData = window.DD_DATA;
+  const ok = document.getElementById('ddSaveOk');
+  if(ok){ ok.classList.add('show'); setTimeout(()=>ok.classList.remove('show'), 3000); }
+  /* Trigger a re-render so Deep-Dive buttons pick up new data */
+  if(typeof window.render === 'function') window.render();
+};
+
+/* ════ 5. Load saved DD_DATA from localStorage ════ */
+function loadDDLocal(){
+  try {
+    const s = localStorage.getItem('ma_dddata_v1');
+    if(s){
+      const saved = JSON.parse(s);
+      /* Merge saved keys into the existing DD_DATA */
+      Object.keys(saved).forEach(k=>{
+        if(window.DD_DATA && window.DD_DATA[k] !== undefined){
+          window.DD_DATA[k] = saved[k];
+        }
+      });
+    }
+  } catch(e){}
+}
+
+/* ════ 6. Hook into editor open / tab switch ════ */
+function hookEditor(){
+  /* Patch openEditor */
+  const origOpen = window.openEditor;
+  if(typeof origOpen === 'function' && !origOpen._ddPatched){
+    window.openEditor = function(){
+      origOpen.apply(this, arguments);
+      setTimeout(()=>{
+        injectDDEditorTab();
+        buildDDEdList();
+      }, 80);
+    };
+    window.openEditor._ddPatched = true;
+  }
+
+  /* Patch eTab to rebuild list when Deep Dive tab is activated */
+  const origETab = window.eTab;
+  if(typeof origETab === 'function' && !origETab._ddPatched){
+    window.eTab = function(id, btn){
+      origETab.apply(this, arguments);
+      if(id === 'epDeepDive'){
+        setTimeout(buildDDEdList, 60);
+      }
+    };
+    window.eTab._ddPatched = true;
+  }
+}
+
+/* ════ 7. Init ════ */
+function init(){
+  /* Wait for DD_DATA to exist (defined in the Deep-Dive addon) */
+  if(typeof window.DD_DATA === 'undefined'){
+    setTimeout(init, 200);
+    return;
+  }
+  loadDDLocal();
+  hookEditor();
+}
+
+/* Start after DOM ready */
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+})();
+</script>
+<!-- ═══════════════════════════════════════════════════════════ -->
 </body>
 </html>
