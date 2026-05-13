@@ -3504,7 +3504,7 @@ function buildDDEdList(){
 
   el.innerHTML = '';
 
-  projs.forEach((proj, i) => {
+projs.forEach((proj, i) => {
   if(!window.DD_DATA[i]){
     window.DD_DATA[i] = {
       color:'#7a9ee8',
@@ -3524,17 +3524,28 @@ function buildDDEdList(){
     };
   }
 
-    const item = document.createElement('div');
-    item.className = 'dd-ed-proj';
-    item.id = `ddEdProj_${i}`;
+  const dd = window.DD_DATA[i];
+  const lang = window.lang || 'en';
 
-    const COLORS = ['#e8c87a','#7a9ee8','#e87a9e','#7dd87a','#f0a0c0','#7adde8','#e8a87a','#c87ae8'];
-    const colorSwatches = COLORS.map(c =>
-      `<div class="dd-color-swatch${dd.color===c?' selected':''}"
-        style="background:${c}"
-        onclick="ddSetColor(${i},'${c}')"
-        title="${c}"></div>`
-    ).join('');
+  function GL(o){
+    if(!o) return '';
+    if(typeof o === 'string') return o;
+    return o[lang] || o.en || o.tr || o.ar || '';
+  }
+
+  const item = document.createElement('div');
+  item.className = 'dd-ed-proj';
+  item.id = `ddEdProj_${i}`;
+
+  const COLORS = ['#e8c87a','#7a9ee8','#e87a9e','#7dd87a','#f0a0c0','#7adde8','#e8a87a','#c87ae8'];
+
+  const colorSwatches = COLORS.map(c =>
+    `<div class="dd-color-swatch${dd.color===c?' selected':''}"
+      style="background:${c}"
+      onclick="ddSetColor(${i},'${c}')"
+      title="${c}"></div>`
+  ).join('');
+  
 
     item.innerHTML = `
       <div class="dd-ed-proj-head" onclick="toggleDDProj(${i})">
