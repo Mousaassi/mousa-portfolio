@@ -3505,10 +3505,25 @@ function buildDDEdList(){
   el.innerHTML = '';
 
   projs.forEach((proj, i) => {
-    if(!window.DD_DATA[i]) return;
-    const dd   = window.DD_DATA[i];
-    const lang = window.lang || 'en';
-    function GL(o){ if(!o)return''; if(typeof o==='string')return o; return o[lang]||o.en||o.tr||o.ar||''; }
+projs.forEach((proj, i) => {
+  if(!window.DD_DATA[i]){
+    window.DD_DATA[i] = {
+      color:'#7a9ee8',
+      icon:'📁',
+      heroPattern:'drone',
+      desc:'',
+      stats:[
+        {val:'', lbl:''},
+        {val:'', lbl:''},
+        {val:'', lbl:''},
+        {val:'', lbl:''}
+      ],
+      features:[],
+      stack:[],
+      hl:[],
+      images:[]
+    };
+  }
 
     const item = document.createElement('div');
     item.className = 'dd-ed-proj';
