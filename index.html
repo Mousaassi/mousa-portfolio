@@ -97,10 +97,12 @@ window._saveToFirebase = async () => {
   if (!window._fbUser) { showSync('error','✗ Not logged in'); return; }
   try {
     showSync('saving','☁ Saving…');
-    const certsClean = (window.D.certs||[]).map(c => ({
-      name: c.name||'', year: c.year||'', url: c.url||'',
-      img: (c.img && c.img.startsWith('https')) ? c.img : ''
-    }));
+   const certsClean = (window.D.certs||[]).map(c => ({
+  name: c.name||'', name_tr: c.name_tr||'', name_ar: c.name_ar||'',
+  year: c.year||'', url: c.url||'',
+  img: (c.img && c.img.startsWith('https')) ? c.img : ''
+}));
+    
     const projClean = (window.D.proj||[]).map(p => ({
       ...p,
       pdf: (p.pdf && p.pdf.startsWith('data:')) ? '' : (p.pdf||'')
@@ -203,7 +205,7 @@ function normEdu(e){return{year:e.year||'',degree:ensureLO(e.degree,{}),school:e
 function normProj(p){return{year:p.year||'',title:ensureLO(p.title,{}),bullets:normBullets(p.bullets),pdf:p.pdf||'',pdfName:p.pdfName||''};}
 function normExp(e){return{role:ensureLO(e.role,{}),company:e.company||'',period:e.period||'',loc:e.loc||'',bullets:normBullets(e.bullets)};}
 function normSkill(s){return{cat:ensureLO(s.cat,{}),tags:s.tags||[],hl:s.hl||[]};}
-function normCert(c){return{name:c.name||'',year:c.year||'',img:c.img||'',url:c.url||''};}
+function normCert(c){return{name:c.name||'',name_tr:c.name_tr||'',name_ar:c.name_ar||'',year:c.year||'',img:c.img||'',url:c.url||''};}
 window._normBullets=normBullets;
 </script>
 
@@ -1411,7 +1413,7 @@ window.render=function(){
         <span class="cyr">${c.year||''}</span>
       </div>
       <div class="cbody">
-        <div class="cname">${c.name||''}</div>
+      <div class="cname">${lang==='tr'?(c.name_tr||c.name||''):lang==='ar'?(c.name_ar||c.name||''):c.name||''}</div>
         <div class="corg">Certificate of Completion</div>
       </div>
       ${c.url?`<a href="${c.url}" class="cvbtn" target="_blank">${SI.eye} View Certificate</a>`:''}
@@ -1441,8 +1443,15 @@ window.render=function(){
   document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
   requestAnimationFrame(injectDDButtons);
 };
-function setLang(l){lang=l;render();}
-
+  function setLang(l){
+  lang=l;render();
+  if(window._stopTW)window._stopTW();
+  window._twCycling=false;
+  const el=document.getElementById('heroSub');
+  if(el)el.textContent='';
+  setTimeout(window._startTWCycle,400);
+  }
+}
 /* ════ EDITORS ════ */
 function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 function bRows(sec,i,buls){
@@ -1514,7 +1523,9 @@ function buildCertEd(){
   document.getElementById('certEd').innerHTML=(window.D.certs||[]).map((c,i)=>`
     <div class="lrow"><div class="rh"><span class="rn">Cert #${i+1}</span><button class="dbtn" onclick="delI('certs',${i})" type="button">Remove</button></div>
       <div class="two">
-        <div class="ef"><label class="el">Name</label><input class="ei" value="${esc(c.name||'')}" oninput="window.D.certs[${i}].name=this.value"></div>
+      <div class="ef"><label class="el">Name (EN)</label><input class="ei" value="${esc(c.name||'')}" oninput="window.D.certs[${i}].name=this.value"></div>
+      <div class="ef"><label class="el">Name (TR)</label><input class="ei" value="${esc(c.name_tr||'')}" oninput="window.D.certs[${i}].name_tr=this.value"></div>
+      <div class="ef"><label class="el">Name (AR)</label><input class="ei" value="${esc(c.name_ar||'')}" oninput="window.D.certs[${i}].name_ar=this.value" dir="rtl"></div>
         <div class="ef"><label class="el">Year</label><input class="ei" value="${esc(c.year||'')}" oninput="window.D.certs[${i}].year=this.value"></div>
       </div>
       <div class="ef"><label class="el">Certificate URL (optional)</label><input class="ei" value="${esc(c.url||'')}" placeholder="https://..." oninput="window.D.certs[${i}].url=this.value"></div>
@@ -1700,8 +1711,15 @@ const tabBtns=document.querySelectorAll('.dd-tab');
 const secLabels={en:['About this project','Key features','Technologies used','Project images'],tr:['Proje hakkında','Temel özellikler','Kullanılan teknolojiler','Proje görselleri'],ar:['عن هذا المشروع','المميزات الرئيسية','التقنيات المستخدمة','صور المشروع']};
 document.querySelectorAll('.dd-sec-lbl').forEach((el,i)=>{const lbls=secLabels[lang]||secLabels.en;if(lbls[i])el.textContent=lbls[i];});
   document.getElementById('ddStats').innerHTML=(dd.stats||[]).map((s,i)=>`<div class="dd-stat" style="--si:${i}"><div class="dd-stat-val">${s.val}</div><div class="dd-stat-lbl">${s.lbl}</div></div>`).join('');
-  document.getElementById('ddDesc').textContent=dd.desc||'';
-  document.getElementById('ddFeatures').innerHTML=(dd.features||[]).map(f=>`<div class="dd-feat"><div class="dd-feat-icon">${f.icon}</div><div class="dd-feat-txt"><strong>${f.title}</strong>${f.desc}</div></div>`).join('');
+  // Auto-translate desc and features based on lang
+const ddDescEl=document.getElementById('ddDesc');
+if(dd.desc_tr||dd.desc_ar){
+  ddDescEl.textContent=lang==='tr'?(dd.desc_tr||dd.desc):lang==='ar'?(dd.desc_ar||dd.desc):dd.desc||'';
+}else{
+  ddDescEl.textContent=dd.desc||'';
+}
+  document.getElementById('ddFeatures').innerHTML=(dd.features||[]).map(f=>`<div class="dd-feat"><div class="dd-feat-icon">${f.icon}</div><div class="dd-feat-txt"><strong>${lang==='tr'?(f.title_tr||f.title):lang==='ar'?(f.title_ar||f.title):f.title}</strong>${lang==='tr'?(f.desc_tr||f.desc):lang==='ar'?(f.desc_ar||f.desc):f.desc}</div></div>`).join('');
+  
   document.getElementById('ddStack').innerHTML=(dd.stack||[]).map((t,i)=>`<span class="dd-stack-tag ${(dd.hl||[]).includes(i)?'hl':''}" style="--ti:${i}">${t}</span>`).join('');
   const imgs=dd.images&&dd.images.length?dd.images.map(src=>`<div class="dd-gal-item" onclick="openLB('${src}')"><img src="${src}" alt="project"></div>`):Array(4).fill(0).map((_,i)=>`<div class="dd-gal-item" style="cursor:default"><div class="dd-gal-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Image ${i+1}</span></div></div>`);
   document.getElementById('ddGallery').innerHTML=imgs.join('');
@@ -1780,7 +1798,9 @@ function buildDDEdList(){
         <div class="dd-sub-panel active" id="ddSub_${i}_info">
           <div class="ef"><label class="el">Icon (emoji)</label><input class="ei" id="ddIcon_${i}" value="${escDD(dd.icon||'📁')}" oninput="window.DD_DATA[${i}].icon=this.value;document.querySelector('#ddEdProj_${i} .dd-ed-proj-icon').textContent=this.value"></div>
           <div class="ef"><label class="el">Accent Color</label><div class="dd-color-row" id="ddColorRow_${i}">${colorSwatches}</div></div>
-          <div class="ef"><label class="el">Description</label><textarea class="eta" id="ddDesc_${i}" style="min-height:100px" oninput="window.DD_DATA[${i}].desc=this.value">${escDD(dd.desc||'')}</textarea></div>
+          <div class="ef"><label class="el">Description (EN)</label><textarea class="eta" style="min-height:80px" oninput="window.DD_DATA[${i}].desc=this.value">${escDD(dd.desc||'')}</textarea></div>
+          <div class="ef"><label class="el">Description (TR)</label><textarea class="eta" style="min-height:80px" oninput="window.DD_DATA[${i}].desc_tr=this.value">${escDD(dd.desc_tr||'')}</textarea></div>
+          <div class="ef"><label class="el">Description (AR)</label><textarea class="eta" style="min-height:80px" dir="rtl" oninput="window.DD_DATA[${i}].desc_ar=this.value">${escDD(dd.desc_ar||'')}</textarea></div>  
         </div>
         <div class="dd-sub-panel" id="ddSub_${i}_stats">
           <div class="dd-stats-ed">${(dd.stats||[]).map((s,si)=>`<div class="dd-stat-row"><label>Stat ${si+1} Value</label><input class="ei" style="margin-bottom:6px" value="${escDD(s.val)}" oninput="window.DD_DATA[${i}].stats[${si}].val=this.value"><label>Label</label><input class="ei" value="${escDD(s.lbl)}" oninput="window.DD_DATA[${i}].stats[${si}].lbl=this.value"></div>`).join('')}</div>
@@ -1815,7 +1835,16 @@ function buildDDEdList(){
 }
 
 function buildFeatRows(i,features){
-  return(features||[]).map((f,fi)=>`<div class="dd-feat-row"><div class="dd-feat-row-head"><span>Feature ${fi+1}</span><button class="dbtn" onclick="ddRemoveFeat(${i},${fi})" type="button">Remove</button></div><div class="thr" style="margin-bottom:6px"><div class="ef"><label class="el">Icon</label><input class="ei" value="${escDD(f.icon)}" oninput="window.DD_DATA[${i}].features[${fi}].icon=this.value"></div><div class="ef" style="grid-column:span 2"><label class="el">Title</label><input class="ei" value="${escDD(f.title)}" oninput="window.DD_DATA[${i}].features[${fi}].title=this.value"></div></div><div class="ef"><label class="el">Description</label><textarea class="eta" style="min-height:56px" oninput="window.DD_DATA[${i}].features[${fi}].desc=this.value">${escDD(f.desc)}</textarea></div></div>`).join('');
+  return(features||[]).map((f,fi)=>`<div class="dd-feat-row"><div class="dd-feat-row-head"><span>Feature ${fi+1}</span><button class="dbtn" onclick="ddRemoveFeat(${i},${fi})" type="button">Remove</button></div><div class="thr" style="margin-bottom:6px"><div class="ef"><label class="el">Icon</label><input class="ei" value="${escDD(f.icon)}" oninput="window.DD_DATA[${i}].features[${fi}].icon=this.value"></div><div class="ef" style="grid-column:span 2"><label class="el">Title (EN)</label><input class="ei" value="${escDD(f.title)}" oninput="window.DD_DATA[${i}].features[${fi}].title=this.value"></div></div>
+<div class="two" style="margin-bottom:6px">
+  <div class="ef"><label class="el">Title TR</label><input class="ei" value="${escDD(f.title_tr||'')}" oninput="window.DD_DATA[${i}].features[${fi}].title_tr=this.value"></div>
+  <div class="ef"><label class="el">Title AR</label><input class="ei" value="${escDD(f.title_ar||'')}" oninput="window.DD_DATA[${i}].features[${fi}].title_ar=this.value" dir="rtl"></div>
+</div>
+<div class="ef"><label class="el">Description (EN)</label><textarea class="eta" style="min-height:50px" oninput="window.DD_DATA[${i}].features[${fi}].desc=this.value">${escDD(f.desc)}</textarea></div>
+<div class="two">
+  <div class="ef"><label class="el">Desc TR</label><textarea class="eta" style="min-height:50px" oninput="window.DD_DATA[${i}].features[${fi}].desc_tr=this.value">${escDD(f.desc_tr||'')}</textarea></div>
+  <div class="ef"><label class="el">Desc AR</label><textarea class="eta" style="min-height:50px" oninput="window.DD_DATA[${i}].features[${fi}].desc_ar=this.value" dir="rtl">${escDD(f.desc_ar||'')}</textarea></div>
+</div>
 }
 function buildStackTagsHTML(i,stack,hl){
   return(stack||[]).map((t,ti)=>`<span class="dd-stack-tag-ed ${(hl||[]).includes(ti)?'hl':''}"><span onclick="ddToggleHL(${i},${ti})" style="cursor:pointer">${escDD(t)}</span><button class="dd-stack-tag-rm" onclick="ddRemoveTag(${i},${ti})" type="button">✕</button></span>`).join('');
@@ -2128,20 +2157,56 @@ document.addEventListener('mouseout',e=>{if(e.target.classList.contains('sktag')
 
 /* ════ TYPEWRITER SUBTITLE CYCLE ════ */
 (function(){
-  let cycling=false;
-  function startCycle(){
-    if(cycling)return;cycling=true;
+  window._twCycling=false;
+  window._startTWCycle=function(){
+    if(window._twCycling)return;
+    window._twCycling=true;
     const el=document.getElementById('heroSub');if(!el)return;
     const h=window.D&&window.D.hero;
-     const texts=(h&&h.typewriterLines&&h.typewriterLines.length)?h.typewriterLines:["UAV Systems Developer","Robotics & Autonomous Systems","Embedded Systems Engineer","3D Printing & Mechanical Design","Control Systems (PD / PID)","Medical Technology Projects"];
+    // Multi-language typewriter lines
+    const defaultLines={
+      en:["UAV Systems Developer","Robotics & Autonomous Systems","Embedded Systems Engineer","3D Printing & Mechanical Design","Control Systems (PD / PID)","Medical Technology Projects"],
+      tr:["İHA Sistemleri Geliştirici","Robotik & Otonom Sistemler","Gömülü Sistem Mühendisi","3D Baskı & Mekanik Tasarım","Kontrol Sistemleri (PD / PID)","Medikal Teknoloji Projeleri"],
+      ar:["مطور أنظمة طائرات مسيّرة","الروبوتيكس والأنظمة الذاتية","مهندس أنظمة مدمجة","الطباعة ثلاثية الأبعاد والتصميم","أنظمة التحكم PID","مشاريع التقنية الطبية"]
+    };
+    // Use custom lines if set (EN only for now), else use translated defaults
+    let texts;
+    if(h&&h.typewriterLines&&h.typewriterLines.length&&lang==='en'){
+      texts=h.typewriterLines;
+    }else{
+      texts=defaultLines[lang]||defaultLines.en;
+    }
     let idx=0;
-    function typeOut(text,cb){el.textContent='';let i=0;const iv=setInterval(()=>{el.textContent=text.slice(0,++i);if(i>=text.length){clearInterval(iv);setTimeout(cb,1800);}},35);}
-    function eraseOut(cb){let t=el.textContent;const iv=setInterval(()=>{t=t.slice(0,-1);el.textContent=t;if(!t.length){clearInterval(iv);cb();}},18);}
-    function loop(){idx=(idx+1)%texts.length;eraseOut(()=>typeOut(texts[idx],loop));}
+    let active=true;
+    window._stopTW=function(){active=false;};
+    function typeOut(text,cb){
+      if(!active)return;
+      el.textContent='';let i=0;
+      const iv=setInterval(()=>{
+        if(!active){clearInterval(iv);return;}
+        el.textContent=text.slice(0,++i);
+        if(i>=text.length){clearInterval(iv);setTimeout(cb,1800);}
+      },35);
+    }
+    function eraseOut(cb){
+      if(!active)return;
+      let t=el.textContent;
+      const iv=setInterval(()=>{
+        if(!active){clearInterval(iv);return;}
+        t=t.slice(0,-1);el.textContent=t;
+        if(!t.length){clearInterval(iv);cb();}
+      },18);
+    }
+    function loop(){
+      if(!active)return;
+      idx=(idx+1)%texts.length;
+      eraseOut(()=>typeOut(texts[idx],loop));
+    }
     typeOut(texts[0],loop);
-  }
-  setTimeout(startCycle,1000);
+  };
+  setTimeout(window._startTWCycle,1000);
 })();
+
 
 /* ════ SMOOTH SCROLL ════ */
 document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click',e=>{const target=document.querySelector(a.getAttribute('href'));if(target){e.preventDefault();window.scrollTo({top:target.offsetTop-80,behavior:'smooth'});}});});
