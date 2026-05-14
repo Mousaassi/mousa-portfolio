@@ -1451,7 +1451,6 @@ window.render=function(){
   if(el)el.textContent='';
   setTimeout(window._startTWCycle,400);
   }
-}
 /* ════ EDITORS ════ */
 function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 function bRows(sec,i,buls){
@@ -1845,6 +1844,8 @@ function buildFeatRows(i,features){
   <div class="ef"><label class="el">Desc TR</label><textarea class="eta" style="min-height:50px" oninput="window.DD_DATA[${i}].features[${fi}].desc_tr=this.value">${escDD(f.desc_tr||'')}</textarea></div>
   <div class="ef"><label class="el">Desc AR</label><textarea class="eta" style="min-height:50px" oninput="window.DD_DATA[${i}].features[${fi}].desc_ar=this.value" dir="rtl">${escDD(f.desc_ar||'')}</textarea></div>
 </div>
+</div>
+`).join('');
 }
 function buildStackTagsHTML(i,stack,hl){
   return(stack||[]).map((t,ti)=>`<span class="dd-stack-tag-ed ${(hl||[]).includes(ti)?'hl':''}"><span onclick="ddToggleHL(${i},${ti})" style="cursor:pointer">${escDD(t)}</span><button class="dd-stack-tag-rm" onclick="ddRemoveTag(${i},${ti})" type="button">✕</button></span>`).join('');
