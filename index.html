@@ -185,7 +185,8 @@ function deepMerge(fb,defs){
   r.hero={firstName:h.firstName||dh.firstName||'Mousa',lastName:h.lastName||dh.lastName||'Assi',
     eyebrow:ensureLO(h.eyebrow,dh.eyebrow),subtitle:ensureLO(h.subtitle,dh.subtitle),desc:ensureLO(h.desc,dh.desc),
     tags:(h.tags&&h.tags.length)?h.tags:(dh.tags||[]),
-    email:h.email||dh.email||'',phone:h.phone||dh.phone||'',location:h.location||dh.location||'',linkedin:h.linkedin||dh.linkedin||''};
+    email:h.email||dh.email||'',phone:h.phone||dh.phone||'',location:h.location||dh.location||'',linkedin:h.linkedin||dh.linkedin||'',
+    subtitleTexts:h.subtitleTexts||dh.subtitleTexts||{en:[],tr:[],ar:[]}};
   const t=fb.titles||{},dt=defs.titles||{};
   r.titles={};['edu','proj','exp','skills','certs'].forEach(k=>{r.titles[k]=ensureLO(t[k],dt[k]);});
   r.edu   =(fb.edu   &&fb.edu.length)   ?fb.edu.map(normEdu)   :defs.edu;
@@ -824,6 +825,8 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="etab" onclick="eTab('epCert',this)">📜 Certs</button>
           <button class="etab" onclick="eTab('epSoc',this)">🔗 Links</button>
           <button class="etab" onclick="eTab('epCus',this)">➕ Sections</button>
+          <button class="etab" onclick="eTab('epTitles',this)">🏷 Titles</button>
+          <button class="etab" onclick="eTab('epCV',this)">📥 CV Links</button>
           <button class="etab" onclick="eTab('epDeepDive',this)">🔍 Deep Dive</button>
         </div>
       </div>
@@ -855,6 +858,14 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <div class="ef"><label class="el">Description TR</label><textarea class="eta" id="eDescTR"></textarea></div>
           <div class="ef"><label class="el">Description AR</label><textarea class="eta" id="eDescAR" dir="rtl"></textarea></div>
           <div class="ef"><label class="el">Tags (comma-separated)</label><input class="ei" id="eTags"></div>
+          <div class="ef" style="background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:14px;">
+            <label class="el" style="margin-bottom:10px;display:block;">🔄 Typing Texts (one per line — shown cycling under name)</label>
+            <div class="thr">
+              <div><label class="el">EN — one per line</label><textarea class="eta" id="eSubTextsEN" style="min-height:120px;font-size:.8rem;"></textarea></div>
+              <div><label class="el">TR — one per line</label><textarea class="eta" id="eSubTextsTR" style="min-height:120px;font-size:.8rem;"></textarea></div>
+              <div><label class="el">AR — one per line</label><textarea class="eta" id="eSubTextsAR" style="min-height:120px;font-size:.8rem;" dir="rtl"></textarea></div>
+            </div>
+          </div>
           <div class="two">
             <div class="ef"><label class="el">Email</label><input class="ei" id="eEmail"></div>
             <div class="ef"><label class="el">Phone</label><input class="ei" id="ePhone"></div>
@@ -887,6 +898,23 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="addbtn" onclick="addCus()" type="button">+ Add Section</button>
           <button class="sbtn" onclick="doSave('custom')" type="button">Save</button>
           <p class="sok" id="cusOk">✓ Saved</p>
+        </div>
+        <!-- SECTION TITLES PANEL -->
+        <div class="ep" id="epTitles">
+          <div class="cinfo-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Edit the section headings shown on the page (Education, Projects, etc.)</div>
+          <div id="titlesEd"></div>
+          <button class="sbtn" onclick="saveTitles()" type="button">Save Titles</button>
+          <p class="sok" id="titlesOk">✓ Saved</p>
+        </div>
+        <!-- CV LINKS PANEL -->
+        <div class="ep" id="epCV">
+          <div class="cinfo-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>CV download links shown in the Hero section</div>
+          <div class="ef"><label class="el">CV English URL (default: cv-en.pdf)</label><input class="ei" id="eCvEn" placeholder="cv-en.pdf or https://..."></div>
+          <div class="ef"><label class="el">CV Turkish URL (default: cv-tr.pdf)</label><input class="ei" id="eCvTr" placeholder="cv-tr.pdf or https://..."></div>
+          <div class="ef"><label class="el">CV English Button Label</label><input class="ei" id="eCvEnLbl" placeholder="📄 Download CV (EN)"></div>
+          <div class="ef"><label class="el">CV Turkish Button Label</label><input class="ei" id="eCvTrLbl" placeholder="📄 CV (TR)"></div>
+          <button class="sbtn" onclick="saveCvLinks()" type="button">Save CV Links</button>
+          <p class="sok" id="cvOk">✓ Saved</p>
         </div>
         <!-- DEEP DIVE PANEL -->
         <div class="ep" id="epDeepDive">
@@ -1087,7 +1115,12 @@ const DEFS={
           tr:"Selçuk Üniversitesi'nde Mekatronik Mühendisliği okuyorum. Dronlar, robot kollar ve otonom sistemler üzerinde çalışıyorum.",
           ar:'خريج هندسة ميكانيكية أتابع درجة البكالوريوس في هندسة الميكاترونيكس في جامعة سلجوق.'},
     tags:['SolidWorks','Fusion 360','Arduino','3D Printing','UAV Design','PID Control','Computer Vision'],
-    email:'mousaassi.swi@gmail.com',phone:'+90 555 144 11 57',location:'Konya, Türkiye',linkedin:'linkedin.com/in/musa-assi'},
+    email:'mousaassi.swi@gmail.com',phone:'+90 555 144 11 57',location:'Konya, Türkiye',linkedin:'linkedin.com/in/musa-assi',
+    subtitleTexts:{
+      en:['UAV Systems Developer','Robotics & Autonomous Systems','Embedded Systems Engineer','3D Printing & Mechanical Design','Control Systems (PD / PID)','Medical Technology Projects'],
+      tr:['İHA Sistemleri Geliştirici','Robotik & Otonom Sistemler','Gömülü Sistem Mühendisi','3D Baskı & Mekanik Tasarım','Kontrol Sistemleri (PD / PID)','Tıbbi Teknoloji Projeleri'],
+      ar:['مطوّر أنظمة طائرات مسيّرة','الروبوتيكس والأنظمة المستقلة','مهندس أنظمة مدمجة','الطباعة ثلاثية الأبعاد والتصميم الميكانيكي','أنظمة التحكم (PD / PID)','مشاريع التكنولوجيا الطبية']
+    }}
   titles:{edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},certs:{en:'Certifications',tr:'Sertifikalar',ar:'الشهادات'}},
   edu:[
     {year:'2024→',degree:{en:'B.Sc. Mechatronics Engineering',tr:'Mekatronik Mühendisliği Lisans',ar:'بكالوريوس هندسة الميكاترونيكس'},school:'Selcuk University',loc:'Konya, Türkiye · Sep 2024 – Present'},
@@ -1406,11 +1439,13 @@ window.render=function(){
     <div class="cdet-row">${SI.phone}<span>${h.phone||''}</span></div>
     <div class="cdet-row">${SI.pin}<span>${h.location||''}</span></div>`;
   document.getElementById('footerTxt').textContent=`© 2025 ${h.firstName||''} ${h.lastName||''} · ${h.location||''} · ${h.email||''}`;
-  document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===lang));
+  document.getElementById('heroCvLinks').innerHTML=`
+    <a href="${h.cvEnUrl||'cv-en.pdf'}" download class="slink">${h.cvEnLbl||'📄 Download CV (EN)'}</a>
+    <a href="${h.cvTrUrl||'cv-tr.pdf'}" download class="slink">${h.cvTrLbl||'📄 CV (TR)'}</a>`;
   document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
   requestAnimationFrame(injectDDButtons);
 };
-function setLang(l){lang=l;render();}
+function setLang(l){lang=l;render();if(window._restartSubtitleCycle)window._restartSubtitleCycle();}
 
 /* ════ EDITORS ════ */
 function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
@@ -1538,6 +1573,9 @@ function saveHero(){
   h.subtitle={en:document.getElementById('eSubEN').value,tr:document.getElementById('eSubTR').value,ar:document.getElementById('eSubAR').value};
   h.desc={en:document.getElementById('eDescEN').value,tr:document.getElementById('eDescTR').value,ar:document.getElementById('eDescAR').value};
   h.tags=document.getElementById('eTags').value.split(',').map(t=>t.trim()).filter(Boolean);
+  // Save subtitle cycling texts
+  const parseLines=id=>document.getElementById(id).value.split('\n').map(s=>s.trim()).filter(Boolean);
+  h.subtitleTexts={en:parseLines('eSubTextsEN'),tr:parseLines('eSubTextsTR'),ar:parseLines('eSubTextsAR')};
   h.email=document.getElementById('eEmail').value;h.phone=document.getElementById('ePhone').value;
   h.location=document.getElementById('eLoc').value;h.linkedin=document.getElementById('eLI').value;
   saveD();render();showOK('heroOk');
@@ -1548,6 +1586,38 @@ function showOK(id){const e=document.getElementById(id);if(e){e.classList.add('s
 const TM={epEdu:'edu',epProj:'proj',epExp:'exp',epSk:'skills',epCert:'certs',epSoc:'social',epCus:'custom'};
 const TB={edu:buildEduEd,proj:buildProjEd,exp:buildExpEd,skills:buildSkEd,certs:buildCertEd,social:buildSocEd,custom:buildCusEd};
 
+function buildTitlesEd(){
+  const ti=window.D.titles||DEFS.titles;
+  const keys=['edu','proj','exp','skills','certs'];
+  const labels={edu:'Education',proj:'Projects',exp:'Experience',skills:'Skills',certs:'Certifications'};
+  document.getElementById('titlesEd').innerHTML=keys.map(k=>`
+    <div class="lrow" style="margin-bottom:10px;">
+      <div class="rn" style="margin-bottom:8px;">Section: ${labels[k]}</div>
+      <div class="thr">
+        <div class="ef"><label class="el">EN</label><input class="ei" value="${esc((ti[k]&&ti[k].en)||labels[k])}" oninput="if(!window.D.titles)window.D.titles={};if(!window.D.titles['${k}'])window.D.titles['${k}']={};window.D.titles['${k}'].en=this.value"></div>
+        <div class="ef"><label class="el">TR</label><input class="ei" value="${esc((ti[k]&&ti[k].tr)||labels[k])}" oninput="if(!window.D.titles)window.D.titles={};if(!window.D.titles['${k}'])window.D.titles['${k}']={};window.D.titles['${k}'].tr=this.value"></div>
+        <div class="ef"><label class="el">AR</label><input class="ei" dir="rtl" value="${esc((ti[k]&&ti[k].ar)||labels[k])}" oninput="if(!window.D.titles)window.D.titles={};if(!window.D.titles['${k}'])window.D.titles['${k}']={};window.D.titles['${k}'].ar=this.value"></div>
+      </div>
+    </div>`).join('');
+}
+function saveTitles(){saveD();render();showOK('titlesOk');}
+
+function buildCvEd(){
+  const h=window.D.hero||DEFS.hero;
+  document.getElementById('eCvEn').value=h.cvEnUrl||'cv-en.pdf';
+  document.getElementById('eCvTr').value=h.cvTrUrl||'cv-tr.pdf';
+  document.getElementById('eCvEnLbl').value=h.cvEnLbl||'📄 Download CV (EN)';
+  document.getElementById('eCvTrLbl').value=h.cvTrLbl||'📄 CV (TR)';
+}
+function saveCvLinks(){
+  if(!window.D.hero)window.D.hero={};
+  window.D.hero.cvEnUrl=document.getElementById('eCvEn').value;
+  window.D.hero.cvTrUrl=document.getElementById('eCvTr').value;
+  window.D.hero.cvEnLbl=document.getElementById('eCvEnLbl').value;
+  window.D.hero.cvTrLbl=document.getElementById('eCvTrLbl').value;
+  saveD();render();showOK('cvOk');
+}
+
 function eTab(id,btn){
   document.querySelectorAll('.ep').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.etab').forEach(b=>b.classList.remove('active'));
@@ -1556,6 +1626,8 @@ function eTab(id,btn){
   btn.classList.add('active');
   if(TM[id]&&TB[TM[id]])TB[TM[id]]();
   if(id==='epDeepDive')setTimeout(buildDDEdList,60);
+  if(id==='epTitles')setTimeout(buildTitlesEd,60);
+  if(id==='epCV')setTimeout(buildCvEd,60);
 }
 
 function openEditor(){
@@ -1565,6 +1637,11 @@ function openEditor(){
   document.getElementById('eSubEN').value=(h.subtitle&&h.subtitle.en)||'';document.getElementById('eSubTR').value=(h.subtitle&&h.subtitle.tr)||'';document.getElementById('eSubAR').value=(h.subtitle&&h.subtitle.ar)||'';
   document.getElementById('eDescEN').value=(h.desc&&h.desc.en)||'';document.getElementById('eDescTR').value=(h.desc&&h.desc.tr)||'';document.getElementById('eDescAR').value=(h.desc&&h.desc.ar)||'';
   document.getElementById('eTags').value=(h.tags||[]).join(', ');
+  // Subtitle texts
+  const st=h.subtitleTexts||{en:[],tr:[],ar:[]};
+  document.getElementById('eSubTextsEN').value=(st.en||[]).join('\n');
+  document.getElementById('eSubTextsTR').value=(st.tr||[]).join('\n');
+  document.getElementById('eSubTextsAR').value=(st.ar||[]).join('\n');
   document.getElementById('eEmail').value=h.email||'';document.getElementById('ePhone').value=h.phone||'';document.getElementById('eLoc').value=h.location||'';document.getElementById('eLI').value=h.linkedin||'';
   updatePhotoUI();
   document.querySelectorAll('.ep').forEach(p=>p.classList.remove('active'));
@@ -1591,11 +1668,31 @@ document.addEventListener('keydown',e=>{
    DEEP DIVE DATA
 ════════════════════════════════════ */
 window.DD_DATA = {
-  0:{color:'#7a9ee8',icon:'🖨️',heroPattern:'print',desc:'A comprehensive study of FDM 3D printing technology covering hardware architecture, slicing software, material science, and mechanical performance evaluation.',stats:[{val:'2022',lbl:'Year'},{val:'FDM',lbl:'Technology'},{val:'PLA/PETG',lbl:'Materials'},{val:'Research',lbl:'Type'}],features:[{icon:'⚙️',title:'Hardware Architecture',desc:'Stepper motors, extruder mechanisms, heated bed, frame rigidity analysis and calibration.'},{icon:'💻',title:'Slicing Software',desc:'Layer height, infill patterns, support structures, print speed — comparative study across slicers.'},{icon:'🧪',title:'Materials Science',desc:'PLA vs PETG: tensile strength, thermal resistance, layer adhesion, post-processing.'},{icon:'📊',title:'Performance Evaluation',desc:'Dimensional accuracy testing, mechanical testing, print quality scoring.'}],stack:['SolidWorks','Cura Slicer','PrusaSlicer','PLA','PETG','Tensile Testing','Dimensional Analysis'],hl:[0,1,2],images:[]},
-  1:{color:'#e87a9e',icon:'🦾',heroPattern:'arm',desc:'A 3-DOF RRP robotic arm designed, 3D-printed, and assembled from scratch. Features servo-motor actuation with forward and inverse kinematics implemented in firmware.',stats:[{val:'3',lbl:'DOF'},{val:'RRP',lbl:'Config'},{val:'3D',lbl:'Printed'},{val:'2024',lbl:'Year'}],features:[{icon:'🖨️',title:'3D Printed Structure',desc:'Full chassis and links printed in PLA, optimized for strength-to-weight ratio.'},{icon:'🔄',title:'Servo Actuation',desc:'High-torque RC servo motors with PWM control for joint rotation and prismatic extension.'},{icon:'📐',title:'Forward Kinematics',desc:'DH parameter-based FK to compute end-effector position from joint angles.'},{icon:'🎯',title:'Inverse Kinematics',desc:'Geometric IK solver for real-time trajectory calculation.'}],stack:['SolidWorks','Fusion 360','Arduino','Servo PWM','PLA','DH Parameters','IK/FK','3D Printing'],hl:[0,1,2,3],images:[]},
-  2:{color:'#e8c87a',icon:'🚁',heroPattern:'drone',desc:'An autonomous medical supply delivery drone for disaster-zone operations in Turkey. Integrates GPS navigation, multi-sensor fusion, 4G LTE telemetry, and UV sterilization. Developed with Mousab Jafari.',stats:[{val:'4G',lbl:'Telemetry'},{val:'GPS',lbl:'Navigation'},{val:'UV',lbl:'Sterilization'},{val:'2025',lbl:'Year'}],features:[{icon:'🛰️',title:'GPS Waypoint Navigation',desc:'Autonomous flight path planning with obstacle avoidance for disaster zones.'},{icon:'📡',title:'4G LTE Telemetry',desc:'Real-time command, control, and live status monitoring from ground station.'},{icon:'🔬',title:'UV Sterilization Chamber',desc:'Integrated UV-C light payload bay to maintain sterility of medical supplies.'},{icon:'🧠',title:'Sensor Fusion',desc:'IMU + barometer + GPS fusion for stable autonomous flight.'},{icon:'🏥',title:'Medical Focus',desc:'Payload optimized for medications, blood bags, and emergency supplies.'},{icon:'🤝',title:'Team Project',desc:'Developed with Mousab Jafari — structural design, electronics, and software integration.'}],stack:['SolidWorks','Fusion 360','Pixhawk','GPS Module','MPU6050','4G LTE Module','UV-C LED','Arduino','Python','Mission Planner'],hl:[0,1,3,4],images:[]},
-  3:{color:'#7dd87a',icon:'⚙️',heroPattern:'wheel',desc:'A single-axis attitude control system using a reaction wheel — the same technology used in real satellites. NEMA-17 stepper spins a flywheel; MPU6050 measures tilt; Arduino Nano runs a PID loop.',stats:[{val:'PID',lbl:'Control'},{val:'IMU',lbl:'Sensing'},{val:'1-Axis',lbl:'DOF'},{val:'2026',lbl:'Year'}],features:[{icon:'🔄',title:'NEMA-17 Reaction Wheel',desc:'Stepper motor spinning a precision flywheel for angular momentum storage.'},{icon:'📡',title:'MPU6050 IMU',desc:'6-DOF inertial measurement for real-time tilt sensing.'},{icon:'🎮',title:'PID Control Loop',desc:'Tuned PID controller running on Arduino for stable attitude hold.'},{icon:'🛸',title:'Spacecraft Technology',desc:'Demonstrates reaction control principles used in real satellites.'}],stack:['Arduino Nano','NEMA-17','MPU6050','A4988 Driver','PID Algorithm','C++','SolidWorks','3D Printing'],hl:[0,1,2],images:[]},
-  4:{color:'#f0a0c0',icon:'🤖',heroPattern:'arm4',desc:'A 4-DOF robotic arm with modular end-effector system for pick-and-place, stacking, and trajectory following. High-torque servo motors with Arduino-based multi-axis motion control.',stats:[{val:'4',lbl:'DOF'},{val:'Modular',lbl:'End-Effector'},{val:'Arduino',lbl:'Controller'},{val:'2026',lbl:'Year'}],features:[{icon:'💪',title:'High-Torque Servos',desc:'MG996R / DS3218 servos at each joint for strong, precise positioning.'},{icon:'🔩',title:'Modular End-Effector',desc:'Swappable gripper, suction cup, and pen-holder modules.'},{icon:'📱',title:'Serial Control Interface',desc:'Command via serial terminal or GUI for real-time joint angle control.'},{icon:'🎯',title:'Multi-Axis Motion',desc:'Smooth coordinated motion for trajectory following and pick-and-place.'}],stack:['Arduino Uno','MG996R Servos','Fusion 360','PLA','PWM Control','Serial Interface','Inverse Kinematics','3D Printing'],hl:[0,1,2,3],images:[]}
+  0:{color:'#7a9ee8',icon:'🖨️',heroPattern:'print',
+    desc:{en:'A comprehensive study of FDM 3D printing technology covering hardware architecture, slicing software, material science, and mechanical performance evaluation.',tr:'FDM 3D baskı teknolojisinin donanım mimarisi, dilimleme yazılımı, malzeme bilimi ve mekanik performans değerlendirmesini kapsayan kapsamlı bir çalışma.',ar:'دراسة شاملة لتقنية طباعة FDM ثلاثية الأبعاد تغطي هندسة الأجهزة وبرامج التقطيع وعلم المواد وتقييم الأداء الميكانيكي.'},
+    stats:[{val:'2022',lbl:'Year'},{val:'FDM',lbl:'Technology'},{val:'PLA/PETG',lbl:'Materials'},{val:'Research',lbl:'Type'}],
+    features:[{icon:'⚙️',title:{en:'Hardware Architecture',tr:'Donanım Mimarisi',ar:'هندسة الأجهزة'},desc:{en:'Stepper motors, extruder mechanisms, heated bed, frame rigidity analysis and calibration.',tr:'Step motorlar, ekstruder mekanizmaları, ısıtmalı tabla, çerçeve rijidite analizi.',ar:'المحركات الخطوية وآليات البثق وسرير التسخين وتحليل صلابة الإطار.'}},{icon:'💻',title:{en:'Slicing Software',tr:'Dilimleme Yazılımı',ar:'برامج التقطيع'},desc:{en:'Layer height, infill patterns, support structures — comparative study across slicers.',tr:'Katman yüksekliği, dolgu desenleri, destek yapıları karşılaştırmalı çalışma.',ar:'ارتفاع الطبقة وأنماط الحشو والهياكل الداعمة — دراسة مقارنة.'}},{icon:'🧪',title:{en:'Materials Science',tr:'Malzeme Bilimi',ar:'علم المواد'},desc:{en:'PLA vs PETG: tensile strength, thermal resistance, layer adhesion.',tr:'PLA ve PETG: çekme dayanımı, ısıl direnç, katman yapışması.',ar:'PLA مقابل PETG: قوة الشد والمقاومة الحرارية والتصاق الطبقات.'}},{icon:'📊',title:{en:'Performance Evaluation',tr:'Performans Değerlendirmesi',ar:'تقييم الأداء'},desc:{en:'Dimensional accuracy testing, mechanical testing, print quality scoring.',tr:'Boyutsal doğruluk testi, mekanik test, baskı kalite değerlendirmesi.',ar:'اختبار الدقة الأبعادية والاختبار الميكانيكي وتقييم جودة الطباعة.'}}],
+    stack:['SolidWorks','Cura Slicer','PrusaSlicer','PLA','PETG','Tensile Testing','Dimensional Analysis'],hl:[0,1,2],images:[],pdfUrl:''},
+  1:{color:'#e87a9e',icon:'🦾',heroPattern:'arm',
+    desc:{en:'A 3-DOF RRP robotic arm designed, 3D-printed, and assembled from scratch with servo-motor actuation and forward/inverse kinematics.',tr:'Servo motor tahriği ve ileri/ters kinematik ile sıfırdan tasarlanmış, 3D baskılı ve monte edilmiş 3 serbestlik dereceli RRP robot kol.',ar:'ذراع روبوتية RRP بثلاث درجات حرية، مصممة ومطبوعة ثلاثية الأبعاد ومجمّعة من الصفر مع محركات سيرفو وحركيات أمامية وعكسية.'},
+    stats:[{val:'3',lbl:'DOF'},{val:'RRP',lbl:'Config'},{val:'3D',lbl:'Printed'},{val:'2024',lbl:'Year'}],
+    features:[{icon:'🖨️',title:{en:'3D Printed Structure',tr:'3D Baskılı Yapı',ar:'هيكل مطبوع ثلاثي الأبعاد'},desc:{en:'Full chassis and links printed in PLA, optimized for strength-to-weight ratio.',tr:'PLA ile baskılı tam şasi ve bağlantılar, ağırlık/dayanım oranı için optimize edilmiş.',ar:'هيكل كامل ووصلات مطبوعة بـ PLA، محسّنة لنسبة القوة إلى الوزن.'}},{icon:'🔄',title:{en:'Servo Actuation',tr:'Servo Tahrik',ar:'تشغيل السيرفو'},desc:{en:'High-torque RC servo motors with PWM control for joint rotation.',tr:'Eklem dönüşü için PWM kontrollü yüksek torklu RC servo motorlar.',ar:'محركات سيرفو RC عالية العزم مع تحكم PWM لدوران المفاصل.'}},{icon:'📐',title:{en:'Forward Kinematics',tr:'İleri Kinematik',ar:'الحركيات الأمامية'},desc:{en:'DH parameter-based FK to compute end-effector position from joint angles.',tr:'Eklem açılarından uç efektör konumunu hesaplayan DH parametreli FK.',ar:'حركيات أمامية مبنية على معاملات DH لحساب موضع المشغّل النهائي.'}},{icon:'🎯',title:{en:'Inverse Kinematics',tr:'Ters Kinematik',ar:'الحركيات العكسية'},desc:{en:'Geometric IK solver for real-time trajectory calculation.',tr:'Gerçek zamanlı yörünge hesabı için geometrik ters kinematik çözücü.',ar:'حلّال حركيات عكسية هندسي لحساب المسار الفوري.'}}],
+    stack:['SolidWorks','Fusion 360','Arduino','Servo PWM','PLA','DH Parameters','IK/FK','3D Printing'],hl:[0,1,2,3],images:[],pdfUrl:''},
+  2:{color:'#e8c87a',icon:'🚁',heroPattern:'drone',
+    desc:{en:'An autonomous medical supply delivery drone for disaster-zone operations in Turkey. Integrates GPS navigation, sensor fusion, 4G LTE telemetry, and UV sterilization. Developed with Mousab Jafari.',tr:"Türkiye'deki afet bölgesi operasyonları için otonom tıbbi malzeme teslimat insansız hava aracı. GPS navigasyon, sensör füzyonu, 4G LTE telemetri ve UV sterilizasyon içeriyor. Mousab Jafari ile geliştirildi.",ar:'طائرة مسيّرة لتوصيل المستلزمات الطبية في مناطق الكوارث بتركيا. تدمج ملاحة GPS واندماج الحساسات واتصال 4G LTE وتعقيم UV. طُوِّرت مع مصعب جعفري.'},
+    stats:[{val:'4G',lbl:'Telemetry'},{val:'GPS',lbl:'Navigation'},{val:'UV',lbl:'Sterilization'},{val:'2025',lbl:'Year'}],
+    features:[{icon:'🛰️',title:{en:'GPS Waypoint Navigation',tr:'GPS Rota Navigasyonu',ar:'ملاحة GPS'},desc:{en:'Autonomous flight path planning with obstacle avoidance for disaster zones.',tr:'Afet bölgeleri için engel kaçınmalı otonom uçuş yolu planlaması.',ar:'تخطيط مسار الطيران التلقائي مع تجنب العقبات في مناطق الكوارث.'}},{icon:'📡',title:{en:'4G LTE Telemetry',tr:'4G LTE Telemetri',ar:'اتصال 4G LTE'},desc:{en:'Real-time command, control, and live status monitoring from ground station.',tr:'Yer istasyonundan gerçek zamanlı komuta, kontrol ve durum izleme.',ar:'القيادة والتحكم ومراقبة الحالة الفورية من محطة الأرض.'}},{icon:'🔬',title:{en:'UV Sterilization Chamber',tr:'UV Sterilizasyon Bölmesi',ar:'حجرة التعقيم UV'},desc:{en:'Integrated UV-C light payload bay to maintain sterility of medical supplies.',tr:'Tıbbi malzemelerin sterilliğini korumak için entegre UV-C ışık yük bölmesi.',ar:'حجرة حمولة بضوء UV-C مدمجة للحفاظ على عقامة المستلزمات الطبية.'}},{icon:'🧠',title:{en:'Sensor Fusion',tr:'Sensör Füzyonu',ar:'اندماج الحساسات'},desc:{en:'IMU + barometer + GPS fusion for stable autonomous flight.',tr:'Kararlı otonom uçuş için IMU + barometre + GPS füzyonu.',ar:'دمج IMU وجهاز الضغط الجوي وGPS للطيران التلقائي المستقر.'}},{icon:'🏥',title:{en:'Medical Focus',tr:'Tıbbi Odak',ar:'التركيز الطبي'},desc:{en:'Payload for medications, blood bags, and emergency supplies.',tr:'İlaçlar, kan torbaları ve acil malzemeler için yük kapasitesi.',ar:'حمولة للأدوية وأكياس الدم ومستلزمات الطوارئ.'}},{icon:'🤝',title:{en:'Team Project',tr:'Takım Projesi',ar:'مشروع فريق'},desc:{en:'Developed with Mousab Jafari — structural design, electronics, and software.',tr:'Mousab Jafari ile geliştirildi — yapısal tasarım, elektronik ve yazılım.',ar:'طُوِّر مع مصعب جعفري — التصميم الهيكلي والإلكترونيات والبرمجيات.'}}],
+    stack:['SolidWorks','Fusion 360','Pixhawk','GPS Module','MPU6050','4G LTE Module','UV-C LED','Arduino','Python','Mission Planner'],hl:[0,1,3,4],images:[],pdfUrl:''},
+  3:{color:'#7dd87a',icon:'⚙️',heroPattern:'wheel',
+    desc:{en:'A single-axis attitude control system using a reaction wheel — the same technology used in real satellites. NEMA-17 stepper spins a flywheel; MPU6050 IMU measures tilt; Arduino Nano runs PID.',tr:'Gerçek uydu teknolojisiyle aynı, tepki çarkı kullanan tek eksenli tutum kontrol sistemi. NEMA-17 step motor bir volan döndürür; MPU6050 IMU eğimi ölçer; Arduino Nano PID çalıştırır.',ar:'نظام تحكم في الاتجاه بمحور واحد باستخدام عجلة رد فعل — نفس التقنية المستخدمة في الأقمار الصناعية الحقيقية.'},
+    stats:[{val:'PID',lbl:'Control'},{val:'IMU',lbl:'Sensing'},{val:'1-Axis',lbl:'DOF'},{val:'2026',lbl:'Year'}],
+    features:[{icon:'🔄',title:{en:'NEMA-17 Reaction Wheel',tr:'NEMA-17 Tepki Çarkı',ar:'عجلة رد فعل NEMA-17'},desc:{en:'Stepper motor spinning a precision flywheel for angular momentum storage.',tr:'Açısal momentum depolamak için hassas bir volan döndüren step motor.',ar:'محرك خطوي يدور عجلة دوران دقيقة لتخزين الزخم الزاوي.'}},{icon:'📡',title:{en:'MPU6050 IMU',tr:'MPU6050 IMU',ar:'وحدة IMU MPU6050'},desc:{en:'6-DOF inertial measurement for real-time tilt sensing.',tr:'Gerçek zamanlı eğim algılama için 6 serbestlik dereceli atalet ölçümü.',ar:'قياس بالقصور الذاتي بـ 6 درجات حرية للكشف الفوري عن الميل.'}},{icon:'🎮',title:{en:'PID Control Loop',tr:'PID Kontrol Döngüsü',ar:'حلقة تحكم PID'},desc:{en:'Tuned PID controller on Arduino for stable attitude hold.',tr:'Kararlı tutum tutma için Arduino üzerinde ayarlı PID kontrolörü.',ar:'وحدة تحكم PID مضبوطة على Arduino للحفاظ على الاتجاه المستقر.'}},{icon:'🛸',title:{en:'Spacecraft Technology',tr:'Uzay Aracı Teknolojisi',ar:'تقنية المركبة الفضائية'},desc:{en:'Demonstrates reaction control principles used in real satellites.',tr:'Gerçek uyduların tepki kontrol prensiplerini gösterir.',ar:'يُظهر مبادئ التحكم بالتفاعل المستخدمة في الأقمار الصناعية الحقيقية.'}}],
+    stack:['Arduino Nano','NEMA-17','MPU6050','A4988 Driver','PID Algorithm','C++','SolidWorks','3D Printing'],hl:[0,1,2],images:[],pdfUrl:''},
+  4:{color:'#f0a0c0',icon:'🤖',heroPattern:'arm4',
+    desc:{en:'A 4-DOF robotic arm with modular end-effector system for pick-and-place, stacking, and trajectory following. High-torque servo motors with Arduino-based multi-axis motion control.',tr:'Alma-bırakma, yığınlama ve yörünge takibi için modüler uç efektör sistemli 4 serbestlik dereceli robot kol.',ar:'ذراع روبوتية بـ 4 درجات حرية مع نظام مشغّل نهائي معياري للإمساك والإيداع وتتبع المسار.'},
+    stats:[{val:'4',lbl:'DOF'},{val:'Modular',lbl:'End-Effector'},{val:'Arduino',lbl:'Controller'},{val:'2026',lbl:'Year'}],
+    features:[{icon:'💪',title:{en:'High-Torque Servos',tr:'Yüksek Torklu Servolar',ar:'محركات سيرفو عالية العزم'},desc:{en:'MG996R / DS3218 servos at each joint for precise positioning.',tr:'Hassas konumlandırma için her eklemde MG996R/DS3218 servolar.',ar:'محركات MG996R/DS3218 في كل مفصل لتحديد موضع دقيق.'}},{icon:'🔩',title:{en:'Modular End-Effector',tr:'Modüler Uç Efektör',ar:'مشغّل نهائي معياري'},desc:{en:'Swappable gripper, suction cup, and pen-holder modules.',tr:'Değiştirilebilir kavrayıcı, vantuz ve kalem tutacağı modülleri.',ar:'وحدات قابلة للتبديل: ملقط وكوب شفط وحامل قلم.'}},{icon:'📱',title:{en:'Serial Control Interface',tr:'Seri Kontrol Arayüzü',ar:'واجهة التحكم التسلسلي'},desc:{en:'Command via serial terminal or GUI for real-time joint angle control.',tr:'Gerçek zamanlı eklem açısı kontrolü için seri terminal veya GUI ile komut.',ar:'التحكم عبر طرفية تسلسلية أو واجهة رسومية لضبط زوايا المفاصل فورياً.'}},{icon:'🎯',title:{en:'Multi-Axis Motion',tr:'Çok Eksenli Hareket',ar:'حركة متعددة المحاور'},desc:{en:'Smooth coordinated motion across all 4 axes for trajectory following.',tr:'Yörünge takibi için 4 eksenin tamamında yumuşak koordineli hareket.',ar:'حركة منسّقة سلسة عبر جميع المحاور الأربعة لتتبع المسار.'}}],
+    stack:['Arduino Uno','MG996R Servos','Fusion 360','PLA','PWM Control','Serial Interface','Inverse Kinematics','3D Printing'],hl:[0,1,2,3],images:[],pdfUrl:''}
 };
 
 /* Load saved DD_DATA from localStorage */
@@ -1631,16 +1728,26 @@ window.openDeepDive=function(idx){
   const proj=(window.D&&window.D.proj)?window.D.proj[idx]:null;
   const dd=window.DD_DATA[idx];
   if(!proj||!dd)return;
+  // Multilingual helper for DD fields
+  function DDL(o){if(!o)return'';if(typeof o==='string')return o;return o[lang]||o.en||o.tr||o.ar||'';}
   document.getElementById('ddYear').textContent=proj.year||'';
   document.getElementById('ddTitle').textContent=GL(proj.title,'');
   document.getElementById('ddHeroBg').innerHTML=heroPattern(dd.heroPattern,dd.color);
   document.getElementById('ddStats').innerHTML=(dd.stats||[]).map((s,i)=>`<div class="dd-stat" style="--si:${i}"><div class="dd-stat-val">${s.val}</div><div class="dd-stat-lbl">${s.lbl}</div></div>`).join('');
-  document.getElementById('ddDesc').textContent=dd.desc||'';
-  document.getElementById('ddFeatures').innerHTML=(dd.features||[]).map(f=>`<div class="dd-feat"><div class="dd-feat-icon">${f.icon}</div><div class="dd-feat-txt"><strong>${f.title}</strong>${f.desc}</div></div>`).join('');
+  document.getElementById('ddDesc').textContent=DDL(dd.desc)||'';
+  document.getElementById('ddFeatures').innerHTML=(dd.features||[]).map(f=>`<div class="dd-feat"><div class="dd-feat-icon">${f.icon}</div><div class="dd-feat-txt"><strong>${DDL(f.title)}</strong>${DDL(f.desc)}</div></div>`).join('');
   document.getElementById('ddStack').innerHTML=(dd.stack||[]).map((t,i)=>`<span class="dd-stack-tag ${(dd.hl||[]).includes(i)?'hl':''}" style="--ti:${i}">${t}</span>`).join('');
-  const imgs=dd.images&&dd.images.length?dd.images.map(src=>`<div class="dd-gal-item" onclick="openLB('${src}')"><img src="${src}" alt="project"></div>`):Array(4).fill(0).map((_,i)=>`<div class="dd-gal-item" style="cursor:default"><div class="dd-gal-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Image ${i+1}</span></div></div>`);
+  const imgs=dd.images&&dd.images.length?dd.images.map(src=>`<div class="dd-gal-item" onclick="openLB('${src}')"><img src="${src}" alt="project"></div>`):Array(4).fill(0).map((_,gi)=>`<div class="dd-gal-item" style="cursor:default"><div class="dd-gal-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>${lang==='ar'?'صورة':'Image'} ${gi+1}</span></div></div>`);
   document.getElementById('ddGallery').innerHTML=imgs.join('');
-  document.getElementById('ddReportContent').innerHTML=proj.pdf?`<div class="dd-pdf-area"><div class="dd-pdf-icon">📄</div><div class="dd-pdf-name">${proj.pdfName||'Project Report'}</div><button class="dd-pdf-btn" onclick="openPDF(${idx})">📄 Open PDF Report</button></div>`:`<div class="dd-no-pdf"><div style="font-size:2.5rem;margin-bottom:12px">📂</div><div>No PDF report uploaded yet.</div></div>`;
+  // PDF: check proj.pdf (uploaded file) OR dd.pdfUrl (external URL)
+  const hasPdf=proj.pdf||(dd.pdfUrl&&dd.pdfUrl.startsWith('http'));
+  const lblReport=lang==='ar'?'لا يوجد تقرير PDF بعد':lang==='tr'?'Henüz PDF raporu yüklenmedi':'No PDF report uploaded yet';
+  const lblOpen=lang==='ar'?'فتح تقرير PDF':lang==='tr'?'PDF Raporu Aç':'Open PDF Report';
+  if(hasPdf){
+    document.getElementById('ddReportContent').innerHTML=`<div class="dd-pdf-area"><div class="dd-pdf-icon">📄</div><div class="dd-pdf-name">${proj.pdfName||dd.pdfUrl||'Project Report'}</div><button class="dd-pdf-btn" onclick="${proj.pdf?`openPDF(${idx})`:`window.open('${dd.pdfUrl}','_blank')`}">📄 ${lblOpen}</button></div>`;
+  }else{
+    document.getElementById('ddReportContent').innerHTML=`<div class="dd-no-pdf"><div style="font-size:2.5rem;margin-bottom:12px">📂</div><div>${lblReport}</div></div>`;
+  }
   ddTab('overview',document.querySelector('.dd-tab'));
   document.getElementById('ddOverlay').classList.add('active');
   document.body.style.overflow='hidden';
@@ -1685,9 +1792,23 @@ function buildDDEdList(){
   el.innerHTML='';
   projs.forEach((proj,i)=>{
     if(!window.DD_DATA[i]){
-      window.DD_DATA[i]={color:'#7a9ee8',icon:'📁',heroPattern:'drone',desc:'',stats:[{val:'',lbl:''},{val:'',lbl:''},{val:'',lbl:''},{val:'',lbl:''}],features:[],stack:[],hl:[],images:[]};
+      window.DD_DATA[i]={color:'#7a9ee8',icon:'📁',heroPattern:'drone',
+        desc:{en:'',tr:'',ar:''},
+        stats:[{val:'',lbl:''},{val:'',lbl:''},{val:'',lbl:''},{val:'',lbl:''}],
+        features:[],stack:[],hl:[],images:[],pdfUrl:''};
     }
     const dd=window.DD_DATA[i];
+    // Ensure desc is object
+    if(typeof dd.desc==='string') dd.desc={en:dd.desc,tr:dd.desc,ar:dd.desc};
+    if(!dd.desc) dd.desc={en:'',tr:'',ar:''};
+    if(!dd.pdfUrl) dd.pdfUrl='';
+    // Ensure features have object title/desc
+    (dd.features||[]).forEach(f=>{
+      if(typeof f.title==='string') f.title={en:f.title,tr:f.title,ar:f.title};
+      if(!f.title) f.title={en:'',tr:'',ar:''};
+      if(typeof f.desc==='string') f.desc={en:f.desc,tr:f.desc,ar:f.desc};
+      if(!f.desc) f.desc={en:'',tr:'',ar:''};
+    });
     const COLORS=['#e8c87a','#7a9ee8','#e87a9e','#7dd87a','#f0a0c0','#7adde8','#e8a87a','#c87ae8'];
     const colorSwatches=COLORS.map(c=>`<div class="dd-color-swatch${dd.color===c?' selected':''}" style="background:${c}" onclick="ddSetColor(${i},'${c}')" title="${c}"></div>`).join('');
     const item=document.createElement('div');
@@ -1710,19 +1831,30 @@ function buildDDEdList(){
           <button class="dd-sub-tab" onclick="ddSubTab(${i},'features',this)" type="button">⚙️ Features</button>
           <button class="dd-sub-tab" onclick="ddSubTab(${i},'stack',this)" type="button">🛠 Stack</button>
           <button class="dd-sub-tab" onclick="ddSubTab(${i},'images',this)" type="button">🖼 Images</button>
+          <button class="dd-sub-tab" onclick="ddSubTab(${i},'report',this)" type="button">📄 Report</button>
         </div>
+
+        <!-- INFO -->
         <div class="dd-sub-panel active" id="ddSub_${i}_info">
-          <div class="ef"><label class="el">Icon (emoji)</label><input class="ei" id="ddIcon_${i}" value="${escDD(dd.icon||'📁')}" oninput="window.DD_DATA[${i}].icon=this.value;document.querySelector('#ddEdProj_${i} .dd-ed-proj-icon').textContent=this.value"></div>
+          <div class="ef"><label class="el">Icon (emoji)</label><input class="ei" value="${escDD(dd.icon||'📁')}" oninput="window.DD_DATA[${i}].icon=this.value;document.querySelector('#ddEdProj_${i} .dd-ed-proj-icon').textContent=this.value"></div>
           <div class="ef"><label class="el">Accent Color</label><div class="dd-color-row" id="ddColorRow_${i}">${colorSwatches}</div></div>
-          <div class="ef"><label class="el">Description</label><textarea class="eta" id="ddDesc_${i}" style="min-height:100px" oninput="window.DD_DATA[${i}].desc=this.value">${escDD(dd.desc||'')}</textarea></div>
+          <div class="ef"><label class="el">Description EN</label><textarea class="eta" style="min-height:80px" oninput="window.DD_DATA[${i}].desc.en=this.value">${escDD((dd.desc&&dd.desc.en)||'')}</textarea></div>
+          <div class="ef"><label class="el">Description TR</label><textarea class="eta" style="min-height:80px" oninput="window.DD_DATA[${i}].desc.tr=this.value">${escDD((dd.desc&&dd.desc.tr)||'')}</textarea></div>
+          <div class="ef"><label class="el">Description AR</label><textarea class="eta" style="min-height:80px" dir="rtl" oninput="window.DD_DATA[${i}].desc.ar=this.value">${escDD((dd.desc&&dd.desc.ar)||'')}</textarea></div>
         </div>
+
+        <!-- STATS -->
         <div class="dd-sub-panel" id="ddSub_${i}_stats">
           <div class="dd-stats-ed">${(dd.stats||[]).map((s,si)=>`<div class="dd-stat-row"><label>Stat ${si+1} Value</label><input class="ei" style="margin-bottom:6px" value="${escDD(s.val)}" oninput="window.DD_DATA[${i}].stats[${si}].val=this.value"><label>Label</label><input class="ei" value="${escDD(s.lbl)}" oninput="window.DD_DATA[${i}].stats[${si}].lbl=this.value"></div>`).join('')}</div>
         </div>
+
+        <!-- FEATURES -->
         <div class="dd-sub-panel" id="ddSub_${i}_features">
           <div id="ddFeatEd_${i}">${buildFeatRows(i,dd.features)}</div>
           <button class="addbtn" onclick="ddAddFeat(${i})" type="button">+ Add Feature</button>
         </div>
+
+        <!-- STACK -->
         <div class="dd-sub-panel" id="ddSub_${i}_stack">
           <div class="dd-stack-ed-wrap">
             <label class="el">Add technology (press Enter)</label>
@@ -1731,12 +1863,33 @@ function buildDDEdList(){
               <button class="addbtn" style="width:auto;padding:8px 14px;margin:0" onclick="ddAddTag(${i})" type="button">Add</button>
             </div>
             <div class="dd-stack-tags-live" id="ddStackTags_${i}">${buildStackTagsHTML(i,dd.stack,dd.hl)}</div>
-            <p style="font-size:.68rem;color:var(--tm);margin-top:8px;font-family:var(--fm);">💡 Click a tag to toggle highlight</p>
+            <p style="font-size:.68rem;color:var(--tm);margin-top:8px;font-family:var(--fm);">💡 Click a tag to toggle highlight (gold)</p>
           </div>
         </div>
+
+        <!-- IMAGES — Cloudinary upload -->
         <div class="dd-sub-panel" id="ddSub_${i}_images">
-          <div class="dd-img-url-row"><input class="ei" id="ddImgUrl_${i}" placeholder="https://... (image URL)"><button class="dd-img-add-btn" onclick="ddAddImage(${i})" type="button">+ Add Image</button></div>
+          <div class="cloud-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>Upload via Cloudinary — no size limit</div>
+          <button class="cloud-upload-btn" onclick="uploadDDImage(${i})" type="button">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+            Upload Image → Cloudinary
+          </button>
+          <div style="margin-top:10px;">
+            <label class="el">Or paste image URL</label>
+            <div class="dd-img-url-row" style="margin-top:6px;"><input class="ei" id="ddImgUrl_${i}" placeholder="https://..."><button class="dd-img-add-btn" onclick="ddAddImage(${i})" type="button">+ Add URL</button></div>
+          </div>
           <div class="dd-img-grid" id="ddImgGrid_${i}">${buildImgGridHTML(i,dd.images)}</div>
+        </div>
+
+        <!-- REPORT PDF -->
+        <div class="dd-sub-panel" id="ddSub_${i}_report">
+          <div class="cinfo-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            PDF from Projects tab is shown automatically. You can also add an external PDF URL below.
+          </div>
+          <div class="ef"><label class="el">External PDF URL (optional)</label>
+            <input class="ei" value="${escDD(dd.pdfUrl||'')}" placeholder="https://drive.google.com/..." oninput="window.DD_DATA[${i}].pdfUrl=this.value">
+          </div>
+          ${proj.pdf?`<div style="padding:12px;background:rgba(78,203,113,.08);border:1px solid rgba(78,203,113,.2);border-radius:8px;font-size:.8rem;color:#4ecb71;display:flex;align-items:center;gap:8px;"><span>✓</span><span>PDF already uploaded in Projects tab: <strong>${escDD(proj.pdfName||'report.pdf')}</strong></span></div>`:'<div style="font-size:.78rem;color:var(--tm);font-family:var(--fm);padding:8px 0;">No PDF uploaded in Projects tab yet.</div>'}
         </div>
       </div>`;
     el.appendChild(item);
@@ -1744,7 +1897,27 @@ function buildDDEdList(){
 }
 
 function buildFeatRows(i,features){
-  return(features||[]).map((f,fi)=>`<div class="dd-feat-row"><div class="dd-feat-row-head"><span>Feature ${fi+1}</span><button class="dbtn" onclick="ddRemoveFeat(${i},${fi})" type="button">Remove</button></div><div class="thr" style="margin-bottom:6px"><div class="ef"><label class="el">Icon</label><input class="ei" value="${escDD(f.icon)}" oninput="window.DD_DATA[${i}].features[${fi}].icon=this.value"></div><div class="ef" style="grid-column:span 2"><label class="el">Title</label><input class="ei" value="${escDD(f.title)}" oninput="window.DD_DATA[${i}].features[${fi}].title=this.value"></div></div><div class="ef"><label class="el">Description</label><textarea class="eta" style="min-height:56px" oninput="window.DD_DATA[${i}].features[${fi}].desc=this.value">${escDD(f.desc)}</textarea></div></div>`).join('');
+  return(features||[]).map((f,fi)=>{
+    const tEN=typeof f.title==='object'?(f.title.en||''):f.title||'';
+    const tTR=typeof f.title==='object'?(f.title.tr||''):f.title||'';
+    const tAR=typeof f.title==='object'?(f.title.ar||''):f.title||'';
+    const dEN=typeof f.desc==='object'?(f.desc.en||''):f.desc||'';
+    const dTR=typeof f.desc==='object'?(f.desc.tr||''):f.desc||'';
+    const dAR=typeof f.desc==='object'?(f.desc.ar||''):f.desc||'';
+    return`<div class="dd-feat-row"><div class="dd-feat-row-head"><span>Feature ${fi+1}</span><button class="dbtn" onclick="ddRemoveFeat(${i},${fi})" type="button">Remove</button></div>
+      <div class="two" style="margin-bottom:6px">
+        <div class="ef"><label class="el">Icon</label><input class="ei" value="${escDD(f.icon||'')}" oninput="if(!window.DD_DATA[${i}].features[${fi}].icon||true)window.DD_DATA[${i}].features[${fi}].icon=this.value"></div>
+        <div class="ef"><label class="el">Title EN</label><input class="ei" value="${escDD(tEN)}" oninput="if(typeof window.DD_DATA[${i}].features[${fi}].title!=='object')window.DD_DATA[${i}].features[${fi}].title={en:'',tr:'',ar:''};window.DD_DATA[${i}].features[${fi}].title.en=this.value"></div>
+      </div>
+      <div class="two" style="margin-bottom:6px">
+        <div class="ef"><label class="el">Title TR</label><input class="ei" value="${escDD(tTR)}" oninput="if(typeof window.DD_DATA[${i}].features[${fi}].title!=='object')window.DD_DATA[${i}].features[${fi}].title={en:'',tr:'',ar:''};window.DD_DATA[${i}].features[${fi}].title.tr=this.value"></div>
+        <div class="ef"><label class="el">Title AR</label><input class="ei" dir="rtl" value="${escDD(tAR)}" oninput="if(typeof window.DD_DATA[${i}].features[${fi}].title!=='object')window.DD_DATA[${i}].features[${fi}].title={en:'',tr:'',ar:''};window.DD_DATA[${i}].features[${fi}].title.ar=this.value"></div>
+      </div>
+      <div class="ef"><label class="el">Description EN</label><textarea class="eta" style="min-height:50px" oninput="if(typeof window.DD_DATA[${i}].features[${fi}].desc!=='object')window.DD_DATA[${i}].features[${fi}].desc={en:'',tr:'',ar:''};window.DD_DATA[${i}].features[${fi}].desc.en=this.value">${escDD(dEN)}</textarea></div>
+      <div class="ef"><label class="el">Description TR</label><textarea class="eta" style="min-height:50px" oninput="if(typeof window.DD_DATA[${i}].features[${fi}].desc!=='object')window.DD_DATA[${i}].features[${fi}].desc={en:'',tr:'',ar:''};window.DD_DATA[${i}].features[${fi}].desc.tr=this.value">${escDD(dTR)}</textarea></div>
+      <div class="ef"><label class="el">Description AR</label><textarea class="eta" style="min-height:50px" dir="rtl" oninput="if(typeof window.DD_DATA[${i}].features[${fi}].desc!=='object')window.DD_DATA[${i}].features[${fi}].desc={en:'',tr:'',ar:''};window.DD_DATA[${i}].features[${fi}].desc.ar=this.value">${escDD(dAR)}</textarea></div>
+    </div>`;
+  }).join('');
 }
 function buildStackTagsHTML(i,stack,hl){
   return(stack||[]).map((t,ti)=>`<span class="dd-stack-tag-ed ${(hl||[]).includes(ti)?'hl':''}"><span onclick="ddToggleHL(${i},${ti})" style="cursor:pointer">${escDD(t)}</span><button class="dd-stack-tag-rm" onclick="ddRemoveTag(${i},${ti})" type="button">✕</button></span>`).join('');
@@ -1766,7 +1939,10 @@ window.ddSetColor=function(i,color){
   const row=document.getElementById('ddColorRow_'+i);
   if(row)row.querySelectorAll('.dd-color-swatch').forEach(s=>s.classList.toggle('selected',s.title===color));
 };
-window.ddAddFeat=function(i){window.DD_DATA[i].features.push({icon:'✨',title:'New Feature',desc:'Description here.'});saveDDLocal();const el=document.getElementById('ddFeatEd_'+i);if(el)el.innerHTML=buildFeatRows(i,window.DD_DATA[i].features);};
+window.ddAddFeat=function(i){
+  window.DD_DATA[i].features.push({icon:'✨',title:{en:'New Feature',tr:'Yeni Özellik',ar:'ميزة جديدة'},desc:{en:'Description.',tr:'Açıklama.',ar:'وصف.'}});
+  saveDDLocal();const el=document.getElementById('ddFeatEd_'+i);if(el)el.innerHTML=buildFeatRows(i,window.DD_DATA[i].features);
+};
 window.ddRemoveFeat=function(i,fi){window.DD_DATA[i].features.splice(fi,1);saveDDLocal();const el=document.getElementById('ddFeatEd_'+i);if(el)el.innerHTML=buildFeatRows(i,window.DD_DATA[i].features);};
 window.ddAddTag=function(i){const inp=document.getElementById('ddStackInput_'+i);const val=(inp.value||'').trim();if(!val)return;window.DD_DATA[i].stack.push(val);inp.value='';saveDDLocal();const el=document.getElementById('ddStackTags_'+i);if(el)el.innerHTML=buildStackTagsHTML(i,window.DD_DATA[i].stack,window.DD_DATA[i].hl);};
 window.ddRemoveTag=function(i,ti){window.DD_DATA[i].stack.splice(ti,1);window.DD_DATA[i].hl=window.DD_DATA[i].hl.filter(h=>h<window.DD_DATA[i].stack.length);saveDDLocal();const el=document.getElementById('ddStackTags_'+i);if(el)el.innerHTML=buildStackTagsHTML(i,window.DD_DATA[i].stack,window.DD_DATA[i].hl);};
@@ -1814,6 +1990,50 @@ window.deleteDDProject=function(i){
   saveD();saveDDLocal();
   if(typeof window.render==='function')window.render();
   buildDDEdList();
+};
+
+/* ════ CLOUDINARY UPLOAD FOR DD IMAGES ════ */
+window.uploadDDImage=async function(i){
+  const cloud=window.CLOUDINARY_CLOUD,preset=window.CLOUDINARY_PRESET;
+  if(!cloud||cloud==='YOUR_CLOUD_NAME'||!preset){alert('⚙ Cloudinary not configured!');return;}
+  if(!window._isAdmin){showSync('error','✗ Log in as admin first');return;}
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=async e=>{
+    const file=e.target.files[0];if(!file)return;
+    showSync('saving','☁ Uploading image…');
+    const reader=new FileReader();
+    reader.onload=async ev=>{
+      const img=new Image();
+      img.onload=async()=>{
+        const MAX=1400,canvas=document.createElement('canvas');
+        let w=img.width,h=img.height;
+        if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=~~(w*r);h=~~(h*r);}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        canvas.toBlob(async blob=>{
+          try{
+            const fd=new FormData();
+            fd.append('file',blob,'dd_img.jpg');
+            fd.append('upload_preset',preset);
+            fd.append('folder','portfolio_dd');
+            const res=await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`,{method:'POST',body:fd});
+            if(!res.ok)throw new Error(await res.text());
+            const data=await res.json();
+            if(!data.secure_url)throw new Error('No URL');
+            if(!window.DD_DATA[i].images)window.DD_DATA[i].images=[];
+            window.DD_DATA[i].images.push(data.secure_url);
+            saveDDLocal();
+            const el=document.getElementById('ddImgGrid_'+i);
+            if(el)el.innerHTML=buildImgGridHTML(i,window.DD_DATA[i].images);
+            showSync('synced','✓ Image uploaded!');
+          }catch(err){showSync('error','✗ '+err.message);}
+        },'image/jpeg',.85);
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
 };
 
 window.saveDDData=function(){
@@ -2000,15 +2220,35 @@ document.addEventListener('mouseout',e=>{if(e.target.classList.contains('sktag')
 
 /* ════ TYPEWRITER SUBTITLE CYCLE ════ */
 (function(){
-  let cycling=false;
+  let cycling=false,cycleTimer=null;
+  window._restartSubtitleCycle=function(){
+    cycling=false;if(cycleTimer)clearTimeout(cycleTimer);
+    cycleTimer=setTimeout(startCycle,600);
+  };
   function startCycle(){
     if(cycling)return;cycling=true;
     const el=document.getElementById('heroSub');if(!el)return;
-    const texts=["UAV Systems Developer","Robotics & Autonomous Systems","Embedded Systems Engineer","3D Printing & Mechanical Design","Control Systems (PD / PID)","Medical Technology Projects"];
+    function getTexts(){
+      const h=window.D&&window.D.hero?window.D.hero:{};
+      const st=h.subtitleTexts;
+      if(st&&st[lang]&&st[lang].length)return st[lang];
+      // fallback defaults
+      const defaults={
+        en:['UAV Systems Developer','Robotics & Autonomous Systems','Embedded Systems Engineer','3D Printing & Mechanical Design','Control Systems (PD / PID)','Medical Technology Projects'],
+        tr:['İHA Sistemleri Geliştirici','Robotik & Otonom Sistemler','Gömülü Sistem Mühendisi','3D Baskı & Mekanik Tasarım','Kontrol Sistemleri','Tıbbi Teknoloji Projeleri'],
+        ar:['مطوّر أنظمة طائرات مسيّرة','الروبوتيكس والأنظمة المستقلة','مهندس أنظمة مدمجة','الطباعة ثلاثية الأبعاد','أنظمة التحكم PID','مشاريع التكنولوجيا الطبية']
+      };
+      return defaults[lang]||defaults.en;
+    }
     let idx=0;
     function typeOut(text,cb){el.textContent='';let i=0;const iv=setInterval(()=>{el.textContent=text.slice(0,++i);if(i>=text.length){clearInterval(iv);setTimeout(cb,1800);}},35);}
     function eraseOut(cb){let t=el.textContent;const iv=setInterval(()=>{t=t.slice(0,-1);el.textContent=t;if(!t.length){clearInterval(iv);cb();}},18);}
-    function loop(){idx=(idx+1)%texts.length;eraseOut(()=>typeOut(texts[idx],loop));}
+    function loop(){
+      const texts=getTexts();
+      idx=(idx+1)%texts.length;
+      eraseOut(()=>typeOut(texts[idx],loop));
+    }
+    const texts=getTexts();
     typeOut(texts[0],loop);
   }
   setTimeout(startCycle,1000);
