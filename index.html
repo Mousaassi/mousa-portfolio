@@ -1701,7 +1701,12 @@ window.openDeepDive=function(idx){
   if(!proj||!dd)return;
   document.getElementById('ddYear').textContent=proj.year||'';
   document.getElementById('ddTitle').textContent=GL(proj.title,'');
-  document.getElementById('ddHeroBg').innerHTML=heroPattern(dd.heroPattern,dd.color);
+  if(dd.images && dd.images.length > 0) {
+  document.getElementById('ddHeroBg').innerHTML = 
+    `<img src="${dd.images[0]}" style="width:100%;height:100%;object-fit:cover;display:block;">`;
+} else {
+  document.getElementById('ddHeroBg').innerHTML = heroPattern(dd.heroPattern, dd.color);
+}
   // Translate DD tabs
 const ddTabLabels={en:['📋 Overview','⚙️ Tech Stack','🖼 Gallery','📄 Report'],tr:['📋 Genel Bakış','⚙️ Teknoloji','🖼 Galeri','📄 Rapor'],ar:['📋 نظرة عامة','⚙️ التقنيات','🖼 المعرض','📄 التقرير']};
 const tabBtns=document.querySelectorAll('.dd-tab');
@@ -1711,13 +1716,21 @@ const secLabels={en:['About this project','Key features','Technologies used','Pr
 document.querySelectorAll('.dd-sec-lbl').forEach((el,i)=>{const lbls=secLabels[lang]||secLabels.en;if(lbls[i])el.textContent=lbls[i];});
   document.getElementById('ddStats').innerHTML=(dd.stats||[]).map((s,i)=>`<div class="dd-stat" style="--si:${i}"><div class="dd-stat-val">${s.val}</div><div class="dd-stat-lbl">${s.lbl}</div></div>`).join('');
   // Auto-translate desc and features based on lang
-const ddDescEl=document.getElementById('ddDesc');
+  const ddDescEl=document.getElementById('ddDesc');
+ddDescEl.textContent=
+  lang==='tr'?(dd.desc_tr||dd.desc||''):
+  lang==='ar'?(dd.desc_ar||dd.desc||''):
+  (dd.desc||'');
 if(dd.desc_tr||dd.desc_ar){
   ddDescEl.textContent=lang==='tr'?(dd.desc_tr||dd.desc):lang==='ar'?(dd.desc_ar||dd.desc):dd.desc||'';
 }else{
   ddDescEl.textContent=dd.desc||'';
 }
-  document.getElementById('ddFeatures').innerHTML=(dd.features||[]).map(f=>`<div class="dd-feat"><div class="dd-feat-icon">${f.icon}</div><div class="dd-feat-txt"><strong>${lang==='tr'?(f.title_tr||f.title):lang==='ar'?(f.title_ar||f.title):f.title}</strong>${lang==='tr'?(f.desc_tr||f.desc):lang==='ar'?(f.desc_ar||f.desc):f.desc}</div></div>`).join('');
+  document.getElementById('ddFeatures').innerHTML=(dd.features||[]).map(f=>{
+  const ftitle = lang==='tr'?(f.title_tr||f.title||''):lang==='ar'?(f.title_ar||f.title||''):(f.title||'');
+  const fdesc  = lang==='tr'?(f.desc_tr||f.desc||''):lang==='ar'?(f.desc_ar||f.desc||''):(f.desc||'');
+  return`<div class="dd-feat"><div class="dd-feat-icon">${f.icon||''}</div><div class="dd-feat-txt"><strong>${ftitle}</strong>${fdesc}</div></div>`;
+}).join('');
   
   document.getElementById('ddStack').innerHTML=(dd.stack||[]).map((t,i)=>`<span class="dd-stack-tag ${(dd.hl||[]).includes(i)?'hl':''}" style="--ti:${i}">${t}</span>`).join('');
   const imgs=dd.images&&dd.images.length?dd.images.map(src=>`<div class="dd-gal-item" onclick="openLB('${src}')"><img src="${src}" alt="project"></div>`):Array(4).fill(0).map((_,i)=>`<div class="dd-gal-item" style="cursor:default"><div class="dd-gal-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Image ${i+1}</span></div></div>`);
