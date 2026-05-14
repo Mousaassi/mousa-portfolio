@@ -182,10 +182,11 @@ function ensureLO(v,d){
 }
 function deepMerge(fb,defs){
   const r={},h=fb.hero||{},dh=defs.hero||{};
-  r.hero={firstName:h.firstName||dh.firstName||'Mousa',lastName:h.lastName||dh.lastName||'Assi',
+ r.hero={firstName:h.firstName||dh.firstName||'Mousa',lastName:h.lastName||dh.lastName||'Assi',
     eyebrow:ensureLO(h.eyebrow,dh.eyebrow),subtitle:ensureLO(h.subtitle,dh.subtitle),desc:ensureLO(h.desc,dh.desc),
     tags:(h.tags&&h.tags.length)?h.tags:(dh.tags||[]),
-    email:h.email||dh.email||'',phone:h.phone||dh.phone||'',location:h.location||dh.location||'',linkedin:h.linkedin||dh.linkedin||''};
+    email:h.email||dh.email||'',phone:h.phone||dh.phone||'',location:h.location||dh.location||'',linkedin:h.linkedin||dh.linkedin||'',
+    typewriterLines:(h.typewriterLines&&h.typewriterLines.length)?h.typewriterLines:(dh.typewriterLines||[])};
   const t=fb.titles||{},dt=defs.titles||{};
   r.titles={};['edu','proj','exp','skills','certs'].forEach(k=>{r.titles[k]=ensureLO(t[k],dt[k]);});
   r.edu   =(fb.edu   &&fb.edu.length)   ?fb.edu.map(normEdu)   :defs.edu;
@@ -854,6 +855,36 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <div class="ef"><label class="el">Description EN</label><textarea class="eta" id="eDescEN"></textarea></div>
           <div class="ef"><label class="el">Description TR</label><textarea class="eta" id="eDescTR"></textarea></div>
           <div class="ef"><label class="el">Description AR</label><textarea class="eta" id="eDescAR" dir="rtl"></textarea></div>
+          <div class="ef"><label class="el">Section Title — Titles EN</label>
+  <div class="thr">
+    <div class="ef"><label class="el">Edu EN</label><input class="ei" id="eTiEduEN"></div>
+    <div class="ef"><label class="el">Edu TR</label><input class="ei" id="eTiEduTR"></div>
+    <div class="ef"><label class="el">Edu AR</label><input class="ei" id="eTiEduAR" dir="rtl"></div>
+  </div>
+  <div class="thr">
+    <div class="ef"><label class="el">Projects EN</label><input class="ei" id="eTiPrEN"></div>
+    <div class="ef"><label class="el">Projects TR</label><input class="ei" id="eTiPrTR"></div>
+    <div class="ef"><label class="el">Projects AR</label><input class="ei" id="eTiPrAR" dir="rtl"></div>
+  </div>
+  <div class="thr">
+    <div class="ef"><label class="el">Exp EN</label><input class="ei" id="eTiExEN"></div>
+    <div class="ef"><label class="el">Exp TR</label><input class="ei" id="eTiExTR"></div>
+    <div class="ef"><label class="el">Exp AR</label><input class="ei" id="eTiExAR" dir="rtl"></div>
+  </div>
+  <div class="thr">
+    <div class="ef"><label class="el">Skills EN</label><input class="ei" id="eTiSkEN"></div>
+    <div class="ef"><label class="el">Skills TR</label><input class="ei" id="eTiSkTR"></div>
+    <div class="ef"><label class="el">Skills AR</label><input class="ei" id="eTiSkAR" dir="rtl"></div>
+  </div>
+  <div class="thr">
+    <div class="ef"><label class="el">Certs EN</label><input class="ei" id="eTiCeEN"></div>
+    <div class="ef"><label class="el">Certs TR</label><input class="ei" id="eTiCeTR"></div>
+    <div class="ef"><label class="el">Certs AR</label><input class="ei" id="eTiCeAR" dir="rtl"></div>
+  </div>
+</div>
+<div class="ef"><label class="el">Typewriter Subtitles (one per line)</label>
+  <textarea class="eta" id="eTypewriterLines" style="min-height:110px"></textarea>
+</div>
           <div class="ef"><label class="el">Tags (comma-separated)</label><input class="ei" id="eTags"></div>
           <div class="two">
             <div class="ef"><label class="el">Email</label><input class="ei" id="eEmail"></div>
@@ -1540,6 +1571,16 @@ function saveHero(){
   h.tags=document.getElementById('eTags').value.split(',').map(t=>t.trim()).filter(Boolean);
   h.email=document.getElementById('eEmail').value;h.phone=document.getElementById('ePhone').value;
   h.location=document.getElementById('eLoc').value;h.linkedin=document.getElementById('eLI').value;
+  // Save titles
+if(!window.D.titles)window.D.titles={};
+window.D.titles.edu={en:document.getElementById('eTiEduEN').value,tr:document.getElementById('eTiEduTR').value,ar:document.getElementById('eTiEduAR').value};
+window.D.titles.proj={en:document.getElementById('eTiPrEN').value,tr:document.getElementById('eTiPrTR').value,ar:document.getElementById('eTiPrAR').value};
+window.D.titles.exp={en:document.getElementById('eTiExEN').value,tr:document.getElementById('eTiExTR').value,ar:document.getElementById('eTiExAR').value};
+window.D.titles.skills={en:document.getElementById('eTiSkEN').value,tr:document.getElementById('eTiSkTR').value,ar:document.getElementById('eTiSkAR').value};
+window.D.titles.certs={en:document.getElementById('eTiCeEN').value,tr:document.getElementById('eTiCeTR').value,ar:document.getElementById('eTiCeAR').value};
+// Save typewriter lines
+const twLines=document.getElementById('eTypewriterLines').value.split('\n').map(l=>l.trim()).filter(Boolean);
+if(twLines.length)h.typewriterLines=twLines;
   saveD();render();showOK('heroOk');
 }
 function doSave(sec){saveD();render();showOK(sec+'Ok');}
@@ -1571,6 +1612,23 @@ function openEditor(){
   document.querySelectorAll('.etab').forEach(b=>b.classList.remove('active'));
   document.getElementById('epHero').classList.add('active');
   document.querySelector('.etab').classList.add('active');
+  const ti=window.D.titles||DEFS.titles;
+document.getElementById('eTiEduEN').value=(ti.edu&&ti.edu.en)||'';
+document.getElementById('eTiEduTR').value=(ti.edu&&ti.edu.tr)||'';
+document.getElementById('eTiEduAR').value=(ti.edu&&ti.edu.ar)||'';
+document.getElementById('eTiPrEN').value=(ti.proj&&ti.proj.en)||'';
+document.getElementById('eTiPrTR').value=(ti.proj&&ti.proj.tr)||'';
+document.getElementById('eTiPrAR').value=(ti.proj&&ti.proj.ar)||'';
+document.getElementById('eTiExEN').value=(ti.exp&&ti.exp.en)||'';
+document.getElementById('eTiExTR').value=(ti.exp&&ti.exp.tr)||'';
+document.getElementById('eTiExAR').value=(ti.exp&&ti.exp.ar)||'';
+document.getElementById('eTiSkEN').value=(ti.skills&&ti.skills.en)||'';
+document.getElementById('eTiSkTR').value=(ti.skills&&ti.skills.tr)||'';
+document.getElementById('eTiSkAR').value=(ti.skills&&ti.skills.ar)||'';
+document.getElementById('eTiCeEN').value=(ti.certs&&ti.certs.en)||'';
+document.getElementById('eTiCeTR').value=(ti.certs&&ti.certs.tr)||'';
+document.getElementById('eTiCeAR').value=(ti.certs&&ti.certs.ar)||'';
+document.getElementById('eTypewriterLines').value=(h.typewriterLines||[]).join('\n');
   document.getElementById('editorOverlay').classList.add('active');
 }
 function closeEditor(){document.getElementById('editorOverlay').classList.remove('active');}
@@ -1634,6 +1692,13 @@ window.openDeepDive=function(idx){
   document.getElementById('ddYear').textContent=proj.year||'';
   document.getElementById('ddTitle').textContent=GL(proj.title,'');
   document.getElementById('ddHeroBg').innerHTML=heroPattern(dd.heroPattern,dd.color);
+  // Translate DD tabs
+const ddTabLabels={en:['📋 Overview','⚙️ Tech Stack','🖼 Gallery','📄 Report'],tr:['📋 Genel Bakış','⚙️ Teknoloji','🖼 Galeri','📄 Rapor'],ar:['📋 نظرة عامة','⚙️ التقنيات','🖼 المعرض','📄 التقرير']};
+const tabBtns=document.querySelectorAll('.dd-tab');
+(ddTabLabels[lang]||ddTabLabels.en).forEach((lbl,i)=>{if(tabBtns[i])tabBtns[i].textContent=lbl;});
+// Translate section labels
+const secLabels={en:['About this project','Key features','Technologies used','Project images'],tr:['Proje hakkında','Temel özellikler','Kullanılan teknolojiler','Proje görselleri'],ar:['عن هذا المشروع','المميزات الرئيسية','التقنيات المستخدمة','صور المشروع']};
+document.querySelectorAll('.dd-sec-lbl').forEach((el,i)=>{const lbls=secLabels[lang]||secLabels.en;if(lbls[i])el.textContent=lbls[i];});
   document.getElementById('ddStats').innerHTML=(dd.stats||[]).map((s,i)=>`<div class="dd-stat" style="--si:${i}"><div class="dd-stat-val">${s.val}</div><div class="dd-stat-lbl">${s.lbl}</div></div>`).join('');
   document.getElementById('ddDesc').textContent=dd.desc||'';
   document.getElementById('ddFeatures').innerHTML=(dd.features||[]).map(f=>`<div class="dd-feat"><div class="dd-feat-icon">${f.icon}</div><div class="dd-feat-txt"><strong>${f.title}</strong>${f.desc}</div></div>`).join('');
@@ -1705,11 +1770,12 @@ function buildDDEdList(){
       </div>
       <div class="dd-ed-proj-body">
         <div class="dd-sub-tabs">
-          <button class="dd-sub-tab active" onclick="ddSubTab(${i},'info',this)" type="button">📋 Info</button>
-          <button class="dd-sub-tab" onclick="ddSubTab(${i},'stats',this)" type="button">📊 Stats</button>
-          <button class="dd-sub-tab" onclick="ddSubTab(${i},'features',this)" type="button">⚙️ Features</button>
-          <button class="dd-sub-tab" onclick="ddSubTab(${i},'stack',this)" type="button">🛠 Stack</button>
-          <button class="dd-sub-tab" onclick="ddSubTab(${i},'images',this)" type="button">🖼 Images</button>
+        <button class="dd-sub-tab active" onclick="ddSubTab(${i},'info',this)" type="button">📋 Info</button>
+        <button class="dd-sub-tab" onclick="ddSubTab(${i},'stats',this)" type="button">📊 Stats</button>
+        <button class="dd-sub-tab" onclick="ddSubTab(${i},'features',this)" type="button">⚙️ Features</button>
+        <button class="dd-sub-tab" onclick="ddSubTab(${i},'stack',this)" type="button">🛠 Stack</button>
+        <button class="dd-sub-tab" onclick="ddSubTab(${i},'images',this)" type="button">🖼 Images</button>
+        <button class="dd-sub-tab" onclick="ddSubTab(${i},'pdf',this)" type="button">📄 PDF</button>
         </div>
         <div class="dd-sub-panel active" id="ddSub_${i}_info">
           <div class="ef"><label class="el">Icon (emoji)</label><input class="ei" id="ddIcon_${i}" value="${escDD(dd.icon||'📁')}" oninput="window.DD_DATA[${i}].icon=this.value;document.querySelector('#ddEdProj_${i} .dd-ed-proj-icon').textContent=this.value"></div>
@@ -1734,8 +1800,13 @@ function buildDDEdList(){
             <p style="font-size:.68rem;color:var(--tm);margin-top:8px;font-family:var(--fm);">💡 Click a tag to toggle highlight</p>
           </div>
         </div>
+        <div class="dd-sub-panel" id="ddSub_${i}_pdf">
+  ${(window.D.proj[i]&&window.D.proj[i].pdf)
+    ?`<div class="pdf-fi" style="margin-top:8px">${SI.pdf}<span class="pdf-fn">${escDD(window.D.proj[i].pdfName||'report.pdf')}</span><button class="pdf-rm" onclick="ddRemovePDF(${i})" type="button">Remove</button></div>`
+    :`<div class="pdf-area" onclick="uploadPDF(${i})" style="margin-top:8px">${SI.upload} Upload PDF Report (max 10MB)</div>`}
+</div>
         <div class="dd-sub-panel" id="ddSub_${i}_images">
-          <div class="dd-img-url-row"><input class="ei" id="ddImgUrl_${i}" placeholder="https://... (image URL)"><button class="dd-img-add-btn" onclick="ddAddImage(${i})" type="button">+ Add Image</button></div>
+        <div class="dd-img-url-row"><input class="ei" id="ddImgUrl_${i}" placeholder="https://... أو اتركه فارغاً لرفع ملف"><button class="dd-img-add-btn" onclick="ddAddImage(${i})" type="button">📎 URL</button><button class="dd-img-add-btn" onclick="ddAddImage(${i})" type="button" style="background:var(--gl);border-color:var(--ac);color:var(--ac)">☁ Upload</button></div>
           <div class="dd-img-grid" id="ddImgGrid_${i}">${buildImgGridHTML(i,dd.images)}</div>
         </div>
       </div>`;
@@ -1771,8 +1842,65 @@ window.ddRemoveFeat=function(i,fi){window.DD_DATA[i].features.splice(fi,1);saveD
 window.ddAddTag=function(i){const inp=document.getElementById('ddStackInput_'+i);const val=(inp.value||'').trim();if(!val)return;window.DD_DATA[i].stack.push(val);inp.value='';saveDDLocal();const el=document.getElementById('ddStackTags_'+i);if(el)el.innerHTML=buildStackTagsHTML(i,window.DD_DATA[i].stack,window.DD_DATA[i].hl);};
 window.ddRemoveTag=function(i,ti){window.DD_DATA[i].stack.splice(ti,1);window.DD_DATA[i].hl=window.DD_DATA[i].hl.filter(h=>h<window.DD_DATA[i].stack.length);saveDDLocal();const el=document.getElementById('ddStackTags_'+i);if(el)el.innerHTML=buildStackTagsHTML(i,window.DD_DATA[i].stack,window.DD_DATA[i].hl);};
 window.ddToggleHL=function(i,ti){const hl=window.DD_DATA[i].hl;const idx=hl.indexOf(ti);if(idx===-1)hl.push(ti);else hl.splice(idx,1);saveDDLocal();const el=document.getElementById('ddStackTags_'+i);if(el)el.innerHTML=buildStackTagsHTML(i,window.DD_DATA[i].stack,window.DD_DATA[i].hl);};
-window.ddAddImage=function(i){const inp=document.getElementById('ddImgUrl_'+i);const url=(inp.value||'').trim();if(!url||!url.startsWith('http')){alert('Please enter a valid image URL starting with https://');return;}if(!window.DD_DATA[i].images)window.DD_DATA[i].images=[];window.DD_DATA[i].images.push(url);inp.value='';saveDDLocal();const el=document.getElementById('ddImgGrid_'+i);if(el)el.innerHTML=buildImgGridHTML(i,window.DD_DATA[i].images);};
-window.ddRemoveImage=function(i,ii){window.DD_DATA[i].images.splice(ii,1);saveDDLocal();const el=document.getElementById('ddImgGrid_'+i);if(el)el.innerHTML=buildImgGridHTML(i,window.DD_DATA[i].images);};
+window.ddAddImage=function(i){
+  const inp=document.getElementById('ddImgUrl_'+i);
+  const url=(inp.value||'').trim();
+  if(url){
+    if(!url.startsWith('http')){alert('Please enter a valid image URL starting with https://');return;}
+    if(!window.DD_DATA[i].images)window.DD_DATA[i].images=[];
+    window.DD_DATA[i].images.push(url);inp.value='';saveDDLocal();
+    const el=document.getElementById('ddImgGrid_'+i);if(el)el.innerHTML=buildImgGridHTML(i,window.DD_DATA[i].images);
+    return;
+  }
+  // Cloudinary upload
+  const cloud=window.CLOUDINARY_CLOUD,preset=window.CLOUDINARY_PRESET;
+  if(!cloud||cloud==='YOUR_CLOUD_NAME'){alert('⚙ Cloudinary not configured!');return;}
+  if(!window._isAdmin){showSync('error','✗ Log in as admin first');return;}
+  const fileInp=document.createElement('input');fileInp.type='file';fileInp.accept='image/*';
+  fileInp.onchange=async e=>{
+    const file=e.target.files[0];if(!file)return;
+    showSync('saving','☁ Uploading to Cloudinary…');
+    const reader=new FileReader();
+    reader.onload=async ev=>{
+      const img=new Image();
+      img.onload=async()=>{
+        const MAX=1200,canvas=document.createElement('canvas');
+        let w=img.width,h=img.height;
+        if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=~~(w*r);h=~~(h*r);}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        canvas.toBlob(async blob=>{
+          try{
+            const fd=new FormData();
+            fd.append('file',blob,'dd_img.jpg');
+            fd.append('upload_preset',preset);
+            fd.append('folder','portfolio_dd');
+            const res=await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`,{method:'POST',body:fd});
+            if(!res.ok)throw new Error('Cloudinary error');
+            const data=await res.json();
+            if(!data.secure_url)throw new Error('No URL returned');
+            if(!window.DD_DATA[i].images)window.DD_DATA[i].images=[];
+            window.DD_DATA[i].images.push(data.secure_url);
+            saveDDLocal();
+            const el=document.getElementById('ddImgGrid_'+i);if(el)el.innerHTML=buildImgGridHTML(i,window.DD_DATA[i].images);
+            if(window._saveToFirebase)window._saveToFirebase();
+            showSync('synced','✓ Image uploaded!');
+          }catch(err){showSync('error','✗ Upload failed: '+err.message);}
+        },'image/jpeg',.82);
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+  fileInp.click();
+};
+  window.ddRemoveImage=function(i,ii){window.DD_DATA[i].images.splice(ii,1);saveDDLocal();const el=document.getElementById('ddImgGrid_'+i);if(el)el.innerHTML=buildImgGridHTML(i,window.DD_DATA[i].images);};
+  window.ddRemovePDF=function(i){
+  if(window.D&&window.D.proj&&window.D.proj[i]){
+    window.D.proj[i].pdf='';window.D.proj[i].pdfName='';
+    saveD();buildDDEdList();
+  }
+};
 
 /* ════ FIXED: Missing project management functions ════ */
 window.ddRenameProject=function(i,val){
@@ -2004,7 +2132,8 @@ document.addEventListener('mouseout',e=>{if(e.target.classList.contains('sktag')
   function startCycle(){
     if(cycling)return;cycling=true;
     const el=document.getElementById('heroSub');if(!el)return;
-    const texts=["UAV Systems Developer","Robotics & Autonomous Systems","Embedded Systems Engineer","3D Printing & Mechanical Design","Control Systems (PD / PID)","Medical Technology Projects"];
+    const h=window.D&&window.D.hero;
+     const texts=(h&&h.typewriterLines&&h.typewriterLines.length)?h.typewriterLines:["UAV Systems Developer","Robotics & Autonomous Systems","Embedded Systems Engineer","3D Printing & Mechanical Design","Control Systems (PD / PID)","Medical Technology Projects"];
     let idx=0;
     function typeOut(text,cb){el.textContent='';let i=0;const iv=setInterval(()=>{el.textContent=text.slice(0,++i);if(i>=text.length){clearInterval(iv);setTimeout(cb,1800);}},35);}
     function eraseOut(cb){let t=el.textContent;const iv=setInterval(()=>{t=t.slice(0,-1);el.textContent=t;if(!t.length){clearInterval(iv);cb();}},18);}
