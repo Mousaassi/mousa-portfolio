@@ -1369,7 +1369,7 @@ window.render=function(){
   document.getElementById('heroSub').textContent=GL(h.subtitle,'');
   document.getElementById('heroDesc').textContent=GL(h.desc,'');
   document.getElementById('heroTags').innerHTML=(h.tags||[]).map(t=>`<span class="tag">${t}</span>`).join('');
-  let lks=`<a href="mailto:${h.email||''}" class="clink">${SI.mail} ${h.email||''}</a><a href="tel:${h.phone||''}" class="clink">${SI.phone} ${h.phone||''}</a><span class="clink">${SI.pin} ${h.location||''}</span>`;
+let lks=``;
   if(window.D.social&&window.D.social.length)
     lks+=`<span class="ldiv"></span>`+window.D.social.map(s=>`<a href="${s.url||'#'}" class="slink" target="_blank" rel="noopener">${SI[s.icon]||SI.link} ${s.name||''}</a>`).join('');
   document.getElementById('heroLinks').innerHTML=lks;
