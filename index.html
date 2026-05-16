@@ -664,6 +664,76 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 .dd-img-add-btn:hover{background:rgba(122,158,232,.08);}
 .dd-save-ok{display:none;color:#4ecb71;font-size:.77rem;margin-top:8px;}
 .dd-save-ok.show{display:block;}
+
+/* ══ AVAILABLE BADGE ══ */
+@keyframes availPulse{0%,100%{box-shadow:0 0 0 0 rgba(78,203,113,.5)}70%{box-shadow:0 0 0 10px rgba(78,203,113,0)}}
+@keyframes availSlide{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+.avail-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 16px 7px 10px;background:rgba(78,203,113,.1);border:1px solid rgba(78,203,113,.4);border-radius:50px;font-family:var(--fm);font-size:.72rem;color:#4ecb71;margin-bottom:18px;animation:availSlide .6s ease both;cursor:default;user-select:none;}
+.avail-badge.unavail{background:rgba(232,122,122,.1);border-color:rgba(232,122,122,.4);color:#e87a7a;}
+.avail-dot{width:8px;height:8px;border-radius:50%;background:#4ecb71;animation:availPulse 1.8s infinite;flex-shrink:0;}
+.avail-badge.unavail .avail-dot{background:#e87a7a;animation:none;}
+
+/* ══ STATS COUNTER SECTION ══ */
+@keyframes countUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.stats-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin:0 48px 0;max-width:1200px;}
+.stat-cell{background:var(--sf);padding:28px 20px;text-align:center;position:relative;overflow:hidden;transition:background .3s;}
+.stat-cell:hover{background:var(--s2);}
+.stat-cell::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ac),var(--a2));transform:scaleX(0);transform-origin:left;transition:transform .4s ease;}
+.stat-cell:hover::before{transform:scaleX(1);}
+.stat-num{font-family:var(--fd);font-size:2.4rem;font-weight:900;color:var(--ac);line-height:1;margin-bottom:6px;animation:countUp .6s ease both;}
+.stat-lbl{font-family:var(--fm);font-size:.67rem;color:var(--tm);text-transform:uppercase;letter-spacing:.1em;}
+@media(max-width:768px){.stats-strip{margin:0 18px;}}
+
+/* ══ SKILLS RADAR CHART ══ */
+.radar-wrap{display:flex;flex-direction:column;align-items:center;gap:24px;padding:10px 0;}
+.radar-svg{overflow:visible;max-width:420px;width:100%;}
+.radar-area{fill:var(--ac);fill-opacity:.15;stroke:var(--ac);stroke-width:2;transition:all .4s ease;}
+.radar-grid-line{fill:none;stroke:var(--bd);stroke-width:1;}
+.radar-axis{stroke:var(--bd);stroke-width:1;}
+.radar-label{font-family:var(--fm);font-size:.68rem;fill:var(--td);text-anchor:middle;transition:fill .2s;}
+.radar-label.active{fill:var(--ac);}
+.radar-dot{fill:var(--ac);stroke:var(--sf);stroke-width:2;cursor:pointer;transition:r .2s;}
+.radar-dot:hover{r:7;}
+.radar-legend{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;}
+.radar-leg-item{display:flex;align-items:center;gap:6px;padding:5px 12px;background:var(--s2);border:1px solid var(--bd);border-radius:50px;font-family:var(--fm);font-size:.7rem;color:var(--td);cursor:pointer;transition:all .2s;}
+.radar-leg-item:hover,.radar-leg-item.active{border-color:var(--ac);color:var(--ac);}
+.radar-leg-dot{width:8px;height:8px;border-radius:50%;}
+
+/* ══ 3D STL VIEWER in Deep Dive ══ */
+.stl-viewer-wrap{background:var(--s2);border:1px solid var(--bd);border-radius:12px;overflow:hidden;position:relative;}
+.stl-canvas{width:100%;height:320px;display:block;cursor:grab;}
+.stl-canvas:active{cursor:grabbing;}
+.stl-controls{display:flex;gap:8px;padding:10px 14px;background:rgba(0,0,0,.2);border-top:1px solid var(--bd);flex-wrap:wrap;align-items:center;}
+.stl-btn{padding:5px 12px;background:transparent;border:1px solid var(--bd);border-radius:6px;color:var(--td);font-family:var(--fm);font-size:.7rem;cursor:pointer;transition:all .2s;}
+.stl-btn:hover{border-color:var(--ac);color:var(--ac);}
+.stl-hint{font-family:var(--fm);font-size:.65rem;color:var(--tm);margin-left:auto;}
+.stl-upload-area{padding:48px 32px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.stl-upload-icon{font-size:2.8rem;}
+.stl-upload-txt{font-family:var(--fm);font-size:.8rem;color:var(--td);}
+.stl-upload-btn{padding:10px 24px;background:var(--gl);border:1px solid var(--ac);border-radius:9px;color:var(--ac);font-family:var(--fb);font-size:.85rem;cursor:pointer;transition:all .2s;}
+.stl-upload-btn:hover{background:var(--ac);color:var(--bg);}
+.stl-loading{position:absolute;inset:0;background:var(--s2);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;font-family:var(--fm);font-size:.78rem;color:var(--td);}
+.stl-spin{width:28px;height:28px;border:3px solid var(--bd);border-top-color:var(--ac);border-radius:50%;animation:spin .8s linear infinite;}
+
+/* ══ PROJECT DEMO (hover video/gif) ══ */
+.pc-media{position:relative;width:100%;height:160px;background:var(--s2);border-radius:8px;overflow:hidden;margin-bottom:12px;display:none;}
+.pc-media.has-media{display:block;}
+.pc-media img,.pc-media video{width:100%;height:100%;object-fit:cover;display:block;}
+.pc-media-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,.7),transparent);display:flex;align-items:flex-end;padding:10px;opacity:0;transition:opacity .3s;}
+.pc:hover .pc-media-overlay{opacity:1;}
+.pc-play-badge{display:flex;align-items:center;gap:6px;font-family:var(--fm);font-size:.68rem;color:#fff;}
+
+/* ══ DD: 3D TAB ══ */
+.dd-tab-3d{position:relative;}
+.dd-3d-badge{position:absolute;top:-4px;right:-4px;width:8px;height:8px;border-radius:50%;background:var(--ac);animation:availPulse 2s infinite;}
+
+/* ══ SKILLS TOGGLE (chart vs list) ══ */
+.sk-view-toggle{display:flex;gap:4px;padding:3px;background:var(--s2);border:1px solid var(--bd);border-radius:50px;margin-bottom:24px;width:fit-content;}
+.sk-toggle-btn{padding:6px 16px;border:none;border-radius:50px;background:transparent;color:var(--td);font-family:var(--fm);font-size:.73rem;cursor:pointer;transition:all .2s;}
+.sk-toggle-btn.active{background:var(--ac);color:var(--bg);font-weight:600;}
+#skRadarWrap{display:none;}
+#skRadarWrap.active{display:block;}
+#skGrid.hidden{display:none;}
 </style>
 </head>
 <body>
@@ -721,6 +791,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
       <input type="file" id="photoInput" accept="image/*" style="display:none;">
     </div>
     <div class="hcont">
+      <div id="availBadgeWrap"></div>
       <div class="h-ey" id="heroEyebrow"></div>
       <h1 class="h-name" id="heroName"></h1>
       <p class="h-sub" id="heroSub"></p>
@@ -732,6 +803,10 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
   </div>
 </section>
 
+<!-- STATS STRIP -->
+<div class="sdiv"></div>
+<div class="stats-strip fade-in" id="statsStrip"></div>
+
 <div class="sdiv"></div>
 <div class="sec fade-in"><div class="sh"><span class="sn">01</span><h2 class="st" id="tEdu"></h2><div class="sl"></div></div><div class="edu-grid" id="eduGrid"></div></div>
 <div class="sdiv"></div>
@@ -739,7 +814,15 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 <div class="sdiv"></div>
 <div class="sec fade-in"><div class="sh"><span class="sn">03</span><h2 class="st" id="tExp"></h2><div class="sl"></div></div><div class="exp-list" id="expList"></div></div>
 <div class="sdiv"></div>
-<div class="sec fade-in"><div class="sh"><span class="sn">04</span><h2 class="st" id="tSkills"></h2><div class="sl"></div></div><div class="skgrid" id="skGrid"></div></div>
+<div class="sec fade-in">
+  <div class="sh"><span class="sn">04</span><h2 class="st" id="tSkills"></h2><div class="sl"></div></div>
+  <div class="sk-view-toggle">
+    <button class="sk-toggle-btn active" onclick="skView('list',this)">☰ List</button>
+    <button class="sk-toggle-btn" onclick="skView('radar',this)">◎ Radar Chart</button>
+  </div>
+  <div id="skGrid" class="skgrid"></div>
+  <div id="skRadarWrap"><canvas id="radarCanvas" style="max-width:500px;margin:0 auto;display:block;"></canvas></div>
+</div>
 <div class="sdiv"></div>
 <div class="sec fade-in"><div class="sh"><span class="sn">05</span><h2 class="st" id="tCerts"></h2><div class="sl"></div></div><div class="cgrid" id="certGrid"></div></div>
 <div id="customContainer"></div>
@@ -937,7 +1020,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <div class="cinfo-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>تعديل روابط أزرار تحميل الـ CV في قسم الـ Hero.</div>
           <div class="two">
             <div class="ef"><label class="el">CV English — URL</label><input class="ei" id="eCvEnUrl" placeholder="cv-en.pdf"></div>
-            <div class="ef"><label class="el">CV English — Button Label</label><input class="ei" id="eCvEnLbl" placeholder="📄  CV (EN)"></div>
+            <div class="ef"><label class="el">CV English — Button Label</label><input class="ei" id="eCvEnLbl" placeholder="📄 Download CV (EN)"></div>
           </div>
           <div class="two">
             <div class="ef"><label class="el">CV Turkish — URL</label><input class="ei" id="eCvTrUrl" placeholder="cv-tr.pdf"></div>
