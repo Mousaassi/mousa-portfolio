@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mousa Assi — Portfolio</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
   window.CLOUDINARY_CLOUD = 'dfposi0sj';
   window.CLOUDINARY_PRESET = 'cv_upload';
@@ -793,6 +793,10 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
     <div class="hcont">
       <div id="availBadgeWrap"></div>
       <div class="h-ey" id="heroEyebrow"></div>
+      <div id="availBadge" style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(78,203,113,.12);border:1px solid rgba(78,203,113,.4);border-radius:50px;font-family:var(--fm);font-size:.72rem;color:#4ecb71;margin-bottom:8px;width:fit-content;">
+  <span style="width:7px;height:7px;border-radius:50%;background:#4ecb71;animation:dotP 2s infinite;flex-shrink:0;"></span>
+  Available for Work · Expected Graduation 2026
+</div>
       <h1 class="h-name" id="heroName"></h1>
       <p class="h-sub" id="heroSub"></p>
       <p class="h-desc" id="heroDesc"></p>
@@ -805,6 +809,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 
 <!-- STATS STRIP -->
 <div class="sdiv"></div>
+  
 <div class="stats-strip fade-in" id="statsStrip"></div>
 
 <div class="sdiv"></div>
@@ -821,6 +826,9 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
     <button class="sk-toggle-btn" onclick="skView('radar',this)">◎ Radar Chart</button>
   </div>
   <div id="skGrid" class="skgrid"></div>
+  <div style="margin-top:40px;display:flex;justify-content:center;">
+  <canvas id="skillsRadar" width="420" height="380" style="max-width:100%;opacity:0;transition:opacity .8s ease;" aria-label="Skills radar chart"></canvas>
+</div>
   <div id="skRadarWrap"><canvas id="radarCanvas" style="max-width:500px;margin:0 auto;display:block;"></canvas></div>
 </div>
 <div class="sdiv"></div>
@@ -1129,6 +1137,12 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
       <div class="dd-panel" id="ddPanelGallery">
         <div class="dd-sec-lbl">Project images</div>
         <div class="dd-gallery" id="ddGallery"></div>
+        <div id="ddSTLWrap" style="display:none;margin-top:20px;">
+  <div class="dd-sec-lbl">3D Model Viewer</div>
+  <div id="ddSTLViewer" style="width:100%;height:340px;border-radius:12px;overflow:hidden;background:var(--s2);border:1px solid var(--bd);position:relative;cursor:grab;">
+    <div id="ddSTLMsg" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:.8rem;color:var(--tm);">Drag to rotate · Scroll to zoom</div>
+  </div>
+</div>
       </div>
       <div class="dd-panel" id="ddPanelReport">
         <div id="ddReportContent"></div>
@@ -1976,7 +1990,8 @@ window.DD_DATA = {
   3:{color:'#7dd87a',icon:'⚙️',heroPattern:'wheel',desc:'A single-axis attitude control system using a reaction wheel — the same technology used in real satellites. NEMA-17 stepper spins a flywheel; MPU6050 measures tilt; Arduino Nano runs a PID loop.',stats:[{val:'PID',lbl:'Control'},{val:'IMU',lbl:'Sensing'},{val:'1-Axis',lbl:'DOF'},{val:'2026',lbl:'Year'}],features:[{icon:'🔄',title:'NEMA-17 Reaction Wheel',desc:'Stepper motor spinning a precision flywheel for angular momentum storage.'},{icon:'📡',title:'MPU6050 IMU',desc:'6-DOF inertial measurement for real-time tilt sensing.'},{icon:'🎮',title:'PID Control Loop',desc:'Tuned PID controller running on Arduino for stable attitude hold.'},{icon:'🛸',title:'Spacecraft Technology',desc:'Demonstrates reaction control principles used in real satellites.'}],stack:['Arduino Nano','NEMA-17','MPU6050','A4988 Driver','PID Algorithm','C++','SolidWorks','3D Printing'],hl:[0,1,2],images:[]},
   4:{color:'#f0a0c0',icon:'🤖',heroPattern:'arm4',desc:'A 4-DOF robotic arm with modular end-effector system for pick-and-place, stacking, and trajectory following. High-torque servo motors with Arduino-based multi-axis motion control.',stats:[{val:'4',lbl:'DOF'},{val:'Modular',lbl:'End-Effector'},{val:'Arduino',lbl:'Controller'},{val:'2026',lbl:'Year'}],features:[{icon:'💪',title:'High-Torque Servos',desc:'MG996R / DS3218 servos at each joint for strong, precise positioning.'},{icon:'🔩',title:'Modular End-Effector',desc:'Swappable gripper, suction cup, and pen-holder modules.'},{icon:'📱',title:'Serial Control Interface',desc:'Command via serial terminal or GUI for real-time joint angle control.'},{icon:'🎯',title:'Multi-Axis Motion',desc:'Smooth coordinated motion for trajectory following and pick-and-place.'}],stack:['Arduino Uno','MG996R Servos','Fusion 360','PLA','PWM Control','Serial Interface','Inverse Kinematics','3D Printing'],hl:[0,1,2,3],images:[]}
 };
-
+DD_DATA[2].videoUrl = 'https://your-cdn.com/drone-demo.mp4';
+DD_DATA[1].modelUrl = 'https://your-cdn.com/robotic-arm.stl';
 /* Load saved DD_DATA from localStorage */
 (function(){
   try{
@@ -2583,6 +2598,258 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
   [{top:'15%',left:'5%',size:'340px',color:'var(--ac)',anim:'orbFloat1 18s ease-in-out infinite'},{top:'60%',right:'3%',size:'260px',color:'var(--a2)',anim:'orbFloat2 22s ease-in-out infinite'},{top:'40%',left:'50%',size:'200px',color:'var(--a3)',anim:'orbFloat1 26s ease-in-out infinite 4s'}].forEach(o=>{const div=document.createElement('div');div.className='orb';div.style.cssText=`width:${o.size};height:${o.size};top:${o.top||'auto'};left:${o.left||'auto'};right:${o.right||'auto'};background:${o.color};opacity:0.045;animation:${o.anim};`;document.body.appendChild(div);requestAnimationFrame(()=>div.classList.add('visible'));});
 })();
 
+/* ════ STATS COUNTER ════ */
+(function(){
+  const obsC = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(!entry.isIntersecting) return;
+      const boxes = entry.target.querySelectorAll('.stat-box');
+      boxes.forEach(box => {
+        const target = parseInt(box.dataset.target);
+        const numEl = box.querySelector('.stat-num');
+        let current = 0;
+        const step = Math.ceil(target / 40);
+        const iv = setInterval(() => {
+          current = Math.min(current + step, target);
+          numEl.textContent = current + (target > 10 ? '' : '');
+          if(current >= target) clearInterval(iv);
+        }, 35);
+      });
+      obsC.unobserve(entry.target);
+    });
+  }, {threshold: 0.3});
+  const statsRow = document.getElementById('statsRow');
+  if(statsRow) obsC.observe(statsRow);
+})();
+/* ════ SKILLS RADAR CHART ════ */
+(function(){
+  const obsR = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(!entry.isIntersecting) return;
+      const canvas = document.getElementById('skillsRadar');
+      if(!canvas || canvas.dataset.drawn) return;
+      canvas.dataset.drawn = '1';
+      canvas.style.opacity = '1';
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      const cx = W/2, cy = H/2, R = Math.min(W,H)/2 - 50;
+      const skills = [
+        {label:'SolidWorks', val:.92},
+        {label:'Fusion 360', val:.88},
+        {label:'Arduino',    val:.85},
+        {label:'MATLAB',     val:.72},
+        {label:'3D Printing',val:.90},
+        {label:'CAD/Mech',   val:.87},
+        {label:'PID Control',val:.78},
+        {label:'Proteus',    val:.70},
+      ];
+      const N = skills.length;
+      const getColor = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+      function drawRadar(progress){
+        ctx.clearRect(0,0,W,H);
+        const ac = getColor('--ac') || '#e8c87a';
+        const a2 = getColor('--a2') || '#7a9ee8';
+        const bd = getColor('--bd') || '#2a2a40';
+        const td = getColor('--td') || '#8888a8';
+        const tx = getColor('--tx') || '#e8e8f0';
+        // Grid circles
+        for(let r=1;r<=4;r++){
+          ctx.beginPath();
+          for(let i=0;i<N;i++){
+            const angle = (i/N)*Math.PI*2 - Math.PI/2;
+            const x = cx + Math.cos(angle)*(R*r/4);
+            const y = cy + Math.sin(angle)*(R*r/4);
+            i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+          }
+          ctx.closePath();
+          ctx.strokeStyle = bd;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        // Spokes
+        for(let i=0;i<N;i++){
+          const angle = (i/N)*Math.PI*2 - Math.PI/2;
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.lineTo(cx + Math.cos(angle)*R, cy + Math.sin(angle)*R);
+          ctx.strokeStyle = bd;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+        // Data polygon
+        ctx.beginPath();
+        skills.forEach((s,i) => {
+          const angle = (i/N)*Math.PI*2 - Math.PI/2;
+          const r = R * s.val * progress;
+          const x = cx + Math.cos(angle)*r;
+          const y = cy + Math.sin(angle)*r;
+          i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+        });
+        ctx.closePath();
+        ctx.fillStyle = a2.replace(')',', 0.18)').replace('rgb','rgba');
+        ctx.fill();
+        ctx.strokeStyle = ac;
+        ctx.lineWidth = 2.5;
+        ctx.stroke();
+        // Dots
+        skills.forEach((s,i) => {
+          const angle = (i/N)*Math.PI*2 - Math.PI/2;
+          const r = R * s.val * progress;
+          ctx.beginPath();
+          ctx.arc(cx + Math.cos(angle)*r, cy + Math.sin(angle)*r, 5, 0, Math.PI*2);
+          ctx.fillStyle = ac;
+          ctx.fill();
+        });
+        // Labels
+        if(progress === 1){
+          ctx.font = '600 11px DM Sans, sans-serif';
+          ctx.textAlign = 'center';
+          skills.forEach((s,i) => {
+            const angle = (i/N)*Math.PI*2 - Math.PI/2;
+            const lx = cx + Math.cos(angle)*(R+26);
+            const ly = cy + Math.sin(angle)*(R+26) + 4;
+            ctx.fillStyle = tx;
+            ctx.fillText(s.label, lx, ly);
+            ctx.font = '500 10px JetBrains Mono, monospace';
+            ctx.fillStyle = ac;
+            ctx.fillText(Math.round(s.val*100)+'%', lx, ly+14);
+            ctx.font = '600 11px DM Sans, sans-serif';
+          });
+        }
+      }
+      // Animate
+      let p = 0;
+      const anim = () => {
+        p = Math.min(p + 0.03, 1);
+        drawRadar(p);
+        if(p < 1) requestAnimationFrame(anim);
+      };
+      requestAnimationFrame(anim);
+      obsR.unobserve(entry.target);
+    });
+  }, {threshold: 0.2});
+  setTimeout(()=>{
+    const canvas = document.getElementById('skillsRadar');
+    if(canvas) obsR.observe(canvas);
+  }, 500);
+})();
+
+/* ════ PROJECT HOVER VIDEO PREVIEW ════ */
+(function(){
+  function applyVideoPreview(){
+    document.querySelectorAll('#projGrid .pc').forEach((card, i) => {
+      if(card.dataset.videoDone) return;
+      const dd = window.DD_DATA && window.DD_DATA[i];
+      if(!dd || !dd.videoUrl) return;
+      card.dataset.videoDone = '1';
+      const vid = document.createElement('video');
+      vid.src = dd.videoUrl;
+      vid.loop = vid.muted = vid.playsInline = true;
+      vid.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s;pointer-events:none;z-index:2;border-radius:inherit;';
+      card.style.overflow = 'hidden';
+      card.appendChild(vid);
+      card.addEventListener('mouseenter', () => { vid.play(); vid.style.opacity = '.7'; });
+      card.addEventListener('mouseleave', () => { vid.pause(); vid.style.opacity = '0'; });
+    });
+  }
+  const origRender = window.render;
+  window.render = function(){ origRender.apply(this,arguments); requestAnimationFrame(applyVideoPreview); };
+})();
+
+/* ════ 3D STL VIEWER ════ */
+(function(){
+  let renderer, scene, camera, mesh3d, animId;
+
+  function init3DViewer(container){
+    if(renderer){ renderer.dispose(); if(animId) cancelAnimationFrame(animId); }
+    const W = container.clientWidth, H = container.clientHeight || 340;
+    scene = new THREE.Scene();
+    camera = new THREE.PerspectiveCamera(45, W/H, 0.1, 1000);
+    camera.position.set(0, 0, 4);
+    renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+    renderer.setSize(W, H);
+    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setClearColor(0x000000, 0);
+    container.querySelectorAll('canvas').forEach(c=>c.remove());
+    container.appendChild(renderer.domElement);
+    const amb = new THREE.AmbientLight(0xffffff, 0.6);
+    const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+    dir.position.set(5,10,7);
+    scene.add(amb, dir);
+    // Drag rotation
+    let isDragging=false, prevX=0, prevY=0;
+    renderer.domElement.addEventListener('mousedown', e=>{ isDragging=true; prevX=e.clientX; prevY=e.clientY; });
+    window.addEventListener('mouseup', ()=>isDragging=false);
+    window.addEventListener('mousemove', e=>{
+      if(!isDragging||!mesh3d) return;
+      mesh3d.rotation.y += (e.clientX-prevX)*0.01;
+      mesh3d.rotation.x += (e.clientY-prevY)*0.01;
+      prevX=e.clientX; prevY=e.clientY;
+    });
+    renderer.domElement.addEventListener('wheel', e=>{
+      camera.position.z = Math.max(1.5, Math.min(10, camera.position.z + e.deltaY*0.01));
+    });
+    function animate(){ animId=requestAnimationFrame(animate); if(mesh3d&&!isDragging) mesh3d.rotation.y+=0.004; renderer.render(scene,camera); }
+    animate();
+  }
+
+  window.load3DModel = function(url, container){
+    const wrap = document.getElementById('ddSTLWrap');
+    const msg = document.getElementById('ddSTLMsg');
+    if(!wrap||!url) return;
+    wrap.style.display = 'block';
+    init3DViewer(container);
+    if(msg) msg.textContent = 'Loading model…';
+    // Simple OBJ-like placeholder — for STL use STLLoader
+    // Using basic box geometry as demo until STL URL provided
+    if(mesh3d){ scene.remove(mesh3d); mesh3d=null; }
+    const ac = getComputedStyle(document.documentElement).getPropertyValue('--ac').trim()||'#e8c87a';
+    const geo = new THREE.BoxGeometry(1.6, 1, 1.2);
+    const mat = new THREE.MeshPhongMaterial({ color: ac.replace('#','0x'), wireframe: false, transparent:true, opacity:.85 });
+    mesh3d = new THREE.Mesh(geo, mat);
+    scene.add(mesh3d);
+    if(msg) msg.style.display='none';
+  };
+
+  // Hook into openDeepDive
+  const origOpen = window.openDeepDive;
+  window.openDeepDive = function(idx){
+    origOpen && origOpen(idx);
+    const dd = window.DD_DATA && window.DD_DATA[idx];
+    const wrap = document.getElementById('ddSTLWrap');
+    if(wrap) wrap.style.display = 'none';
+    if(dd && dd.modelUrl){
+      setTimeout(()=>{
+        const container = document.getElementById('ddSTLViewer');
+        if(container) load3DModel(dd.modelUrl, container);
+      }, 400);
+    }
+  };
+
+  // Close cleanup
+  const origClose = window.closeDD;
+  window.closeDD = function(){
+    origClose && origClose();
+    if(renderer){ renderer.dispose(); renderer=null; }
+    if(animId){ cancelAnimationFrame(animId); animId=null; }
+    const wrap = document.getElementById('ddSTLWrap');
+    if(wrap) wrap.style.display='none';
+  };
+})();
+function skView(mode, btn) {
+  document.querySelectorAll('.sk-toggle-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const grid = document.getElementById('skGrid');
+  const canvas = document.getElementById('skillsRadar');
+  if(mode === 'radar') {
+    grid.classList.add('hidden');
+    canvas.style.display = 'block';
+  } else {
+    grid.classList.remove('hidden');
+    canvas.style.display = 'none';
+  }
+}  
+  
 </script>
 </body>
 </html>
