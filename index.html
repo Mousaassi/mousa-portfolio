@@ -60,6 +60,8 @@ window._loadFromFirebase = async () => {
       return s.exists() ? s.data().items : [];
     };
     D.edu    = await snap('edu');
+    // Load contact section data
+    try{const cs=await getDoc(doc(db,'portfolio','contact'));if(cs.exists())D.contact=cs.data();}catch(e){}
     D.proj   = await snap('projects');
     D.exp    = await snap('experience');
     D.skills = await snap('skills');
@@ -118,6 +120,9 @@ window._saveToFirebase = async () => {
     batch.set(doc(db,'portfolio_lists','certs'),      { items: certsClean });
     batch.set(doc(db,'portfolio_lists','social'),     { items: window.D.social || [] });
     batch.set(doc(db,'portfolio_lists','custom'),     { items: window.D.custom || [] });
+    if(window.D.contact){
+      batch.set(doc(db,'portfolio','contact'), window.D.contact);
+    }
     // Save DD_DATA to Firebase
     if(window.DD_DATA){
       batch.set(doc(db,'portfolio','dddata'), { data: JSON.stringify(window.DD_DATA), updatedAt: new Date().toISOString() });
@@ -198,6 +203,7 @@ function deepMerge(fb,defs){
   r.certs =(fb.certs &&fb.certs.length) ?fb.certs.map(normCert):defs.certs;
   r.social=(fb.social&&fb.social.length)?fb.social:defs.social;
   r.custom=(fb.custom&&fb.custom.length)?fb.custom:defs.custom;
+  r.contact=fb.contact||null;
   return r;
 }
 function normBullets(a){if(!a||!a.length)return[{en:'',tr:'',ar:''}];return a.map(b=>{if(!b)return{en:'',tr:'',ar:''};if(typeof b==='string')return{en:b,tr:b,ar:b};return{en:b.en||'',tr:b.tr||'',ar:b.ar||''};});}
@@ -721,10 +727,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
       <p class="h-desc" id="heroDesc"></p>
       <div class="h-tags" id="heroTags"></div>
       <div class="h-links" id="heroLinks"></div>
-<div class="h-links" style="margin-top:0;">
-  <a href="https://mousa-portfolio.mousaassi-swi.workers.dev/cv-en.pdf" download class="slink">📄 Download CV (EN)</a>
-  <a href="https://mousa-portfolio.mousaassi-swi.workers.dev/cv-tr.pdf" download class="slink">📄 CV (TR)</a>
-</div>
+<div class="h-links" id="cvLinksRow" style="margin-top:0;"></div>
     </div>
   </div>
 </section>
@@ -827,6 +830,8 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="etab" onclick="eTab('epCert',this)">📜 Certs</button>
           <button class="etab" onclick="eTab('epSoc',this)">🔗 Links</button>
           <button class="etab" onclick="eTab('epCus',this)">➕ Sections</button>
+          <button class="etab" onclick="eTab('epCV',this)">📥 CV Links</button>
+          <button class="etab" onclick="eTab('epContact',this)">📞 Contact</button>
           <button class="etab" onclick="eTab('epDeepDive',this)">🔍 Deep Dive</button>
         </div>
       </div>
@@ -839,6 +844,11 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
               <p class="pt" id="photoTxt">Click or drag photo here</p>
             </div>
             <button class="prm" id="photoRmBtn" onclick="removePhoto()" type="button">Remove Photo</button>
+            <button class="cloud-upload-btn" onclick="uploadProfileToCloudinary()" type="button" style="margin-top:6px;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
+              ☁ Upload Photo → Cloudinary
+            </button>
+            <p style="font-size:.67rem;color:var(--tm);margin-top:4px;font-family:var(--fm);">Cloudinary = دائم حتى بعد مسح الـ cache</p>
           </div>
           <div class="two">
             <div class="ef"><label class="el">First Name</label><input class="ei" id="eFirst"></div>
@@ -887,6 +897,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 <div class="ef"><label class="el">Typewriter Subtitles (one per line)</label>
   <textarea class="eta" id="eTypewriterLines" style="min-height:110px"></textarea>
 </div>
+          <div class="ef"><label class="el">Page Title (Browser Tab)</label><input class="ei" id="ePageTitle" placeholder="Mousa Assi — Portfolio"></div>
           <div class="ef"><label class="el">Tags (comma-separated)</label><input class="ei" id="eTags"></div>
           <div class="two">
             <div class="ef"><label class="el">Email</label><input class="ei" id="eEmail"></div>
@@ -921,6 +932,68 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="sbtn" onclick="doSave('custom')" type="button">Save</button>
           <p class="sok" id="cusOk">✓ Saved</p>
         </div>
+        <!-- CV LINKS PANEL -->
+        <div class="ep" id="epCV">
+          <div class="cinfo-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>تعديل روابط أزرار تحميل الـ CV في قسم الـ Hero.</div>
+          <div class="two">
+            <div class="ef"><label class="el">CV English — URL</label><input class="ei" id="eCvEnUrl" placeholder="cv-en.pdf"></div>
+            <div class="ef"><label class="el">CV English — Button Label</label><input class="ei" id="eCvEnLbl" placeholder="📄 Download CV (EN)"></div>
+          </div>
+          <div class="two">
+            <div class="ef"><label class="el">CV Turkish — URL</label><input class="ei" id="eCvTrUrl" placeholder="cv-tr.pdf"></div>
+            <div class="ef"><label class="el">CV Turkish — Button Label</label><input class="ei" id="eCvTrLbl" placeholder="📄 CV (TR)"></div>
+          </div>
+          <div class="ef" style="margin-top:10px;">
+            <label class="el">Preview</label>
+            <div id="cvPreview" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;padding:14px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;"></div>
+          </div>
+          <button class="sbtn" onclick="saveCVLinks()" type="button">Save CV Links</button>
+          <p class="sok" id="cvOk">✓ Saved — press ☁ Sync</p>
+        </div>
+
+        <!-- CONTACT PANEL -->
+        <div class="ep" id="epContact">
+          <div class="cinfo-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>تعديل نصوص قسم التواصل وعناوين الفورم.</div>
+          <div class="thr">
+            <div class="ef"><label class="el">Section Title EN</label><input class="ei" id="eCtTitleEN" placeholder="Get In Touch"></div>
+            <div class="ef"><label class="el">Section Title TR</label><input class="ei" id="eCtTitleTR" placeholder="İletişime Geç"></div>
+            <div class="ef"><label class="el">Section Title AR</label><input class="ei" id="eCtTitleAR" dir="rtl" placeholder="تواصل معي"></div>
+          </div>
+          <div class="ef"><label class="el">Description EN</label><textarea class="eta" id="eCtDescEN"></textarea></div>
+          <div class="ef"><label class="el">Description TR</label><textarea class="eta" id="eCtDescTR"></textarea></div>
+          <div class="ef"><label class="el">Description AR</label><textarea class="eta" id="eCtDescAR" dir="rtl"></textarea></div>
+          <div style="border-top:1px solid var(--bd);padding-top:14px;margin-top:6px;">
+            <label class="el" style="margin-bottom:10px;display:block;">Form Labels (EN / TR / AR)</label>
+            <div class="thr">
+              <div class="ef"><label class="el">First Name EN</label><input class="ei" id="eCtFnEN" placeholder="First Name"></div>
+              <div class="ef"><label class="el">First Name TR</label><input class="ei" id="eCtFnTR" placeholder="Ad"></div>
+              <div class="ef"><label class="el">First Name AR</label><input class="ei" id="eCtFnAR" dir="rtl" placeholder="الاسم الأول"></div>
+            </div>
+            <div class="thr">
+              <div class="ef"><label class="el">Last Name EN</label><input class="ei" id="eCtLnEN" placeholder="Last Name"></div>
+              <div class="ef"><label class="el">Last Name TR</label><input class="ei" id="eCtLnTR" placeholder="Soyad"></div>
+              <div class="ef"><label class="el">Last Name AR</label><input class="ei" id="eCtLnAR" dir="rtl" placeholder="الاسم الأخير"></div>
+            </div>
+            <div class="thr">
+              <div class="ef"><label class="el">Phone Label EN</label><input class="ei" id="eCtPhEN" placeholder="Phone (optional)"></div>
+              <div class="ef"><label class="el">Phone Label TR</label><input class="ei" id="eCtPhTR" placeholder="Telefon (isteğe bağlı)"></div>
+              <div class="ef"><label class="el">Phone Label AR</label><input class="ei" id="eCtPhAR" dir="rtl" placeholder="الهاتف (اختياري)"></div>
+            </div>
+            <div class="thr">
+              <div class="ef"><label class="el">Message Label EN</label><input class="ei" id="eCtMsEN" placeholder="Message"></div>
+              <div class="ef"><label class="el">Message Label TR</label><input class="ei" id="eCtMsTR" placeholder="Mesaj"></div>
+              <div class="ef"><label class="el">Message Label AR</label><input class="ei" id="eCtMsAR" dir="rtl" placeholder="الرسالة"></div>
+            </div>
+            <div class="thr">
+              <div class="ef"><label class="el">Send Button EN</label><input class="ei" id="eCtSbEN" placeholder="Send Message"></div>
+              <div class="ef"><label class="el">Send Button TR</label><input class="ei" id="eCtSbTR" placeholder="Gönder"></div>
+              <div class="ef"><label class="el">Send Button AR</label><input class="ei" id="eCtSbAR" dir="rtl" placeholder="إرسال"></div>
+            </div>
+          </div>
+          <button class="sbtn" onclick="saveContact()" type="button">Save Contact</button>
+          <p class="sok" id="contactOk">✓ Saved — press ☁ Sync</p>
+        </div>
+
         <!-- DEEP DIVE PANEL -->
         <div class="ep" id="epDeepDive">
           <div class="cinfo-box">
@@ -1202,6 +1275,7 @@ function loadLocalD(){
       if(!d.social)d.social=DEFS.social;
       if(!d.custom)d.custom=DEFS.custom;
       if(!d.titles)d.titles=JSON.parse(JSON.stringify(DEFS.titles));
+      if(!d.contact)d.contact=null;
       return d;
     }
   }catch(e){}
@@ -1210,6 +1284,10 @@ function loadLocalD(){
 function saveD(){try{localStorage.setItem(SK,JSON.stringify(window.D));}catch(e){}}
 window.D=loadLocalD();
 window.profilePhoto=localStorage.getItem(PK)||'';
+// If hero has a Cloudinary photo URL, use it
+if(window.D.hero&&window.D.hero.photoUrl&&!window.profilePhoto){
+  window.profilePhoto=window.D.hero.photoUrl;
+}
 let lang='en';
 
 /* ════ PHOTO UPLOAD ════ */
@@ -1426,14 +1504,24 @@ let lks=``;
       <div class="csc">${s.content||''}</div>
     </div>`).join('');
 
-  const ct={en:{t:'Get In Touch',d:'Have a project or want to collaborate? Send me a message.',fn:'First Name',ln:'Last Name',ph:'Phone (optional)',ms:'Message',sb:'Send Message'},
-            tr:{t:'İletişime Geç',d:'Bir projeniz mi var? Mesaj gönderin.',fn:'Ad',ln:'Soyad',ph:'Telefon (isteğe bağlı)',ms:'Mesaj',sb:'Gönder'},
-            ar:{t:'تواصل معي',d:'هل لديك مشروع؟ أرسل رسالة وسأرد في أقرب وقت.',fn:'الاسم الأول',ln:'الاسم الأخير',ph:'الهاتف (اختياري)',ms:'الرسالة',sb:'إرسال'}};
-  const c=ct[lang]||ct.en;
-  document.getElementById('ctTitle').textContent=c.t;document.getElementById('ctDesc').textContent=c.d;
-  document.getElementById('lbFN').textContent=c.fn;document.getElementById('lbLN').textContent=c.ln;
-  document.getElementById('lbPH').textContent=c.ph;document.getElementById('lbMS').textContent=c.ms;
-  document.getElementById('cfBtnTxt').textContent=c.sb;
+  // CV Links dynamic
+  const cvRow=document.getElementById('cvLinksRow');
+  if(cvRow){const cvEn=h.cvEnUrl||'cv-en.pdf',cvTr=h.cvTrUrl||'cv-tr.pdf',cvEnL=h.cvEnLbl||'📄 Download CV (EN)',cvTrL=h.cvTrLbl||'📄 CV (TR)';cvRow.innerHTML=`<a href="${cvEn}" download class="slink">${cvEnL}</a><a href="${cvTr}" download class="slink">${cvTrL}</a>`;}
+
+  // Contact — dynamic
+  const ctS=window.D.contact||{};
+  const ctDef={en:{t:'Get In Touch',d:'Have a project or want to collaborate? Send me a message.',fn:'First Name',ln:'Last Name',ph:'Phone (optional)',ms:'Message',sb:'Send Message'},
+               tr:{t:'İletişime Geç',d:'Bir projeniz mi var? Mesaj gönderin.',fn:'Ad',ln:'Soyad',ph:'Telefon (isteğe bağlı)',ms:'Mesaj',sb:'Gönder'},
+               ar:{t:'تواصل معي',d:'هل لديك مشروع؟ أرسل رسالة وسأرد في أقرب وقت.',fn:'الاسم الأول',ln:'الاسم الأخير',ph:'الهاتف (اختياري)',ms:'الرسالة',sb:'إرسال'}};
+  const cDef=ctDef[lang]||ctDef.en;
+  const GL2=(obj,fb)=>obj?((obj[lang]||obj.en)||fb):fb;
+  document.getElementById('ctTitle').textContent=GL2(ctS.title,cDef.t);
+  document.getElementById('ctDesc').textContent=GL2(ctS.desc,cDef.d);
+  document.getElementById('lbFN').textContent=GL2(ctS.fn,cDef.fn);
+  document.getElementById('lbLN').textContent=GL2(ctS.ln,cDef.ln);
+  document.getElementById('lbPH').textContent=GL2(ctS.ph,cDef.ph);
+  document.getElementById('lbMS').textContent=GL2(ctS.ms,cDef.ms);
+  document.getElementById('cfBtnTxt').textContent=GL2(ctS.sb,cDef.sb);
   document.getElementById('ctDet').innerHTML=`
     <div class="cdet-row">${SI.mail}<a href="mailto:${h.email||''}">${h.email||''}</a></div>
     <div class="cdet-row">${SI.phone}<span>${h.phone||''}</span></div>
@@ -1469,7 +1557,7 @@ function bRows(sec,i,buls){
 }
 
 function buildEduEd(){document.getElementById('eduEd').innerHTML=(window.D.edu||[]).map((e,i)=>`
-  <div class="lrow"><div class="rh"><span class="rn">Education #${i+1}</span><button class="dbtn" onclick="delI('edu',${i})" type="button">Remove</button></div>
+  <div class="lrow"><div class="rh"><span class="rn">Education #${i+1}</span><div style="display:flex;gap:5px;"><button class="dbtn" onclick="moveI('edu',${i},-1)" type="button">↑</button><button class="dbtn" onclick="moveI('edu',${i},1)" type="button">↓</button><button class="dbtn" onclick="delI('edu',${i})" type="button">Remove</button></div></div>
     <div class="two"><div class="ef"><label class="el">Year</label><input class="ei" value="${esc(e.year)}" oninput="window.D.edu[${i}].year=this.value"></div><div class="ef"><label class="el">School</label><input class="ei" value="${esc(e.school)}" oninput="window.D.edu[${i}].school=this.value"></div></div>
     <div class="thr">
       <div class="ef"><label class="el">Degree EN</label><input class="ei" value="${esc(e.degree.en||'')}" oninput="window.D.edu[${i}].degree.en=this.value"></div>
@@ -1480,7 +1568,7 @@ function buildEduEd(){document.getElementById('eduEd').innerHTML=(window.D.edu||
   </div>`).join('');}
 
 function buildProjEd(){document.getElementById('projEd').innerHTML=(window.D.proj||[]).map((p,i)=>`
-  <div class="lrow"><div class="rh"><span class="rn">Project #${i+1}</span><button class="dbtn" onclick="delI('proj',${i})" type="button">Remove</button></div>
+  <div class="lrow"><div class="rh"><span class="rn">Project #${i+1}</span><div style="display:flex;gap:5px;"><button class="dbtn" onclick="moveI('proj',${i},-1)" type="button">↑</button><button class="dbtn" onclick="moveI('proj',${i},1)" type="button">↓</button><button class="dbtn" onclick="delI('proj',${i})" type="button">Remove</button></div></div>
     <div class="thr">
       <div class="ef"><label class="el">Year</label><input class="ei" value="${esc(p.year)}" oninput="window.D.proj[${i}].year=this.value"></div>
       <div class="ef"><label class="el">Title EN</label><input class="ei" value="${esc(p.title.en||'')}" oninput="window.D.proj[${i}].title.en=this.value"></div>
@@ -1494,7 +1582,7 @@ function buildProjEd(){document.getElementById('projEd').innerHTML=(window.D.pro
   </div>`).join('');}
 
 function buildExpEd(){document.getElementById('expEd').innerHTML=(window.D.exp||[]).map((e,i)=>`
-  <div class="lrow"><div class="rh"><span class="rn">Experience #${i+1}</span><button class="dbtn" onclick="delI('exp',${i})" type="button">Remove</button></div>
+  <div class="lrow"><div class="rh"><span class="rn">Experience #${i+1}</span><div style="display:flex;gap:5px;"><button class="dbtn" onclick="moveI('exp',${i},-1)" type="button">↑</button><button class="dbtn" onclick="moveI('exp',${i},1)" type="button">↓</button><button class="dbtn" onclick="delI('exp',${i})" type="button">Remove</button></div></div>
     <div class="thr">
       <div class="ef"><label class="el">Role EN</label><input class="ei" value="${esc(e.role.en||'')}" oninput="window.D.exp[${i}].role.en=this.value"></div>
       <div class="ef"><label class="el">Role TR</label><input class="ei" value="${esc(e.role.tr||'')}" oninput="window.D.exp[${i}].role.tr=this.value"></div>
@@ -1509,18 +1597,35 @@ function buildExpEd(){document.getElementById('expEd').innerHTML=(window.D.exp||
   </div>`).join('');}
 
 function buildSkEd(){document.getElementById('skEd').innerHTML=(window.D.skills||[]).map((s,i)=>`
-  <div class="lrow"><div class="rh"><span class="rn">Category #${i+1}</span><button class="dbtn" onclick="delI('skills',${i})" type="button">Remove</button></div>
+  <div class="lrow">
+    <div class="rh">
+      <span class="rn">Category #${i+1}</span>
+      <div style="display:flex;gap:5px;">
+        <button class="dbtn" onclick="moveI('skills',${i},-1)" type="button" title="Up">↑</button>
+        <button class="dbtn" onclick="moveI('skills',${i},1)" type="button" title="Down">↓</button>
+        <button class="dbtn" onclick="delI('skills',${i})" type="button">Remove</button>
+      </div>
+    </div>
     <div class="thr">
       <div class="ef"><label class="el">Category EN</label><input class="ei" value="${esc(s.cat.en||'')}" oninput="window.D.skills[${i}].cat.en=this.value"></div>
       <div class="ef"><label class="el">Category TR</label><input class="ei" value="${esc(s.cat.tr||'')}" oninput="window.D.skills[${i}].cat.tr=this.value"></div>
       <div class="ef"><label class="el">Category AR</label><input class="ei" value="${esc(s.cat.ar||'')}" oninput="window.D.skills[${i}].cat.ar=this.value" dir="rtl"></div>
     </div>
-    <div class="ef"><label class="el">Skills (comma-separated)</label><input class="ei" value="${esc((s.tags||[]).join(', '))}" oninput="window.D.skills[${i}].tags=this.value.split(',').map(t=>t.trim()).filter(Boolean);window.D.skills[${i}].hl=[]"></div>
+    <div class="ef"><label class="el">Skills (comma-separated)</label>
+      <input class="ei" value="${esc((s.tags||[]).join(', '))}" oninput="window.D.skills[${i}].tags=this.value.split(',').map(t=>t.trim()).filter(Boolean);window.D.skills[${i}].hl=[];buildSkEd()">
+    </div>
+    <div class="ef">
+      <label class="el">Highlighted Tags <span style="font-weight:400;color:var(--tm);text-transform:none;">(اضغط على tag لتفعيل الـ highlight)</span></label>
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:6px;">
+        ${(s.tags||[]).map((t,ti)=>`<span onclick="toggleSkHl(${i},${ti})" style="padding:5px 12px;border-radius:6px;font-size:.77rem;cursor:pointer;transition:all .2s;user-select:none;background:${(s.hl||[]).includes(ti)?'var(--ac)':'var(--s2)'};color:${(s.hl||[]).includes(ti)?'var(--bg)':'var(--td)'};border:1px solid ${(s.hl||[]).includes(ti)?'var(--ac)':'var(--bd)'};">${esc(t)}</span>`).join('')}
+      </div>
+      <p style="font-size:.66rem;color:var(--tm);margin-top:6px;font-family:var(--fm);">💡 Tags ذهبية = highlighted على الموقع</p>
+    </div>
   </div>`).join('');}
 
 function buildCertEd(){
   document.getElementById('certEd').innerHTML=(window.D.certs||[]).map((c,i)=>`
-    <div class="lrow"><div class="rh"><span class="rn">Cert #${i+1}</span><button class="dbtn" onclick="delI('certs',${i})" type="button">Remove</button></div>
+    <div class="lrow"><div class="rh"><span class="rn">Cert #${i+1}</span><div style="display:flex;gap:5px;"><button class="dbtn" onclick="moveI('certs',${i},-1)" type="button">↑</button><button class="dbtn" onclick="moveI('certs',${i},1)" type="button">↓</button><button class="dbtn" onclick="delI('certs',${i})" type="button">Remove</button></div></div>
       <div class="two">
       <div class="ef"><label class="el">Name (EN)</label><input class="ei" value="${esc(c.name||'')}" oninput="window.D.certs[${i}].name=this.value"></div>
       <div class="ef"><label class="el">Name (TR)</label><input class="ei" value="${esc(c.name_tr||'')}" oninput="window.D.certs[${i}].name_tr=this.value"></div>
@@ -1572,6 +1677,94 @@ function addBul(sec,i){if(!window.D[sec][i].bullets)window.D[sec][i].bullets=[];
 function delBul(sec,i,bi){window.D[sec][i].bullets.splice(bi,1);EB[sec]();}
 function delI(sec,i){window.D[sec].splice(i,1);EB[sec]();}
 
+/* ════ MOVE ITEM UP / DOWN ════ */
+function moveI(sec,i,dir){
+  const arr=window.D[sec];
+  const ni=i+dir;
+  if(ni<0||ni>=arr.length)return;
+  [arr[i],arr[ni]]=[arr[ni],arr[i]];
+  if(EB[sec])EB[sec]();
+}
+
+/* ════ SKILL HIGHLIGHT TOGGLE ════ */
+window.toggleSkHl=function(i,ti){
+  if(!window.D.skills[i].hl)window.D.skills[i].hl=[];
+  const hl=window.D.skills[i].hl;
+  const idx=hl.indexOf(ti);
+  if(idx===-1)hl.push(ti);else hl.splice(idx,1);
+  buildSkEd();
+};
+
+/* ════ CV LINKS SAVE ════ */
+function saveCVLinks(){
+  const h=window.D.hero;
+  h.cvEnUrl=document.getElementById('eCvEnUrl').value||'cv-en.pdf';
+  h.cvTrUrl=document.getElementById('eCvTrUrl').value||'cv-tr.pdf';
+  h.cvEnLbl=document.getElementById('eCvEnLbl').value||'📄 Download CV (EN)';
+  h.cvTrLbl=document.getElementById('eCvTrLbl').value||'📄 CV (TR)';
+  saveD();render();showOK('cvOk');
+  const prev=document.getElementById('cvPreview');
+  if(prev)prev.innerHTML=`<a href="${h.cvEnUrl}" class="slink" style="pointer-events:none;opacity:.7">${h.cvEnLbl}</a><a href="${h.cvTrUrl}" class="slink" style="pointer-events:none;opacity:.7">${h.cvTrLbl}</a>`;
+}
+
+/* ════ CONTACT SECTION SAVE ════ */
+function saveContact(){
+  if(!window.D.contact)window.D.contact={};
+  const c=window.D.contact;
+  c.title={en:document.getElementById('eCtTitleEN').value,tr:document.getElementById('eCtTitleTR').value,ar:document.getElementById('eCtTitleAR').value};
+  c.desc ={en:document.getElementById('eCtDescEN').value, tr:document.getElementById('eCtDescTR').value, ar:document.getElementById('eCtDescAR').value};
+  c.fn   ={en:document.getElementById('eCtFnEN').value,   tr:document.getElementById('eCtFnTR').value,   ar:document.getElementById('eCtFnAR').value};
+  c.ln   ={en:document.getElementById('eCtLnEN').value,   tr:document.getElementById('eCtLnTR').value,   ar:document.getElementById('eCtLnAR').value};
+  c.ph   ={en:document.getElementById('eCtPhEN').value,   tr:document.getElementById('eCtPhTR').value,   ar:document.getElementById('eCtPhAR').value};
+  c.ms   ={en:document.getElementById('eCtMsEN').value,   tr:document.getElementById('eCtMsTR').value,   ar:document.getElementById('eCtMsAR').value};
+  c.sb   ={en:document.getElementById('eCtSbEN').value,   tr:document.getElementById('eCtSbTR').value,   ar:document.getElementById('eCtSbAR').value};
+  saveD();render();showOK('contactOk');
+}
+
+/* ════ CLOUDINARY PROFILE PHOTO ════ */
+async function uploadProfileToCloudinary(){
+  const cloud=window.CLOUDINARY_CLOUD,preset=window.CLOUDINARY_PRESET;
+  if(!cloud||cloud==='YOUR_CLOUD_NAME'){alert('⚙ Cloudinary not configured!');return;}
+  if(!window._isAdmin){showSync('error','✗ Log in as admin first');return;}
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=async e=>{
+    const file=e.target.files[0];if(!file)return;
+    showSync('saving','☁ Uploading profile photo to Cloudinary…');
+    const reader=new FileReader();
+    reader.onload=async ev=>{
+      const img=new Image();
+      img.onload=async()=>{
+        const MAX=600,canvas=document.createElement('canvas');
+        let w=img.width,h=img.height;
+        if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=~~(w*r);h=~~(h*r);}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        canvas.toBlob(async blob=>{
+          try{
+            const fd=new FormData();
+            fd.append('file',blob,'profile.jpg');
+            fd.append('upload_preset',preset);
+            fd.append('folder','portfolio_profile');
+            const res=await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`,{method:'POST',body:fd});
+            if(!res.ok)throw new Error('Cloudinary error: '+(await res.text()));
+            const data=await res.json();
+            if(!data.secure_url)throw new Error('No URL returned');
+            window.D.hero.photoUrl=data.secure_url;
+            window.profilePhoto=data.secure_url;
+            try{localStorage.setItem('ma_photo_v2',data.secure_url);}catch(ex){}
+            saveD();if(window._saveToFirebase)window._saveToFirebase();
+            updatePhotoUI();render();
+            showSync('synced','✓ Profile photo uploaded to Cloudinary!');
+          }catch(err){showSync('error','✗ '+err.message);}
+        },'image/jpeg',.85);
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
+
 function saveHero(){
   const h=window.D.hero;
   h.firstName=document.getElementById('eFirst').value;h.lastName=document.getElementById('eLast').value;
@@ -1591,6 +1784,9 @@ window.D.titles.certs={en:document.getElementById('eTiCeEN').value,tr:document.g
 // Save typewriter lines
 const twLines=document.getElementById('eTypewriterLines').value.split('\n').map(l=>l.trim()).filter(Boolean);
 if(twLines.length)h.typewriterLines=twLines;
+  // Page Title
+  const pgTitle=document.getElementById('ePageTitle').value.trim();
+  if(pgTitle)document.title=pgTitle;
   saveD();render();showOK('heroOk');
 }
 function doSave(sec){saveD();render();showOK(sec+'Ok');}
@@ -1639,6 +1835,38 @@ document.getElementById('eTiCeEN').value=(ti.certs&&ti.certs.en)||'';
 document.getElementById('eTiCeTR').value=(ti.certs&&ti.certs.tr)||'';
 document.getElementById('eTiCeAR').value=(ti.certs&&ti.certs.ar)||'';
 document.getElementById('eTypewriterLines').value=(h.typewriterLines||[]).join('\n');
+  // Page Title
+  document.getElementById('ePageTitle').value=document.title||'Mousa Assi — Portfolio';
+  // CV Links
+  document.getElementById('eCvEnUrl').value=h.cvEnUrl||'cv-en.pdf';
+  document.getElementById('eCvTrUrl').value=h.cvTrUrl||'cv-tr.pdf';
+  document.getElementById('eCvEnLbl').value=h.cvEnLbl||'📄 Download CV (EN)';
+  document.getElementById('eCvTrLbl').value=h.cvTrLbl||'📄 CV (TR)';
+  const cvPrev=document.getElementById('cvPreview');
+  if(cvPrev)cvPrev.innerHTML=`<a href="${h.cvEnUrl||'cv-en.pdf'}" class="slink" style="pointer-events:none;opacity:.7">${h.cvEnLbl||'📄 Download CV (EN)'}</a><a href="${h.cvTrUrl||'cv-tr.pdf'}" class="slink" style="pointer-events:none;opacity:.7">${h.cvTrLbl||'📄 CV (TR)'}</a>`;
+  // Contact
+  const ct2=window.D.contact||{};
+  document.getElementById('eCtTitleEN').value=(ct2.title&&ct2.title.en)||'Get In Touch';
+  document.getElementById('eCtTitleTR').value=(ct2.title&&ct2.title.tr)||'İletişime Geç';
+  document.getElementById('eCtTitleAR').value=(ct2.title&&ct2.title.ar)||'تواصل معي';
+  document.getElementById('eCtDescEN').value=(ct2.desc&&ct2.desc.en)||'Have a project in mind or want to collaborate? Send me a message.';
+  document.getElementById('eCtDescTR').value=(ct2.desc&&ct2.desc.tr)||'Bir projeniz mi var? Mesaj gönderin.';
+  document.getElementById('eCtDescAR').value=(ct2.desc&&ct2.desc.ar)||'هل لديك مشروع؟ أرسل رسالة.';
+  document.getElementById('eCtFnEN').value=(ct2.fn&&ct2.fn.en)||'First Name';
+  document.getElementById('eCtFnTR').value=(ct2.fn&&ct2.fn.tr)||'Ad';
+  document.getElementById('eCtFnAR').value=(ct2.fn&&ct2.fn.ar)||'الاسم الأول';
+  document.getElementById('eCtLnEN').value=(ct2.ln&&ct2.ln.en)||'Last Name';
+  document.getElementById('eCtLnTR').value=(ct2.ln&&ct2.ln.tr)||'Soyad';
+  document.getElementById('eCtLnAR').value=(ct2.ln&&ct2.ln.ar)||'الاسم الأخير';
+  document.getElementById('eCtPhEN').value=(ct2.ph&&ct2.ph.en)||'Phone (optional)';
+  document.getElementById('eCtPhTR').value=(ct2.ph&&ct2.ph.tr)||'Telefon (isteğe bağlı)';
+  document.getElementById('eCtPhAR').value=(ct2.ph&&ct2.ph.ar)||'الهاتف (اختياري)';
+  document.getElementById('eCtMsEN').value=(ct2.ms&&ct2.ms.en)||'Message';
+  document.getElementById('eCtMsTR').value=(ct2.ms&&ct2.ms.tr)||'Mesaj';
+  document.getElementById('eCtMsAR').value=(ct2.ms&&ct2.ms.ar)||'الرسالة';
+  document.getElementById('eCtSbEN').value=(ct2.sb&&ct2.sb.en)||'Send Message';
+  document.getElementById('eCtSbTR').value=(ct2.sb&&ct2.sb.tr)||'Gönder';
+  document.getElementById('eCtSbAR').value=(ct2.sb&&ct2.sb.ar)||'إرسال';
   document.getElementById('editorOverlay').classList.add('active');
 }
 function closeEditor(){document.getElementById('editorOverlay').classList.remove('active');}
