@@ -1499,12 +1499,12 @@ function uploadPDF(i){
     fd.append('folder','portfolio_pdfs');
     try{
       const res=await fetch(
-        `https://api.cloudinary.com/v1_1/${cloud}/image/upload`,
+    `https://api.cloudinary.com/v1_1/${cloud}/raw/upload`,
         {method:'POST', body:fd}
       );
       const data=await res.json();
       if(!data.secure_url) throw new Error('No URL: '+JSON.stringify(data));
-      const pdfUrl=data.secure_url.replace('/image/upload/','/image/upload/fl_attachment/');
+      const pdfUrl=data.secure_url;
       window.D.proj[i].pdf=pdfUrl;
       window.D.proj[i].pdfName=f.name;
       saveD(); buildProjEd(); render();
@@ -1520,7 +1520,9 @@ function removePDF(i){window.D.proj[i].pdf='';window.D.proj[i].pdfName='';saveD(
   function openPDF(i){
   const p=window.D.proj[i].pdf;
   if(!p)return;
-  window.open(p,'_blank');
+  // Use Google Docs viewer to open any PDF URL
+  const viewer='https://docs.google.com/viewer?url='+encodeURIComponent(p)+'&embedded=false';
+  window.open(viewer,'_blank');
 }
 /* ════ LIGHTBOX ════ */
 function openLB(src){
