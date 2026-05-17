@@ -31,28 +31,20 @@ const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
 
-onAuthStateChanged(auth, async user => {
-  window._fbUser = user;
+onAuthStateChanged(auth, user => {
+  window._fbUser  = user;
   window._isAdmin = !!user;
-
   const bar = document.getElementById('adminBar');
   const btn = document.getElementById('adminLoginBtn');
-
   if (user) {
-    if(bar) bar.classList.add('visible');
-    const emailEl = document.getElementById('fbUserEmail');
-    if(emailEl) emailEl.textContent = user.email;
-    if(btn) btn.style.display = 'none';
+    bar.classList.add('visible');
+    document.getElementById('fbUserEmail').textContent = user.email;
+    btn.style.display = 'none';
   } else {
-    if(bar) bar.classList.remove('visible');
-    if(btn) btn.style.display = 'flex';
+    bar.classList.remove('visible');
+    btn.style.display = 'flex';
   }
-
-  if (typeof window._loadFromFirebase === 'function') {
-    await window._loadFromFirebase();
-  } else {
-    console.error('_loadFromFirebase is not defined');
-  }
+  window._loadFromFirebase();
 });
 
 window._loadFromFirebase = async () => {
@@ -160,45 +152,32 @@ window._saveToFirebase = async () => {
 
 window._saveContactMsg = async (name, surname, phone, message) => {
   try {
-    const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        service_id: 'service_qbie926',
-        template_id: 'template_qxr3pgd',
-        public_key: 'f0F_hWs0qvtVmJzYB',
-        template_params: {
-          name: `${name} ${surname}`,
-          email: 'mousaassi.swi@gmail.com',
-          message: message
-        }
-      })
-    });
-
-    if (!res.ok) {
-      const err = await res.text();
-      throw new Error(err);
-    }
-
     await addDoc(collection(db,'contact_messages'), {
-      name,
-      surname,
-      phone,
-      message,
+      name, surname, phone, message,
       sentAt: new Date().toISOString()
     });
-
     return true;
-
   } catch(e) {
     console.error('Contact error:', e);
-    alert(e.message);
     return false;
   }
 };
-  
+
+window._firebaseLogin = async (email, password) => {
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    return { ok: true };
+  } catch(e) {
+    const m = {
+      'auth/wrong-password':    'Wrong password.',
+      'auth/user-not-found':    'Email not found.',
+      'auth/invalid-email':     'Invalid email.',
+      'auth/too-many-requests': 'Too many attempts. Try later.',
+      'auth/invalid-credential':'Wrong email or password.'
+    };
+    return { ok: false, msg: m[e.code] || e.message };
+  }
+};
 window._firebaseLogout = () => signOut(auth);
 
 function ensureLO(v,d){
@@ -237,44 +216,6 @@ window._normBullets=normBullets;
 </script>
 
 <style>
-/* ══ SECTION NAV ══ */
-.sec-nav{
-  display:flex;
-  align-items:center;
-  gap:4px;
-  margin-right:6px;
-}
-
-.snav-lnk{
-  padding:5px 11px;
-  border:none;
-  background:transparent;
-  color:var(--td);
-  font-family:var(--fb);
-  font-size:.74rem;
-  cursor:pointer;
-  border-radius:50px;
-  transition:var(--tr);
-  text-decoration:none;
-  white-space:nowrap;
-}
-
-.snav-lnk:hover{
-  color:var(--ac);
-  background:var(--gl);
-}
-
-.snav-lnk.active{
-  color:var(--ac);
-  background:var(--gl);
-  font-weight:600;
-}
-
-@media(max-width:900px){
-  .sec-nav{
-    display:none;
-  }
-}  
 :root{--r:14px;--fd:'Playfair Display',serif;--fb:'DM Sans',sans-serif;--fm:'JetBrains Mono',monospace;--tr:all .25s cubic-bezier(.4,0,.2,1);}
 [data-theme="dark"]  {--bg:#0a0a0f;--sf:#111118;--s2:#1a1a26;--bd:#2a2a40;--ac:#e8c87a;--a2:#7a9ee8;--a3:#e87a9e;--tx:#e8e8f0;--td:#8888a8;--tm:#55556a;--hb:rgba(10,10,15,.9);--gl:rgba(232,200,122,.12);}
 [data-theme="light"] {--bg:#f5f4f0;--sf:#fff;--s2:#f0ede8;--bd:#d8d4cc;--ac:#b8860b;--a2:#3a6ab8;--a3:#c0305c;--tx:#1a1814;--td:#5a5650;--tm:#9a9690;--hb:rgba(245,244,240,.93);--gl:rgba(184,134,11,.08);}
@@ -805,16 +746,8 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 
 <header>
   <div style="display:flex;align-items:center;gap:10px;">
-<div class="logo" id="logoBtn">MA</div>
->
+    <div class="logo" id="logoBtn">MA</div>
   </div>
-<nav class="sec-nav" id="secNav">
-  <a href="#sec-edu" class="snav-lnk" data-key="edu">Education</a>
-  <a href="#sec-proj" class="snav-lnk" data-key="proj">Projects</a>
-  <a href="#sec-exp" class="snav-lnk" data-key="exp">Experience</a>
-  <a href="#sec-skills" class="snav-lnk" data-key="skills">Skills</a>
-  <a href="#sec-certs" class="snav-lnk" data-key="certs">Certs</a>
-</nav>
   <div class="hr">
     <div class="lang-sw">
       <button class="lb active" onclick="setLang('en')">EN</button>
@@ -2057,6 +1990,8 @@ window.DD_DATA = {
   3:{color:'#7dd87a',icon:'⚙️',heroPattern:'wheel',desc:'A single-axis attitude control system using a reaction wheel — the same technology used in real satellites. NEMA-17 stepper spins a flywheel; MPU6050 measures tilt; Arduino Nano runs a PID loop.',stats:[{val:'PID',lbl:'Control'},{val:'IMU',lbl:'Sensing'},{val:'1-Axis',lbl:'DOF'},{val:'2026',lbl:'Year'}],features:[{icon:'🔄',title:'NEMA-17 Reaction Wheel',desc:'Stepper motor spinning a precision flywheel for angular momentum storage.'},{icon:'📡',title:'MPU6050 IMU',desc:'6-DOF inertial measurement for real-time tilt sensing.'},{icon:'🎮',title:'PID Control Loop',desc:'Tuned PID controller running on Arduino for stable attitude hold.'},{icon:'🛸',title:'Spacecraft Technology',desc:'Demonstrates reaction control principles used in real satellites.'}],stack:['Arduino Nano','NEMA-17','MPU6050','A4988 Driver','PID Algorithm','C++','SolidWorks','3D Printing'],hl:[0,1,2],images:[]},
   4:{color:'#f0a0c0',icon:'🤖',heroPattern:'arm4',desc:'A 4-DOF robotic arm with modular end-effector system for pick-and-place, stacking, and trajectory following. High-torque servo motors with Arduino-based multi-axis motion control.',stats:[{val:'4',lbl:'DOF'},{val:'Modular',lbl:'End-Effector'},{val:'Arduino',lbl:'Controller'},{val:'2026',lbl:'Year'}],features:[{icon:'💪',title:'High-Torque Servos',desc:'MG996R / DS3218 servos at each joint for strong, precise positioning.'},{icon:'🔩',title:'Modular End-Effector',desc:'Swappable gripper, suction cup, and pen-holder modules.'},{icon:'📱',title:'Serial Control Interface',desc:'Command via serial terminal or GUI for real-time joint angle control.'},{icon:'🎯',title:'Multi-Axis Motion',desc:'Smooth coordinated motion for trajectory following and pick-and-place.'}],stack:['Arduino Uno','MG996R Servos','Fusion 360','PLA','PWM Control','Serial Interface','Inverse Kinematics','3D Printing'],hl:[0,1,2,3],images:[]}
 };
+DD_DATA[2].videoUrl = 'https://your-cdn.com/drone-demo.mp4';
+DD_DATA[1].modelUrl = 'https://your-cdn.com/robotic-arm.stl';
 /* Load saved DD_DATA from localStorage */
 (function(){
   try{
@@ -2914,35 +2849,7 @@ function skView(mode, btn) {
     canvas.style.display = 'none';
   }
 }  
-/* ════ SECTION NAV — ACTIVE STATE + LABELS ════ */
-(function(){
-  function updateNavLabels(){
-    const ti=window.D&&window.D.titles||{};
-    const defs={edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},certs:{en:'Certs',tr:'Sertifikalar',ar:'الشهادات'}};
-    document.querySelectorAll('.snav-lnk').forEach(a=>{
-      const key=a.dataset.key;
-      const obj=ti[key]||defs[key]||{};
-      a.textContent=obj[lang]||obj.en||key;
-    });
-  }
-
-  // Highlight active section on scroll
-  const sections=[
-    {id:'sec-edu',key:'edu'},{id:'sec-proj',key:'proj'},
-    {id:'sec-exp',key:'exp'},{id:'sec-skills',key:'skills'},{id:'sec-certs',key:'certs'}
-  ];
-  const obsNav=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
-      const link=document.querySelector(`.snav-lnk[data-key="${e.target.id.replace('sec-','')}"]`);
-      if(link)link.classList.toggle('active',e.isIntersecting);
-    });
-  },{rootMargin:'-30% 0px -60% 0px'});
-  sections.forEach(s=>{const el=document.getElementById(s.id);if(el)obsNav.observe(el);});
-
-  // Update labels on render (language change)
-  const origRender=window.render;
-  window.render=function(){origRender.apply(this,arguments);updateNavLabels();};
-})();
+  
 </script>
 </body>
 </html>
