@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-theme="dark">
 <head>
-<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mousa Assi — Portfolio</title>
@@ -153,17 +152,22 @@ window._saveToFirebase = async () => {
 
 window._saveContactMsg = async (name, surname, phone, message) => {
   try {
-   emailjs.init("f0F_hWs0qvtVmJzYB");
-
-await emailjs.send(
-  'service_qbie926',
-  'template_qxr3pgd',
-  {
-    name: `${name} ${surname}`,
-    email: phone || 'No contact info',
-    message: message
-  }
-);
+    await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        service_id: 'service_qbie926',
+        template_id: 'template_qxr3pgd',
+        user_id: 'f0F_hWs0qvtVmJzYB',
+        template_params: {
+          name: `${name} ${surname}`,
+          email: phone || 'No contact info',
+          message: message
+        }
+      })
+    });
 
     await addDoc(collection(db,'contact_messages'), {
       name,
