@@ -1497,15 +1497,15 @@ function uploadPDF(i){
     fd.append('file', f, f.name);
     fd.append('upload_preset', preset);
     fd.append('folder','portfolio_pdfs');
-    fd.append('resource_type','raw');
     try{
       const res=await fetch(
-        `https://api.cloudinary.com/v1_1/${cloud}/raw/upload`,
+        `https://api.cloudinary.com/v1_1/${cloud}/image/upload`,
         {method:'POST', body:fd}
       );
       const data=await res.json();
-      if(!data.secure_url) throw new Error('No URL');
-      window.D.proj[i].pdf=data.secure_url;
+      if(!data.secure_url) throw new Error('No URL: '+JSON.stringify(data));
+      const pdfUrl=data.secure_url.replace('/image/upload/','/image/upload/fl_attachment/');
+      window.D.proj[i].pdf=pdfUrl;
       window.D.proj[i].pdfName=f.name;
       saveD(); buildProjEd(); render();
       if(window._saveToFirebase) window._saveToFirebase();
@@ -1517,8 +1517,11 @@ function uploadPDF(i){
   inp.click();
 }
 function removePDF(i){window.D.proj[i].pdf='';window.D.proj[i].pdfName='';saveD();buildProjEd();render();}
-function openPDF(i){const p=window.D.proj[i].pdf;if(!p)return;const w=window.open();w.document.write(`<iframe src="${p}" style="width:100%;height:100%;border:none;position:fixed;top:0;left:0;"></iframe>`);}
-
+  function openPDF(i){
+  const p=window.D.proj[i].pdf;
+  if(!p)return;
+  window.open(p,'_blank');
+}
 /* ════ LIGHTBOX ════ */
 function openLB(src){
   document.getElementById('lbImg').src=src;
