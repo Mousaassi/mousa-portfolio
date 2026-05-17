@@ -106,7 +106,14 @@ window._saveToFirebase = async () => {
   img: (c.img && c.img.startsWith('https')) ? c.img : ''
 }));
     
-    const projClean = (window.D.proj||[]).map(p => ({...p}));   
+const projClean = (window.D.proj||[]).map(p => ({
+  year: p.year||'',
+  title: p.title||{en:'',tr:'',ar:''},
+  bullets: p.bullets||[],
+  pdf: (p.pdf && p.pdf.startsWith('https')) ? p.pdf : '',
+  pdfName: (p.pdf && p.pdf.startsWith('https')) ? (p.pdfName||'') : ''
+}));
+    
     const batch = writeBatch(db);
     batch.set(doc(db,'portfolio','hero'),   window.D.hero   || {});
     batch.set(doc(db,'portfolio','titles'), window.D.titles || {});
