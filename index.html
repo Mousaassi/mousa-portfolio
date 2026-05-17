@@ -229,6 +229,44 @@ window._normBullets=normBullets;
 </script>
 
 <style>
+/* ══ SECTION NAV ══ */
+.sec-nav{
+  display:flex;
+  align-items:center;
+  gap:4px;
+  margin-right:6px;
+}
+
+.snav-lnk{
+  padding:5px 11px;
+  border:none;
+  background:transparent;
+  color:var(--td);
+  font-family:var(--fb);
+  font-size:.74rem;
+  cursor:pointer;
+  border-radius:50px;
+  transition:var(--tr);
+  text-decoration:none;
+  white-space:nowrap;
+}
+
+.snav-lnk:hover{
+  color:var(--ac);
+  background:var(--gl);
+}
+
+.snav-lnk.active{
+  color:var(--ac);
+  background:var(--gl);
+  font-weight:600;
+}
+
+@media(max-width:900px){
+  .sec-nav{
+    display:none;
+  }
+}  
 :root{--r:14px;--fd:'Playfair Display',serif;--fb:'DM Sans',sans-serif;--fm:'JetBrains Mono',monospace;--tr:all .25s cubic-bezier(.4,0,.2,1);}
 [data-theme="dark"]  {--bg:#0a0a0f;--sf:#111118;--s2:#1a1a26;--bd:#2a2a40;--ac:#e8c87a;--a2:#7a9ee8;--a3:#e87a9e;--tx:#e8e8f0;--td:#8888a8;--tm:#55556a;--hb:rgba(10,10,15,.9);--gl:rgba(232,200,122,.12);}
 [data-theme="light"] {--bg:#f5f4f0;--sf:#fff;--s2:#f0ede8;--bd:#d8d4cc;--ac:#b8860b;--a2:#3a6ab8;--a3:#c0305c;--tx:#1a1814;--td:#5a5650;--tm:#9a9690;--hb:rgba(245,244,240,.93);--gl:rgba(184,134,11,.08);}
@@ -762,7 +800,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 <div class="logo" id="logoBtn">MA</div>
 >
   </div>
-  <nav class="sec-nav" id="secNav">
+<nav class="sec-nav" id="secNav">
   <a href="#sec-edu" class="snav-lnk" data-key="edu">Education</a>
   <a href="#sec-proj" class="snav-lnk" data-key="proj">Projects</a>
   <a href="#sec-exp" class="snav-lnk" data-key="exp">Experience</a>
@@ -2870,12 +2908,50 @@ function skView(mode, btn) {
     canvas.style.display = 'none';
   }
 }  
-  
+/* ════ SECTION NAV — ACTIVE STATE + LABELS ════ */
+(function(){
+  function updateNavLabels(){
+    const ti=window.D&&window.D.titles||{};
+    const defs={
+      edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},
+      proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},
+      exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},
+      skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},
+      certs:{en:'Certs',tr:'Sertifikalar',ar:'الشهادات'}
+    };
+
+    document.querySelectorAll('.snav-lnk').forEach(a=>{
+      const key=a.dataset.key;
+      const obj=ti[key]||defs[key]||{};
+      a.textContent=obj[lang]||obj.en||key;
+    });
+  }
+
+  const sections=[
+    {id:'sec-edu'},
+    {id:'sec-proj'},
+    {id:'sec-exp'},
+    {id:'sec-skills'},
+    {id:'sec-certs'}
+  ];
+
+  const obsNav=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      const key=e.target.id.replace('sec-','');
+      const link=document.querySelector(`.snav-lnk[data-key="${key}"]`);
+      if(link){
+        link.classList.toggle('active',e.isIntersecting);
+      }
+    });
+  },{rootMargin:'-30% 0px -60% 0px'});
+
+  sections.forEach(s=>{
+    const el=document.getElementById(s.id);
+    if(el) obsNav.observe(el);
+  });
+
+  updateNavLabels();
+})();
 </script>
 </body>
 </html>
-
-
-
-
-copy
