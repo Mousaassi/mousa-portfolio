@@ -2049,8 +2049,6 @@ window.DD_DATA = {
   3:{color:'#7dd87a',icon:'⚙️',heroPattern:'wheel',desc:'A single-axis attitude control system using a reaction wheel — the same technology used in real satellites. NEMA-17 stepper spins a flywheel; MPU6050 measures tilt; Arduino Nano runs a PID loop.',stats:[{val:'PID',lbl:'Control'},{val:'IMU',lbl:'Sensing'},{val:'1-Axis',lbl:'DOF'},{val:'2026',lbl:'Year'}],features:[{icon:'🔄',title:'NEMA-17 Reaction Wheel',desc:'Stepper motor spinning a precision flywheel for angular momentum storage.'},{icon:'📡',title:'MPU6050 IMU',desc:'6-DOF inertial measurement for real-time tilt sensing.'},{icon:'🎮',title:'PID Control Loop',desc:'Tuned PID controller running on Arduino for stable attitude hold.'},{icon:'🛸',title:'Spacecraft Technology',desc:'Demonstrates reaction control principles used in real satellites.'}],stack:['Arduino Nano','NEMA-17','MPU6050','A4988 Driver','PID Algorithm','C++','SolidWorks','3D Printing'],hl:[0,1,2],images:[]},
   4:{color:'#f0a0c0',icon:'🤖',heroPattern:'arm4',desc:'A 4-DOF robotic arm with modular end-effector system for pick-and-place, stacking, and trajectory following. High-torque servo motors with Arduino-based multi-axis motion control.',stats:[{val:'4',lbl:'DOF'},{val:'Modular',lbl:'End-Effector'},{val:'Arduino',lbl:'Controller'},{val:'2026',lbl:'Year'}],features:[{icon:'💪',title:'High-Torque Servos',desc:'MG996R / DS3218 servos at each joint for strong, precise positioning.'},{icon:'🔩',title:'Modular End-Effector',desc:'Swappable gripper, suction cup, and pen-holder modules.'},{icon:'📱',title:'Serial Control Interface',desc:'Command via serial terminal or GUI for real-time joint angle control.'},{icon:'🎯',title:'Multi-Axis Motion',desc:'Smooth coordinated motion for trajectory following and pick-and-place.'}],stack:['Arduino Uno','MG996R Servos','Fusion 360','PLA','PWM Control','Serial Interface','Inverse Kinematics','3D Printing'],hl:[0,1,2,3],images:[]}
 };
-DD_DATA[2].videoUrl = 'https://your-cdn.com/drone-demo.mp4';
-DD_DATA[1].modelUrl = 'https://your-cdn.com/robotic-arm.stl';
 /* Load saved DD_DATA from localStorage */
 (function(){
   try{
@@ -2912,14 +2910,7 @@ function skView(mode, btn) {
 (function(){
   function updateNavLabels(){
     const ti=window.D&&window.D.titles||{};
-    const defs={
-      edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},
-      proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},
-      exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},
-      skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},
-      certs:{en:'Certs',tr:'Sertifikalar',ar:'الشهادات'}
-    };
-
+    const defs={edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},certs:{en:'Certs',tr:'Sertifikalar',ar:'الشهادات'}};
     document.querySelectorAll('.snav-lnk').forEach(a=>{
       const key=a.dataset.key;
       const obj=ti[key]||defs[key]||{};
@@ -2927,30 +2918,22 @@ function skView(mode, btn) {
     });
   }
 
+  // Highlight active section on scroll
   const sections=[
-    {id:'sec-edu'},
-    {id:'sec-proj'},
-    {id:'sec-exp'},
-    {id:'sec-skills'},
-    {id:'sec-certs'}
+    {id:'sec-edu',key:'edu'},{id:'sec-proj',key:'proj'},
+    {id:'sec-exp',key:'exp'},{id:'sec-skills',key:'skills'},{id:'sec-certs',key:'certs'}
   ];
-
   const obsNav=new IntersectionObserver(entries=>{
     entries.forEach(e=>{
-      const key=e.target.id.replace('sec-','');
-      const link=document.querySelector(`.snav-lnk[data-key="${key}"]`);
-      if(link){
-        link.classList.toggle('active',e.isIntersecting);
-      }
+      const link=document.querySelector(`.snav-lnk[data-key="${e.target.id.replace('sec-','')}"]`);
+      if(link)link.classList.toggle('active',e.isIntersecting);
     });
   },{rootMargin:'-30% 0px -60% 0px'});
+  sections.forEach(s=>{const el=document.getElementById(s.id);if(el)obsNav.observe(el);});
 
-  sections.forEach(s=>{
-    const el=document.getElementById(s.id);
-    if(el) obsNav.observe(el);
-  });
-
-  updateNavLabels();
+  // Update labels on render (language change)
+  const origRender=window.render;
+  window.render=function(){origRender.apply(this,arguments);updateNavLabels();};
 })();
 </script>
 </body>
