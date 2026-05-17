@@ -215,6 +215,7 @@ function normExp(e){return{role:ensureLO(e.role,{}),company:e.company||'',period
 function normSkill(s){return{cat:ensureLO(s.cat,{}),tags:s.tags||[],hl:s.hl||[]};}
 function normCert(c){return{name:c.name||'',name_tr:c.name_tr||'',name_ar:c.name_ar||'',year:c.year||'',img:c.img||'',url:c.url||''};}
 window._normBullets=normBullets;
+window._firebaseReady = true;
 </script>
 
 <style>
@@ -1237,20 +1238,32 @@ async function doLogin(){
   if(!email||!pass){showErr('Enter email and password.');return;}
   document.getElementById('loginBtn').disabled=true;
   document.getElementById('loginSpin').classList.add('show');
-  
-// Wait for Firebase to be ready (up to 5 seconds)
- if(window._firebaseLogin){
-    const r=await window._firebaseLogin(email,pass);
-    document.getElementById('loginSpin').classList.remove('show');
-    if(r.ok){fails=0;upDots();closeLogin();}
-    else{fails++;upDots();newCap();document.getElementById('loginBtn').disabled=false;
-      if(fails>=MF){lockT=Date.now()+LK;fails=0;document.getElementById('loginBtn').disabled=true;showLock();startLock();}
-      else showErr(r.msg||'Wrong credentials.');}
-  }else{
-  
+
+  // Wait for Firebase module to be ready
+  let waited=0;
+  while(!window._firebaseReady && waited<6000){
+    await new Promise(r=>setTimeout(r,300));
+    waited+=300;
+  }
+
+  if(!window._firebaseLogin){
     document.getElementById('loginSpin').classList.remove('show');
     document.getElementById('loginBtn').disabled=false;
-    showErr('Firebase loading, try again in a moment.');
+    showErr('Firebase not loaded. Please refresh the page.');
+    return;
+  }
+
+  const r=await window._firebaseLogin(email,pass);
+  document.getElementById('loginSpin').classList.remove('show');
+  if(r.ok){fails=0;upDots();closeLogin();}
+  else{
+    fails++;upDots();newCap();
+    document.getElementById('loginBtn').disabled=false;
+    if(fails>=MF){
+      lockT=Date.now()+LK;fails=0;
+      document.getElementById('loginBtn').disabled=true;
+      showLock();startLock();
+    }else showErr(r.msg||'Wrong credentials.');
   }
 }
 function openLogin(){newCap();document.getElementById('loginOverlay').classList.add('active');}
