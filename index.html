@@ -153,18 +153,15 @@ window._saveToFirebase = async () => {
 
 window._saveContactMsg = async (name, surname, phone, message) => {
   try {
-    emailjs.init({
-      publicKey: 'f0F_hWs0qvtVmJzYB'
-    });
-
     await emailjs.send(
       'service_qbie926',
       'template_qxr3pgd',
       {
         name: `${name} ${surname}`,
-        email: phone || 'No contact info provided',
+        email: phone || 'No contact info',
         message: message
-      }
+      },
+      'f0F_hWs0qvtVmJzYB'
     );
 
     await addDoc(collection(db,'contact_messages'), {
@@ -179,6 +176,7 @@ window._saveContactMsg = async (name, surname, phone, message) => {
 
   } catch(e) {
     console.error('Contact error:', e);
+    alert(JSON.stringify(e));
     return false;
   }
 };
