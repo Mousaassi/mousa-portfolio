@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr" data-theme="dark">
 <head>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%230a0a0f'/%3E%3Ctext x='50' y='72' text-anchor='middle' font-family='serif' font-size='52' font-weight='900' fill='%23e8c87a'%3EMA%3C/text%3E%3C/svg%3E">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mousa Assi — Portfolio</title>
@@ -105,7 +106,8 @@ window._saveToFirebase = async () => {
   img: (c.img && c.img.startsWith('https')) ? c.img : ''
 }));
     
-    const projClean = (window.D.proj||[]).map(p => ({
+    const projClean = (window.D.proj||[]).map(p => ({...p}));
+
       ...p,
       pdf: (p.pdf && p.pdf.startsWith('data:')) ? '' : (p.pdf||'')
     }));
@@ -1473,14 +1475,34 @@ function removeCertImg(idx){window.D.certs[idx].img='';saveD();buildCertEd();ren
 
 /* ════ PDF ════ */
 function uploadPDF(i){
-  const inp=document.createElement('input');inp.type='file';inp.accept='application/pdf';
-  inp.onchange=e=>{
-    const f=e.target.files[0];if(!f)return;
-    if(f.size>10*1024*1024){alert('PDF too large (max 10MB)');return;}
-    const r=new FileReader();
-    r.onload=ev=>{window.D.proj[i].pdf=ev.target.result;window.D.proj[i].pdfName=f.name;saveD();buildProjEd();render();};
-    r.readAsDataURL(f);
-  };inp.click();
+  const cloud=window.CLOUDINARY_CLOUD, preset=window.CLOUDINARY_PRESET;
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='application/pdf';
+  inp.onchange=async e=>{
+    const f=e.target.files[0]; if(!f) return;
+    showSync('saving','☁ Uploading PDF…');
+    const fd=new FormData();
+    fd.append('file', f, f.name);
+    fd.append('upload_preset', preset);
+    fd.append('folder','portfolio_pdfs');
+    fd.append('resource_type','raw');
+    try{
+      const res=await fetch(
+        `https://api.cloudinary.com/v1_1/${cloud}/raw/upload`,
+        {method:'POST', body:fd}
+      );
+      const data=await res.json();
+      if(!data.secure_url) throw new Error('No URL');
+      window.D.proj[i].pdf=data.secure_url;
+      window.D.proj[i].pdfName=f.name;
+      saveD(); buildProjEd(); render();
+      if(window._saveToFirebase) window._saveToFirebase();
+      showSync('synced','✓ PDF uploaded!');
+    }catch(err){
+      showSync('error','✗ '+err.message);
+    }
+  };
+  inp.click();
 }
 function removePDF(i){window.D.proj[i].pdf='';window.D.proj[i].pdfName='';saveD();buildProjEd();render();}
 function openPDF(i){const p=window.D.proj[i].pdf;if(!p)return;const w=window.open();w.document.write(`<iframe src="${p}" style="width:100%;height:100%;border:none;position:fixed;top:0;left:0;"></iframe>`);}
