@@ -1239,31 +1239,14 @@ async function doLogin(){
   document.getElementById('loginSpin').classList.add('show');
   
 // Wait for Firebase to be ready (up to 5 seconds)
-let attempts = 0;
-const tryLogin = async () => {
-  if(window._firebaseLogin){
+ if(window._firebaseLogin){
     const r=await window._firebaseLogin(email,pass);
     document.getElementById('loginSpin').classList.remove('show');
     if(r.ok){fails=0;upDots();closeLogin();}
-    else{
-      fails++;upDots();newCap();
-      document.getElementById('loginBtn').disabled=false;
-      if(fails>=MF){
-        lockT=Date.now()+LK;fails=0;
-        document.getElementById('loginBtn').disabled=true;
-        showLock();startLock();
-      }else showErr(r.msg||'Wrong credentials.');
-    }
-  } else if(attempts < 10){
-    attempts++;
-    setTimeout(tryLogin, 500);
-  } else {
-    document.getElementById('loginSpin').classList.remove('show');
-    document.getElementById('loginBtn').disabled=false;
-    showErr('Firebase not ready. Please refresh the page and try again.');
-  }
-};
-tryLogin();
+    else{fails++;upDots();newCap();document.getElementById('loginBtn').disabled=false;
+      if(fails>=MF){lockT=Date.now()+LK;fails=0;document.getElementById('loginBtn').disabled=true;showLock();startLock();}
+      else showErr(r.msg||'Wrong credentials.');}
+  }else{
   
     document.getElementById('loginSpin').classList.remove('show');
     document.getElementById('loginBtn').disabled=false;
