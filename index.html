@@ -152,7 +152,7 @@ window._saveToFirebase = async () => {
 
 window._saveContactMsg = async (name, surname, phone, message) => {
   try {
-    await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -163,11 +163,16 @@ window._saveContactMsg = async (name, surname, phone, message) => {
         user_id: 'f0F_hWs0qvtVmJzYB',
         template_params: {
           name: `${name} ${surname}`,
-          email: phone || 'No contact info',
+          email: 'mousaassi.swi@gmail.com',
           message: message
         }
       })
     });
+
+    if (!res.ok) {
+      const err = await res.text();
+      throw new Error(err);
+    }
 
     await addDoc(collection(db,'contact_messages'), {
       name,
@@ -181,26 +186,11 @@ window._saveContactMsg = async (name, surname, phone, message) => {
 
   } catch(e) {
     console.error('Contact error:', e);
-    alert(JSON.stringify(e));
+    alert(e.message);
     return false;
   }
 };
-
-window._firebaseLogin = async (email, password) => {
-  try {
-    await signInWithEmailAndPassword(auth, email, password);
-    return { ok: true };
-  } catch(e) {
-    const m = {
-      'auth/wrong-password':    'Wrong password.',
-      'auth/user-not-found':    'Email not found.',
-      'auth/invalid-email':     'Invalid email.',
-      'auth/too-many-requests': 'Too many attempts. Try later.',
-      'auth/invalid-credential':'Wrong email or password.'
-    };
-    return { ok: false, msg: m[e.code] || e.message };
-  }
-};
+  
 window._firebaseLogout = () => signOut(auth);
 
 function ensureLO(v,d){
