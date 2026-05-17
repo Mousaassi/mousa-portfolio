@@ -664,6 +664,39 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 .dd-img-add-btn:hover{background:rgba(122,158,232,.08);}
 .dd-save-ok{display:none;color:#4ecb71;font-size:.77rem;margin-top:8px;}
 .dd-save-ok.show{display:block;}
+/* ══ SECTION NAV ══ */
+.sec-nav{display:flex;align-items:center;gap:2px;margin-right:4px;}
+.snav-lnk{padding:5px 10px;border:none;background:transparent;color:var(--td);font-family:var(--fb);font-size:.72rem;cursor:pointer;border-radius:50px;transition:var(--tr);text-decoration:none;white-space:nowrap;}
+.snav-lnk:hover{color:var(--ac);background:var(--gl);}
+.snav-lnk.active{color:var(--ac);background:var(--gl);font-weight:600;}
+@media(max-width:1000px){.sec-nav{display:none;}}
+
+/* ══ PRINT BUTTON ══ */
+.print-btn{display:flex;align-items:center;gap:6px;padding:7px 13px;background:transparent;border:1px solid var(--bd);color:var(--td);font-family:var(--fb);font-size:.76rem;cursor:pointer;border-radius:50px;transition:var(--tr);}
+.print-btn:hover{border-color:var(--ac);color:var(--ac);}
+.print-btn svg{width:13px;height:13px;}
+
+/* ══ PRINT STYLES ══ */
+@media print{
+  header,footer,.sync-bar,.sync-toast,#scrollProg,#cursorGlow,#particleCanvas,
+  .admin-bar,.admin-login-btn,.theme-wrap,.lang-sw,.sec-nav,.print-btn,
+  .dd-overlay,.modal-overlay,.lightbox,.h-links,.cvbtn,.pdf-link,.dd-card-btn,
+  .ahp,.avail-badge,.stats-strip,.sk-view-toggle,.skcat:hover,.fade-in:not(.visible)
+  {display:none!important;}
+  body{background:#fff!important;color:#111!important;font-size:11pt;}
+  .hero{min-height:auto;padding:20px 24px 12px;}
+  .hbg,.hgrid{display:none;}
+  .hero-in{gap:24px;}
+  .hph{width:100px;height:100px;}
+  .h-name{font-size:2.2rem;}
+  .sec{padding:24px;}
+  .pc,.edu-card,.exp-card,.skcat,.cc{break-inside:avoid;border:1px solid #ddd!important;}
+  .cgrid{grid-template-columns:repeat(2,1fr);}
+  .pgrid{grid-template-columns:repeat(2,1fr);}
+  .stats-strip{display:none!important;}
+  a{color:#111!important;text-decoration:none;}
+  .h-name .ac{-webkit-text-fill-color:#111!important;background:none!important;}
+}
 
 /* ══ AVAILABLE BADGE ══ */
 @keyframes availPulse{0%,100%{box-shadow:0 0 0 0 rgba(78,203,113,.5)}70%{box-shadow:0 0 0 10px rgba(78,203,113,0)}}
@@ -748,8 +781,16 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
   <div style="display:flex;align-items:center;gap:10px;">
     <div class="logo" id="logoBtn">MA</div>
   </div>
-  <div class="hr">
+<div class="hr">
+    <nav class="sec-nav" id="secNav">
+      <a class="snav-lnk" data-key="edu" href="#sec-edu">Education</a>
+      <a class="snav-lnk" data-key="proj" href="#sec-proj">Projects</a>
+      <a class="snav-lnk" data-key="exp" href="#sec-exp">Experience</a>
+      <a class="snav-lnk" data-key="skills" href="#sec-skills">Skills</a>
+      <a class="snav-lnk" data-key="certs" href="#sec-certs">Certs</a>
+    </nav>
     <div class="lang-sw">
+      
       <button class="lb active" onclick="setLang('en')">EN</button>
       <button class="lb" onclick="setLang('tr')">TR</button>
       <button class="lb" onclick="setLang('ar')">AR</button>
@@ -775,6 +816,10 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
       <button class="ahp ahp-s" onclick="window._saveToFirebase&&window._saveToFirebase()">☁ Sync</button>
       <button class="ahp ahp-x" onclick="doLogout()" title="Logout">✕</button>
     </div>
+    <button class="print-btn" onclick="doPrint()" title="Print / Export PDF">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print
+    </button>
   </div>
 </header>
 
@@ -809,18 +854,21 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 
 <!-- STATS STRIP -->
 <div class="sdiv"></div>
-  
-<div class="stats-strip fade-in" id="statsStrip"></div>
-
+<div class="stats-strip fade-in" id="statsStrip">
+  <div class="stat-cell"><div class="stat-num" id="st-proj">0</div><div class="stat-lbl" id="stl-proj">Projects</div></div>
+  <div class="stat-cell"><div class="stat-num" id="st-cert">0</div><div class="stat-lbl" id="stl-cert">Certifications</div></div>
+  <div class="stat-cell"><div class="stat-num" id="st-exp">0</div><div class="stat-lbl" id="stl-exp">Experience</div></div>
+  <div class="stat-cell"><div class="stat-num" id="st-sk">0+</div><div class="stat-lbl" id="stl-sk">Skills</div></div>
+</div>
 <div class="sdiv"></div>
-<div class="sec fade-in"><div class="sh"><span class="sn">01</span><h2 class="st" id="tEdu"></h2><div class="sl"></div></div><div class="edu-grid" id="eduGrid"></div></div>
+<div class="sec fade-in" id="sec-edu"><div class="sh"><span class="sn">01</span><h2 class="st" id="tEdu"></h2><div class="sl"></div></div><div class="edu-grid" id="eduGrid"></div></div>
 <div class="sdiv"></div>
-<div class="sec fade-in"><div class="sh"><span class="sn">02</span><h2 class="st" id="tProj"></h2><div class="sl"></div></div><div class="pgrid" id="projGrid"></div></div>
+<div class="sec fade-in" id="sec-proj"><div class="sh"><span class="sn">02</span><h2 class="st" id="tProj"></h2><div class="sl"></div></div><div class="pgrid" id="projGrid"></div></div>
 <div class="sdiv"></div>
-<div class="sec fade-in"><div class="sh"><span class="sn">03</span><h2 class="st" id="tExp"></h2><div class="sl"></div></div><div class="exp-list" id="expList"></div></div>
+<div class="sec fade-in" id="sec-exp"><div class="sh"><span class="sn">03</span><h2 class="st" id="tExp"></h2><div class="sl"></div></div><div class="exp-list" id="expList"></div></div>
 <div class="sdiv"></div>
-<div class="sec fade-in">
-  <div class="sh"><span class="sn">04</span><h2 class="st" id="tSkills"></h2><div class="sl"></div></div>
+<div class="sec fade-in" id="sec-skills">
+   <div class="sh"><span class="sn">04</span><h2 class="st" id="tSkills"></h2><div class="sl"></div></div>
   <div class="sk-view-toggle">
     <button class="sk-toggle-btn active" onclick="skView('list',this)">☰ List</button>
     <button class="sk-toggle-btn" onclick="skView('radar',this)">◎ Radar Chart</button>
@@ -832,7 +880,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
   <div id="skRadarWrap"><canvas id="radarCanvas" style="max-width:500px;margin:0 auto;display:block;"></canvas></div>
 </div>
 <div class="sdiv"></div>
-<div class="sec fade-in"><div class="sh"><span class="sn">05</span><h2 class="st" id="tCerts"></h2><div class="sl"></div></div><div class="cgrid" id="certGrid"></div></div>
+<div class="sec fade-in" id="sec-certs"><div class="sh"><span class="sn">05</span><h2 class="st" id="tCerts"></h2><div class="sl"></div></div><div class="cgrid" id="certGrid"></div></div>
 <div id="customContainer"></div>
 
 <div class="sdiv"></div>
@@ -1990,8 +2038,6 @@ window.DD_DATA = {
   3:{color:'#7dd87a',icon:'⚙️',heroPattern:'wheel',desc:'A single-axis attitude control system using a reaction wheel — the same technology used in real satellites. NEMA-17 stepper spins a flywheel; MPU6050 measures tilt; Arduino Nano runs a PID loop.',stats:[{val:'PID',lbl:'Control'},{val:'IMU',lbl:'Sensing'},{val:'1-Axis',lbl:'DOF'},{val:'2026',lbl:'Year'}],features:[{icon:'🔄',title:'NEMA-17 Reaction Wheel',desc:'Stepper motor spinning a precision flywheel for angular momentum storage.'},{icon:'📡',title:'MPU6050 IMU',desc:'6-DOF inertial measurement for real-time tilt sensing.'},{icon:'🎮',title:'PID Control Loop',desc:'Tuned PID controller running on Arduino for stable attitude hold.'},{icon:'🛸',title:'Spacecraft Technology',desc:'Demonstrates reaction control principles used in real satellites.'}],stack:['Arduino Nano','NEMA-17','MPU6050','A4988 Driver','PID Algorithm','C++','SolidWorks','3D Printing'],hl:[0,1,2],images:[]},
   4:{color:'#f0a0c0',icon:'🤖',heroPattern:'arm4',desc:'A 4-DOF robotic arm with modular end-effector system for pick-and-place, stacking, and trajectory following. High-torque servo motors with Arduino-based multi-axis motion control.',stats:[{val:'4',lbl:'DOF'},{val:'Modular',lbl:'End-Effector'},{val:'Arduino',lbl:'Controller'},{val:'2026',lbl:'Year'}],features:[{icon:'💪',title:'High-Torque Servos',desc:'MG996R / DS3218 servos at each joint for strong, precise positioning.'},{icon:'🔩',title:'Modular End-Effector',desc:'Swappable gripper, suction cup, and pen-holder modules.'},{icon:'📱',title:'Serial Control Interface',desc:'Command via serial terminal or GUI for real-time joint angle control.'},{icon:'🎯',title:'Multi-Axis Motion',desc:'Smooth coordinated motion for trajectory following and pick-and-place.'}],stack:['Arduino Uno','MG996R Servos','Fusion 360','PLA','PWM Control','Serial Interface','Inverse Kinematics','3D Printing'],hl:[0,1,2,3],images:[]}
 };
-DD_DATA[2].videoUrl = 'https://your-cdn.com/drone-demo.mp4';
-DD_DATA[1].modelUrl = 'https://your-cdn.com/robotic-arm.stl';
 /* Load saved DD_DATA from localStorage */
 (function(){
   try{
@@ -2436,7 +2482,7 @@ document.addEventListener('mouseout',e=>{if(e.target.classList.contains('sktag')
   }
   function applyTilts(){document.querySelectorAll('.cc').forEach(addTilt);}
   applyTilts();
-  const origRender=window.render;
+  
   window.render=function(){origRender.apply(this,arguments);requestAnimationFrame(applyTilts);};
 })();
 
@@ -2598,29 +2644,102 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
   [{top:'15%',left:'5%',size:'340px',color:'var(--ac)',anim:'orbFloat1 18s ease-in-out infinite'},{top:'60%',right:'3%',size:'260px',color:'var(--a2)',anim:'orbFloat2 22s ease-in-out infinite'},{top:'40%',left:'50%',size:'200px',color:'var(--a3)',anim:'orbFloat1 26s ease-in-out infinite 4s'}].forEach(o=>{const div=document.createElement('div');div.className='orb';div.style.cssText=`width:${o.size};height:${o.size};top:${o.top||'auto'};left:${o.left||'auto'};right:${o.right||'auto'};background:${o.color};opacity:0.045;animation:${o.anim};`;document.body.appendChild(div);requestAnimationFrame(()=>div.classList.add('visible'));});
 })();
 
-/* ════ STATS COUNTER ════ */
+/* ════ STATS COUNTER — FIXED ════ */
 (function(){
-  const obsC = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if(!entry.isIntersecting) return;
-      const boxes = entry.target.querySelectorAll('.stat-box');
-      boxes.forEach(box => {
-        const target = parseInt(box.dataset.target);
-        const numEl = box.querySelector('.stat-num');
-        let current = 0;
-        const step = Math.ceil(target / 40);
-        const iv = setInterval(() => {
-          current = Math.min(current + step, target);
-          numEl.textContent = current + (target > 10 ? '' : '');
-          if(current >= target) clearInterval(iv);
-        }, 35);
-      });
-      obsC.unobserve(entry.target);
+  const labels={
+    proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},
+    cert:{en:'Certifications',tr:'Sertifikalar',ar:'الشهادات'},
+    exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},
+    sk:{en:'Skills',tr:'Yetenekler',ar:'المهارات'}
+  };
+  function updateStats(){
+    const D=window.D||{};
+    const vals={
+      proj:(D.proj||[]).length,
+      cert:(D.certs||[]).length,
+      exp:(D.exp||[]).length,
+      sk:(D.skills||[]).reduce((a,s)=>a+(s.tags||[]).length,0)
+    };
+    Object.keys(vals).forEach(k=>{
+      const n=document.getElementById('st-'+k);
+      const l=document.getElementById('stl-'+k);
+      if(n){ n.dataset.target=vals[k]; n.dataset.suffix=k==='sk'?'+':''; }
+      if(l) l.textContent=labels[k][lang]||labels[k].en;
     });
-  }, {threshold: 0.3});
-  const statsRow = document.getElementById('statsRow');
-  if(statsRow) obsC.observe(statsRow);
+  }
+  function animateCell(el){
+    if(el.dataset.animated)return;
+    el.dataset.animated='1';
+    const target=parseInt(el.dataset.target)||0;
+    const suffix=el.dataset.suffix||'';
+    let cur=0;const step=Math.max(1,Math.ceil(target/50));
+    const iv=setInterval(()=>{cur=Math.min(cur+step,target);el.textContent=cur+suffix;if(cur>=target)clearInterval(iv);},28);
+  }
+  const obsC=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting)return;
+      e.target.querySelectorAll('.stat-num').forEach(animateCell);
+    });
+  },{threshold:0.3});
+  const origRender=window.render;
+  window.render=function(){
+    origRender.apply(this,arguments);
+    updateStats();
+    const strip=document.getElementById('statsStrip');
+    if(strip){
+      strip.querySelectorAll('.stat-num').forEach(el=>delete el.dataset.animated);
+      obsC.observe(strip);
+    }
+  };
 })();
+
+/* ════ SECTION NAV — ACTIVE + LABELS ════ */
+(function(){
+  const navLabels={
+    edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},
+    proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},
+    exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},
+    skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},
+    certs:{en:'Certs',tr:'Sertifikalar',ar:'الشهادات'}
+  };
+  function updateNavLabels(){
+    const ti=window.D&&window.D.titles||{};
+    document.querySelectorAll('.snav-lnk').forEach(a=>{
+      const key=a.dataset.key;
+      const obj=ti[key]||navLabels[key]||{};
+      a.textContent=obj[lang]||obj.en||key;
+    });
+  }
+  const obsNav=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      const key=e.target.id.replace('sec-','');
+      const lnk=document.querySelector(`.snav-lnk[data-key="${key}"]`);
+      if(lnk)lnk.classList.toggle('active',e.isIntersecting);
+    });
+  },{rootMargin:'-20% 0px -70% 0px'});
+  ['sec-edu','sec-proj','sec-exp','sec-skills','sec-certs'].forEach(id=>{
+    const el=document.getElementById(id);if(el)obsNav.observe(el);
+  });
+  const origRender=window.render;
+  window.render=function(){origRender.apply(this,arguments);updateNavLabels();};
+})();
+
+/* ════ PRINT ════ */
+function doPrint(){
+  const modals=['loginOverlay','editorOverlay','ddOverlay','lightbox'];
+  modals.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});
+  window.print();
+  modals.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='';});
+}
+
+/* ════ RADAR — hide by default ════ */
+(function(){
+  const canvas=document.getElementById('skillsRadar');
+  if(canvas) canvas.style.display='none';
+  const old=document.getElementById('skRadarWrap');
+  if(old) old.style.display='none';
+})();
+  
 /* ════ SKILLS RADAR CHART ════ */
 (function(){
   const obsR = new IntersectionObserver(entries => {
@@ -2841,12 +2960,16 @@ function skView(mode, btn) {
   btn.classList.add('active');
   const grid = document.getElementById('skGrid');
   const canvas = document.getElementById('skillsRadar');
+  const radarOld = document.getElementById('skRadarWrap');
   if(mode === 'radar') {
-    grid.classList.add('hidden');
-    canvas.style.display = 'block';
+    grid.style.display = 'none';
+    if(canvas){ canvas.style.display = 'block'; canvas.style.opacity = '1';
+      if(!canvas.dataset.drawn){ canvas.dataset.drawn='pending'; const e=new Event('triggerDraw'); canvas.dispatchEvent(e); } }
+    if(radarOld) radarOld.style.display = 'none';
   } else {
-    grid.classList.remove('hidden');
-    canvas.style.display = 'none';
+    grid.style.display = '';
+    if(canvas) canvas.style.display = 'none';
+    if(radarOld) radarOld.style.display = 'none';
   }
 }  
   
