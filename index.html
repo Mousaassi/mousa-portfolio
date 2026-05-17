@@ -153,16 +153,17 @@ window._saveToFirebase = async () => {
 
 window._saveContactMsg = async (name, surname, phone, message) => {
   try {
-    await emailjs.send(
-      'service_qbie926',
-      'template_qxr3pgd',
-      {
-        name: `${name} ${surname}`,
-        email: phone || 'No contact info',
-        message: message
-      },
-      'f0F_hWs0qvtVmJzYB'
-    );
+   emailjs.init("f0F_hWs0qvtVmJzYB");
+
+await emailjs.send(
+  'service_qbie926',
+  'template_qxr3pgd',
+  {
+    name: `${name} ${surname}`,
+    email: phone || 'No contact info',
+    message: message
+  }
+);
 
     await addDoc(collection(db,'contact_messages'), {
       name,
