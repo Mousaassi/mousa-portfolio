@@ -44,9 +44,11 @@ onAuthStateChanged(auth, user => {
     bar.classList.remove('visible');
     btn.style.display = 'flex';
   }
-  if(!window._initialLoadDone){window._initialLoadDone=true;window._loadFromFirebase();}
+  if(!window._initialLoadDone){
+    window._initialLoadDone=true;
+    window._loadFromFirebase();
+  }
 });
-
 window._loadFromFirebase = async () => {
   try {
     showSync('loading','☁ Loading…');
@@ -1547,11 +1549,7 @@ function removePDF(i){window.D.proj[i].pdf='';window.D.proj[i].pdfName='';saveD(
 function openPDF(i){
   const p = window.D.proj[i].pdf;
   if(!p) return;
-  // Fix Cloudinary raw PDF URLs
-  const url = p.includes('cloudinary.com') && !p.includes('/image/')
-    ? p.replace('/raw/upload/', '/image/upload/').replace(/\.pdf$/, '.pdf')
-    : p;
-  window.open('https://docs.google.com/viewer?url=' + encodeURIComponent(p) + '&embedded=false', '_blank');
+  window.open('https://docs.google.com/viewer?url='+encodeURIComponent(p), '_blank');
 }
 /* ════ LIGHTBOX ════ */
 function openLB(src){
