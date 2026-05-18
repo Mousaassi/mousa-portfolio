@@ -84,9 +84,11 @@ window._loadFromFirebase = async () => {
         try { localStorage.setItem('ma_dddata_v1', JSON.stringify(window.DD_DATA)); } catch(e){}
       }
     } catch(e){}
-    window.D = deepMerge(D, JSON.parse(JSON.stringify(DEFS)));
-    window.render();
-    showSync('synced','✓ Loaded from Firebase');
+    const localD = loadLocalD();
+window.D = deepMerge(D, loadLocalD());
+window.render();
+document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero').forEach(el=>el.style.opacity='1');
+showSync('synced','✓ Loaded from Firebase');
   } catch(e) {
     console.error('Load error:', e);
     showSync('error','✗ Load error: ' + e.message);
@@ -748,7 +750,11 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 </style>
 </head>
 <body>
-
+<body>
+<style>
+  #sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero{opacity:0;transition:opacity .4s ease;}
+</style>
+<canvas id="particleCanvas"></canvas>
 <canvas id="particleCanvas"></canvas>
 <div id="cursorGlow"></div>
 <div id="scrollProg"></div>
