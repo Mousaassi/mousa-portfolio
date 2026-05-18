@@ -84,7 +84,6 @@ window._loadFromFirebase = async () => {
         try { localStorage.setItem('ma_dddata_v1', JSON.stringify(window.DD_DATA)); } catch(e){}
       }
     } catch(e){}
-    const localD = loadLocalD();
 window.D = deepMerge(D, loadLocalD());
 window.render();
 document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero').forEach(el=>el.style.opacity='1');
@@ -750,11 +749,9 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 </style>
 </head>
 <body>
-<body>
 <style>
   #sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero{opacity:0;transition:opacity .4s ease;}
 </style>
-<canvas id="particleCanvas"></canvas>
 <canvas id="particleCanvas"></canvas>
 <div id="cursorGlow"></div>
 <div id="scrollProg"></div>
@@ -1526,9 +1523,10 @@ function uploadPDF(i){
     fd.append('file', f, f.name);
     fd.append('upload_preset', preset);
     fd.append('folder','portfolio_pdfs');
+    fd.append('resource_type','raw');
     try{
       const res=await fetch(
-    `https://api.cloudinary.com/v1_1/${cloud}/raw/upload`,
+        `https://api.cloudinary.com/v1_1/${cloud}/auto/upload`
         {method:'POST', body:fd}
       );
       const data=await res.json();
