@@ -1503,20 +1503,6 @@ function uploadPDF(i){
   if(window._saveToFirebase)window._saveToFirebase();
   showSync('synced','✓ PDF link saved!');
 }
-  const inp=document.createElement('input');
-  inp.type='file'; inp.accept='application/pdf';
-  inp.onchange=async e=>{
-    const f=e.target.files[0]; if(!f) return;
-    showSync('saving','☁ Uploading PDF…');
-    const fd=new FormData();
-    fd.append('file', f, f.name);
-    fd.append('upload_preset', preset);
-    fd.append('folder','portfolio_pdfs');
-    try{
-      const res=await fetch(
-    `https://api.cloudinary.com/v1_1/${cloud}/raw/upload`,
-        {method:'POST', body:fd}
-      );
       const data=await res.json();
       if(!data.secure_url) throw new Error('No URL: '+JSON.stringify(data));
       const pdfUrl=data.secure_url;
