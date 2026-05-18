@@ -1524,12 +1524,24 @@ function uploadPDF(i){
   inp.click();
 }
 function removePDF(i){window.D.proj[i].pdf='';window.D.proj[i].pdfName='';saveD();buildProjEd();render();}
-  function openPDF(i){
+function openPDF(i){
   const p=window.D.proj[i].pdf;
   if(!p)return;
-  // Use Google Docs viewer to open any PDF URL
-  const viewer='https://docs.google.com/viewer?url='+encodeURIComponent(p)+'&embedded=false';
-  window.open(viewer,'_blank');
+  const overlay=document.createElement('div');
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;';
+  overlay.innerHTML=`
+    <div style="width:100%;max-width:900px;height:88vh;background:#fff;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:#111;border-radius:12px 12px 0 0;">
+        <span style="color:#e8c87a;font-family:monospace;font-size:.8rem;">📄 ${window.D.proj[i].pdfName||'Report'}</span>
+        <div style="display:flex;gap:8px;">
+          <a href="${p}" target="_blank" style="padding:6px 14px;background:#e8c87a;color:#111;border-radius:6px;font-size:.78rem;font-weight:700;text-decoration:none;">⬇ Download</a>
+          <button onclick="this.closest('div[style*=fixed]').remove()" style="padding:6px 12px;background:transparent;border:1px solid #555;color:#fff;border-radius:6px;cursor:pointer;font-size:.78rem;">✕ Close</button>
+        </div>
+      </div>
+      <iframe src="${p}" style="flex:1;border:none;width:100%;" allowfullscreen></iframe>
+    </div>`;
+  overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
+  document.body.appendChild(overlay);
 }
 /* ════ LIGHTBOX ════ */
 function openLB(src){
