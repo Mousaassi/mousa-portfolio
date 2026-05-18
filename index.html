@@ -1538,7 +1538,7 @@ function openPDF(i){
           <button onclick="this.closest('div[style*=fixed]').remove()" style="padding:6px 12px;background:transparent;border:1px solid #555;color:#fff;border-radius:6px;cursor:pointer;font-size:.78rem;">✕ Close</button>
         </div>
       </div>
-      <iframe src="${p}" style="flex:1;border:none;width:100%;" allowfullscreen></iframe>
+      <iframe src="https://docs.google.com/viewer?url=${encodeURIComponent(p)}&embedded=true" style="flex:1;border:none;width:100%;" allowfullscreen></iframe>
     </div>`;
   overlay.addEventListener('click',e=>{if(e.target===overlay)overlay.remove();});
   document.body.appendChild(overlay);
