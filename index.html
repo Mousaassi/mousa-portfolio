@@ -1547,7 +1547,11 @@ function removePDF(i){window.D.proj[i].pdf='';window.D.proj[i].pdfName='';saveD(
 function openPDF(i){
   const p = window.D.proj[i].pdf;
   if(!p) return;
-  window.open(p, '_blank');
+  // Fix Cloudinary raw PDF URLs
+  const url = p.includes('cloudinary.com') && !p.includes('/image/')
+    ? p.replace('/raw/upload/', '/image/upload/').replace(/\.pdf$/, '.pdf')
+    : p;
+  window.open('https://docs.google.com/viewer?url=' + encodeURIComponent(p) + '&embedded=false', '_blank');
 }
 /* ════ LIGHTBOX ════ */
 function openLB(src){
@@ -2051,7 +2055,8 @@ document.addEventListener('keydown',e=>{
 /* ════════════════════════════════════
    DEEP DIVE DATA
 ════════════════════════════════════ */
-window.DD_DATA = {
+if(!window.DD_DATA) window.DD_DATA = {};
+  window.DD_DATA = {
   0:{color:'#7a9ee8',icon:'🖨️',heroPattern:'print',desc:'A comprehensive study of FDM 3D printing technology covering hardware architecture, slicing software, material science, and mechanical performance evaluation.',stats:[{val:'2022',lbl:'Year'},{val:'FDM',lbl:'Technology'},{val:'PLA/PETG',lbl:'Materials'},{val:'Research',lbl:'Type'}],features:[{icon:'⚙️',title:'Hardware Architecture',desc:'Stepper motors, extruder mechanisms, heated bed, frame rigidity analysis and calibration.'},{icon:'💻',title:'Slicing Software',desc:'Layer height, infill patterns, support structures, print speed — comparative study across slicers.'},{icon:'🧪',title:'Materials Science',desc:'PLA vs PETG: tensile strength, thermal resistance, layer adhesion, post-processing.'},{icon:'📊',title:'Performance Evaluation',desc:'Dimensional accuracy testing, mechanical testing, print quality scoring.'}],stack:['SolidWorks','Cura Slicer','PrusaSlicer','PLA','PETG','Tensile Testing','Dimensional Analysis'],hl:[0,1,2],images:[]},
   1:{color:'#e87a9e',icon:'🦾',heroPattern:'arm',desc:'A 3-DOF RRP robotic arm designed, 3D-printed, and assembled from scratch. Features servo-motor actuation with forward and inverse kinematics implemented in firmware.',stats:[{val:'3',lbl:'DOF'},{val:'RRP',lbl:'Config'},{val:'3D',lbl:'Printed'},{val:'2024',lbl:'Year'}],features:[{icon:'🖨️',title:'3D Printed Structure',desc:'Full chassis and links printed in PLA, optimized for strength-to-weight ratio.'},{icon:'🔄',title:'Servo Actuation',desc:'High-torque RC servo motors with PWM control for joint rotation and prismatic extension.'},{icon:'📐',title:'Forward Kinematics',desc:'DH parameter-based FK to compute end-effector position from joint angles.'},{icon:'🎯',title:'Inverse Kinematics',desc:'Geometric IK solver for real-time trajectory calculation.'}],stack:['SolidWorks','Fusion 360','Arduino','Servo PWM','PLA','DH Parameters','IK/FK','3D Printing'],hl:[0,1,2,3],images:[]},
   2:{color:'#e8c87a',icon:'🚁',heroPattern:'drone',desc:'An autonomous medical supply delivery drone for disaster-zone operations in Turkey. Integrates GPS navigation, multi-sensor fusion, 4G LTE telemetry, and UV sterilization. Developed with Mousab Jafari.',stats:[{val:'4G',lbl:'Telemetry'},{val:'GPS',lbl:'Navigation'},{val:'UV',lbl:'Sterilization'},{val:'2025',lbl:'Year'}],features:[{icon:'🛰️',title:'GPS Waypoint Navigation',desc:'Autonomous flight path planning with obstacle avoidance for disaster zones.'},{icon:'📡',title:'4G LTE Telemetry',desc:'Real-time command, control, and live status monitoring from ground station.'},{icon:'🔬',title:'UV Sterilization Chamber',desc:'Integrated UV-C light payload bay to maintain sterility of medical supplies.'},{icon:'🧠',title:'Sensor Fusion',desc:'IMU + barometer + GPS fusion for stable autonomous flight.'},{icon:'🏥',title:'Medical Focus',desc:'Payload optimized for medications, blood bags, and emergency supplies.'},{icon:'🤝',title:'Team Project',desc:'Developed with Mousab Jafari — structural design, electronics, and software integration.'}],stack:['SolidWorks','Fusion 360','Pixhawk','GPS Module','MPU6050','4G LTE Module','UV-C LED','Arduino','Python','Mission Planner'],hl:[0,1,3,4],images:[]},
