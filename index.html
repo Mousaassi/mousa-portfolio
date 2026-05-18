@@ -1556,7 +1556,11 @@ function removePDF(i){window.D.proj[i].pdf='';window.D.proj[i].pdfName='';saveD(
 function openPDF(i){
   const p = window.D.proj[i] && window.D.proj[i].pdf;
   if(!p) return;
-  window.open(p, '_blank', 'noopener,noreferrer');
+  // Force open in new tab with fl_attachment:false for Cloudinary
+  const url = p.includes('cloudinary.com') 
+    ? p.replace('/upload/', '/upload/fl_attachment:false/') 
+    : p;
+  window.open(url, '_blank', 'noopener,noreferrer');
 }
 /* ════ LIGHTBOX ════ */
 function openLB(src){
@@ -2137,7 +2141,7 @@ if(dd.desc_tr||dd.desc_ar){
   document.getElementById('ddStack').innerHTML=(dd.stack||[]).map((t,i)=>`<span class="dd-stack-tag ${(dd.hl||[]).includes(i)?'hl':''}" style="--ti:${i}">${t}</span>`).join('');
   const imgs=dd.images&&dd.images.length?dd.images.map(src=>`<div class="dd-gal-item" onclick="openLB('${src}')"><img src="${src}" alt="project"></div>`):Array(4).fill(0).map((_,i)=>`<div class="dd-gal-item" style="cursor:default"><div class="dd-gal-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Image ${i+1}</span></div></div>`);
   document.getElementById('ddGallery').innerHTML=imgs.join('');
-  document.getElementById('ddReportContent').innerHTML=proj.pdf?`<div class="dd-pdf-area"><div class="dd-pdf-icon">📄</div><div class="dd-pdf-name">${proj.pdfName||'Project Report'}</div><button class="dd-pdf-btn" onclick="window.open(window.D.proj[${idx}].pdf,'_blank','noopener,noreferrer')">📄 Open PDF Report</button></div>`:`<div class="dd-no-pdf"><div style="font-size:2.5rem;margin-bottom:12px">📂</div><div>No PDF report uploaded yet.</div></div>`;
+  document.getElementById('ddReportContent').innerHTML=proj.pdf?`<div class="dd-pdf-area"><div class="dd-pdf-icon">📄</div><div class="dd-pdf-name">${proj.pdfName||'Project Report'}</div><button class="dd-pdf-btn" onclick="openPDF(${idx})">📄 Open PDF Report</button></div>`:`<div class="dd-no-pdf"><div style="font-size:2.5rem;margin-bottom:12px">📂</div><div>No PDF report uploaded yet.</div></div>`;
   ddTab('overview',document.querySelector('.dd-tab'));
   document.getElementById('ddOverlay').classList.add('active');
   document.body.style.overflow='hidden';
