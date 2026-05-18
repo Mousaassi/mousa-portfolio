@@ -31,29 +31,20 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
-
-onAuthStateChanged(auth, async user => {
-  window._fbUser = user;
+onAuthStateChanged(auth, user => {
+  window._fbUser  = user;
   window._isAdmin = !!user;
-
   const bar = document.getElementById('adminBar');
   const btn = document.getElementById('adminLoginBtn');
-  const emailEl = document.getElementById('fbUserEmail');
-
   if (user) {
-    if (bar) bar.classList.add('visible');
-    if (emailEl) emailEl.textContent = user.email;
-    if (btn) btn.style.display = 'none';
+    bar.classList.add('visible');
+    document.getElementById('fbUserEmail').textContent = user.email;
+    btn.style.display = 'none';
   } else {
-    if (bar) bar.classList.remove('visible');
-    if (btn) btn.style.display = 'flex';
+    bar.classList.remove('visible');
+    btn.style.display = 'flex';
   }
-
-  if (typeof window._loadFromFirebase === 'function') {
-    await window._loadFromFirebase();
-  } else {
-    console.error('window._loadFromFirebase not defined');
-  }
+  window._loadFromFirebase();
 });
 
 window._loadFromFirebase = async () => {
