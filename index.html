@@ -2714,16 +2714,9 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
       sk:(D.skills||[]).reduce((a,s)=>a+(s.tags||[]).length,0)
     };
     Object.keys(vals).forEach(k=>{
-const ids = {
-  proj:{n:'sn0', l:'sl0'},
-  cert:{n:'sn1', l:'sl1'},
-  exp:{n:'sn2', l:'sl2'},
-  sk:{n:'sn3', l:'sl3'}
-};
-
-const n = document.getElementById(ids[k].n);
-const l = document.getElementById(ids[k].l);
-    
+  const n=document.getElementById('st-'+k);
+  const l=document.getElementById('stl-'+k);
+      
       if(n){ n.dataset.target=vals[k]; n.dataset.suffix=k==='sk'?'+':''; }
       if(l) l.textContent=labels[k][lang]||labels[k].en;
     });
