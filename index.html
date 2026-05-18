@@ -680,7 +680,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 
 /* ══ STATS COUNTER SECTION ══ */
 @keyframes countUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
-.stats-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;margin:0 48px 0;max-width:1200px;}
+.stats-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1px;background:var(--bd);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;max-width:1200px;width:calc(100% - 96px);margin:0 auto;}
 .stat-cell{background:var(--sf);padding:28px 20px;text-align:center;position:relative;overflow:hidden;transition:background .3s;}
 .stat-cell:hover{background:var(--s2);}
 .stat-cell::before{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ac),var(--a2));transform:scaleX(0);transform-origin:left;transition:transform .4s ease;}
@@ -833,8 +833,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
   <div class="stat-cell" id="sc1"><div class="stat-num" id="sn1">0</div><div class="stat-lbl" id="sl1">Certifications</div></div>
   <div class="stat-cell" id="sc2"><div class="stat-num" id="sn2">0</div><div class="stat-lbl" id="sl2">Experience</div></div>
   <div class="stat-cell" id="sc3"><div class="stat-num" id="sn3">0</div><div class="stat-lbl" id="sl3">Skills</div></div>
-</div>
-  
+</div> 
 <div class="sdiv"></div>
 <div class="sec fade-in" id="sec-edu"><div class="sh"><span class="sn">01</span><h2 class="st" id="tEdu"></h2><div class="sl"></div></div><div class="edu-grid" id="eduGrid"></div></div>
 <div class="sdiv"></div>
