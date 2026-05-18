@@ -1632,7 +1632,10 @@ async function submitContact(e){
 function GL(o,fb){if(!o)return fb||'';if(typeof o==='string')return o;return o[lang]||o.en||o.tr||o.ar||fb||'';}
 
 window.render=function(){
-if(!document.getElementById('skGrid'))return;
+if(!document.getElementById('skGrid')){
+  document.addEventListener('DOMContentLoaded',()=>window.render());
+  return;
+}
   const isAr=lang==='ar';
   document.documentElement.setAttribute('lang',lang);
   document.documentElement.setAttribute('dir',isAr?'rtl':'ltr');
