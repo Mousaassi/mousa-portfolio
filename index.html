@@ -739,6 +739,12 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 #skRadarWrap{display:none;}
 #skRadarWrap.active{display:block;}
 #skGrid.hidden{display:none;}
+/* ══ SECTION NAV ══ */
+.sec-nav{display:flex;align-items:center;gap:4px;margin-right:6px;}
+.snav-lnk{padding:5px 11px;border:none;background:transparent;color:var(--td);font-family:var(--fb);font-size:.74rem;cursor:pointer;border-radius:50px;transition:var(--tr);text-decoration:none;white-space:nowrap;}
+.snav-lnk:hover{color:var(--ac);background:var(--gl);}
+.snav-lnk.active{color:var(--ac);background:var(--gl);font-weight:600;}
+@media(max-width:900px){.sec-nav{display:none;}}
 </style>
 </head>
 <body>
@@ -753,6 +759,13 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
   <div style="display:flex;align-items:center;gap:10px;">
     <div class="logo" id="logoBtn">MA</div>
   </div>
+  <nav class="sec-nav" id="secNav">
+  <a href="#sec-edu" class="snav-lnk" data-key="edu">Education</a>
+  <a href="#sec-proj" class="snav-lnk" data-key="proj">Projects</a>
+  <a href="#sec-exp" class="snav-lnk" data-key="exp">Experience</a>
+  <a href="#sec-skills" class="snav-lnk" data-key="skills">Skills</a>
+  <a href="#sec-certs" class="snav-lnk" data-key="certs">Certs</a>
+</nav>
   <div class="hr">
     <div class="lang-sw">
       <button class="lb active" onclick="setLang('en')">EN</button>
@@ -815,10 +828,15 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 <!-- STATS STRIP -->
 <div class="sdiv"></div>
   
-<div class="stats-strip fade-in" id="statsStrip"></div>
-
+<div class="stats-strip fade-in" id="statsStrip">
+  <div class="stat-cell" id="sc0"><div class="stat-num" id="sn0">0</div><div class="stat-lbl" id="sl0">Projects</div></div>
+  <div class="stat-cell" id="sc1"><div class="stat-num" id="sn1">0</div><div class="stat-lbl" id="sl1">Certifications</div></div>
+  <div class="stat-cell" id="sc2"><div class="stat-num" id="sn2">0</div><div class="stat-lbl" id="sl2">Experience</div></div>
+  <div class="stat-cell" id="sc3"><div class="stat-num" id="sn3">0</div><div class="stat-lbl" id="sl3">Skills</div></div>
+</div>
+  
 <div class="sdiv"></div>
-<div class="sec fade-in"><div class="sh"><span class="sn">01</span><h2 class="st" id="tEdu"></h2><div class="sl"></div></div><div class="edu-grid" id="eduGrid"></div></div>
+<div class="sec fade-in" id="sec-edu"><div class="sh"><span class="sn">01</span><h2 class="st" id="tEdu"></h2><div class="sl"></div></div><div class="edu-grid" id="eduGrid"></div></div>
 <div class="sdiv"></div>
 <div class="sec fade-in"><div class="sh"><span class="sn">02</span><h2 class="st" id="tProj"></h2><div class="sl"></div></div><div class="pgrid" id="projGrid"></div></div>
 <div class="sdiv"></div>
@@ -2074,8 +2092,6 @@ window.DD_DATA = {
   3:{color:'#7dd87a',icon:'⚙️',heroPattern:'wheel',desc:'A single-axis attitude control system using a reaction wheel — the same technology used in real satellites. NEMA-17 stepper spins a flywheel; MPU6050 measures tilt; Arduino Nano runs a PID loop.',stats:[{val:'PID',lbl:'Control'},{val:'IMU',lbl:'Sensing'},{val:'1-Axis',lbl:'DOF'},{val:'2026',lbl:'Year'}],features:[{icon:'🔄',title:'NEMA-17 Reaction Wheel',desc:'Stepper motor spinning a precision flywheel for angular momentum storage.'},{icon:'📡',title:'MPU6050 IMU',desc:'6-DOF inertial measurement for real-time tilt sensing.'},{icon:'🎮',title:'PID Control Loop',desc:'Tuned PID controller running on Arduino for stable attitude hold.'},{icon:'🛸',title:'Spacecraft Technology',desc:'Demonstrates reaction control principles used in real satellites.'}],stack:['Arduino Nano','NEMA-17','MPU6050','A4988 Driver','PID Algorithm','C++','SolidWorks','3D Printing'],hl:[0,1,2],images:[]},
   4:{color:'#f0a0c0',icon:'🤖',heroPattern:'arm4',desc:'A 4-DOF robotic arm with modular end-effector system for pick-and-place, stacking, and trajectory following. High-torque servo motors with Arduino-based multi-axis motion control.',stats:[{val:'4',lbl:'DOF'},{val:'Modular',lbl:'End-Effector'},{val:'Arduino',lbl:'Controller'},{val:'2026',lbl:'Year'}],features:[{icon:'💪',title:'High-Torque Servos',desc:'MG996R / DS3218 servos at each joint for strong, precise positioning.'},{icon:'🔩',title:'Modular End-Effector',desc:'Swappable gripper, suction cup, and pen-holder modules.'},{icon:'📱',title:'Serial Control Interface',desc:'Command via serial terminal or GUI for real-time joint angle control.'},{icon:'🎯',title:'Multi-Axis Motion',desc:'Smooth coordinated motion for trajectory following and pick-and-place.'}],stack:['Arduino Uno','MG996R Servos','Fusion 360','PLA','PWM Control','Serial Interface','Inverse Kinematics','3D Printing'],hl:[0,1,2,3],images:[]}
 };
-DD_DATA[2].videoUrl = 'https://your-cdn.com/drone-demo.mp4';
-DD_DATA[1].modelUrl = 'https://your-cdn.com/robotic-arm.stl';
 /* Load saved DD_DATA from localStorage */
 (function(){
   try{
@@ -2684,26 +2700,54 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
 
 /* ════ STATS COUNTER ════ */
 (function(){
-  const obsC = new IntersectionObserver(entries => {
-    entries.forEach(entry => {
-      if(!entry.isIntersecting) return;
-      const boxes = entry.target.querySelectorAll('.stat-box');
-      boxes.forEach(box => {
-        const target = parseInt(box.dataset.target);
-        const numEl = box.querySelector('.stat-num');
-        let current = 0;
-        const step = Math.ceil(target / 40);
-        const iv = setInterval(() => {
-          current = Math.min(current + step, target);
-          numEl.textContent = current + (target > 10 ? '' : '');
-          if(current >= target) clearInterval(iv);
-        }, 35);
-      });
-      obsC.unobserve(entry.target);
+  function updateStats(){
+    const D=window.D||{};
+    const stats=[
+      {id:'sn0',lbl:'sl0',val:(D.proj||[]).length,label:{en:'Projects',tr:'Projeler',ar:'المشاريع'},suffix:''},
+      {id:'sn1',lbl:'sl1',val:(D.certs||[]).length,label:{en:'Certifications',tr:'Sertifikalar',ar:'الشهادات'},suffix:''},
+      {id:'sn2',lbl:'sl2',val:(D.exp||[]).length,label:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},suffix:''},
+      {id:'sn3',lbl:'sl3',val:(D.skills||[]).reduce((a,s)=>a+(s.tags||[]).length,0),label:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},suffix:'+'},
+    ];
+    stats.forEach(s=>{
+      const el=document.getElementById(s.id);
+      const lb=document.getElementById(s.lbl);
+      if(el)el.dataset.target=s.val;
+      if(lb)lb.textContent=s.label[lang]||s.label.en;
     });
-  }, {threshold: 0.3});
-  const statsRow = document.getElementById('statsRow');
-  if(statsRow) obsC.observe(statsRow);
+  }
+
+  function animateCounters(strip){
+    strip.querySelectorAll('.stat-num').forEach(el=>{
+      if(el.dataset.animated)return;
+      el.dataset.animated='1';
+      const target=parseInt(el.dataset.target)||0;
+      const suffix=el.dataset.suffix||'';
+      let cur=0;
+      const step=Math.max(1,Math.ceil(target/50));
+      const iv=setInterval(()=>{
+        cur=Math.min(cur+step,target);
+        el.textContent=cur+suffix;
+        if(cur>=target)clearInterval(iv);
+      },30);
+    });
+  }
+
+  const obsC=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{if(e.isIntersecting)animateCounters(e.target);});
+  },{threshold:0.3});
+
+  // Hook into render to update values dynamically
+  const origRender=window.render;
+  window.render=function(){
+    origRender.apply(this,arguments);
+    updateStats();
+    const strip=document.getElementById('statsStrip');
+    if(strip){
+      // Reset animations so they can re-run after language change
+      strip.querySelectorAll('.stat-num').forEach(el=>delete el.dataset.animated);
+      obsC.observe(strip);
+    }
+  };
 })();
 /* ════ SKILLS RADAR CHART ════ */
 (function(){
@@ -2814,7 +2858,18 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
   }, {threshold: 0.2});
   setTimeout(()=>{
     const canvas = document.getElementById('skillsRadar');
-    if(canvas) obsR.observe(canvas);
+    if(canvas){
+      // Hide by default — only show when radar mode is selected
+      canvas.style.display = 'none';
+      obsR.observe(canvas);
+      // Support manual trigger from skView
+      canvas.addEventListener('triggerDraw', ()=>{
+        if(!canvas.dataset.drawn){
+          canvas.style.opacity = '1';
+          obsR.observe(canvas);
+        }
+      });
+    }
   }, 500);
 })();
 
@@ -2924,16 +2979,53 @@ function skView(mode, btn) {
   document.querySelectorAll('.sk-toggle-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   const grid = document.getElementById('skGrid');
-  const canvas = document.getElementById('skillsRadar');
+  const radarWrap = document.getElementById('skillsRadar');
+  const radarOld = document.getElementById('skRadarWrap');
   if(mode === 'radar') {
-    grid.classList.add('hidden');
-    canvas.style.display = 'block';
+    grid.style.display = 'none';
+    if(radarWrap) radarWrap.style.display = 'block';
+    if(radarOld) radarOld.style.display = 'none';
+    // Trigger animation if not drawn yet
+    const canvas = document.getElementById('skillsRadar');
+    if(canvas && !canvas.dataset.drawn) {
+      canvas.style.opacity = '1';
+      canvas.dispatchEvent(new Event('triggerDraw'));
+    }
   } else {
-    grid.classList.remove('hidden');
-    canvas.style.display = 'none';
+    grid.style.display = '';
+    if(radarWrap) radarWrap.style.display = 'none';
+    if(radarOld) radarOld.style.display = 'none';
   }
 }  
-  
+/* ════ SECTION NAV — ACTIVE STATE + LABELS ════ */
+(function(){
+  function updateNavLabels(){
+    const ti=window.D&&window.D.titles||{};
+    const defs={edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},certs:{en:'Certs',tr:'Sertifikalar',ar:'الشهادات'}};
+    document.querySelectorAll('.snav-lnk').forEach(a=>{
+      const key=a.dataset.key;
+      const obj=ti[key]||defs[key]||{};
+      a.textContent=obj[lang]||obj.en||key;
+    });
+  }
+
+  // Highlight active section on scroll
+  const sections=[
+    {id:'sec-edu',key:'edu'},{id:'sec-proj',key:'proj'},
+    {id:'sec-exp',key:'exp'},{id:'sec-skills',key:'skills'},{id:'sec-certs',key:'certs'}
+  ];
+  const obsNav=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      const link=document.querySelector(`.snav-lnk[data-key="${e.target.id.replace('sec-','')}"]`);
+      if(link)link.classList.toggle('active',e.isIntersecting);
+    });
+  },{rootMargin:'-30% 0px -60% 0px'});
+  sections.forEach(s=>{const el=document.getElementById(s.id);if(el)obsNav.observe(el);});
+
+  // Update labels on render (language change)
+  const origRender=window.render;
+  window.render=function(){origRender.apply(this,arguments);updateNavLabels();};
+})();
 </script>
 </body>
 </html>
