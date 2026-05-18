@@ -1525,10 +1525,10 @@ function uploadPDF(i){
     fd.append('folder','portfolio_pdfs');
     fd.append('resource_type','raw');
     try{
-      const res=await fetch(
-        `https://api.cloudinary.com/v1_1/${cloud}/auto/upload`
+       const res=await fetch(
+        `https://api.cloudinary.com/v1_1/${cloud}/auto/upload`,
         {method:'POST', body:fd}
-      );
+        );
       const data=await res.json();
       if(!data.secure_url) throw new Error('No URL: '+JSON.stringify(data));
       const pdfUrl=data.secure_url;
