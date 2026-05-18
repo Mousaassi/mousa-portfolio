@@ -2396,8 +2396,10 @@ window.saveDDData=function(){
 /* ════ INIT ════ */
 applyTheme(CT);
 buildTG();
+window.D=loadLocalD();
 render();
-
+document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero').forEach(el=>el.style.opacity='1');
+  
 /* ════ SCROLL PROGRESS ════ */
 (function(){
   const bar=document.getElementById('scrollProg');
