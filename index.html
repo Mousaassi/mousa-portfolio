@@ -1494,15 +1494,21 @@ function removeCertImg(idx){window.D.certs[idx].img='';saveD();buildCertEd();ren
 
 /* ════ PDF ════ */
 function uploadPDF(i){
-  const url=prompt('الصق رابط PDF من Cloudinary أو أي رابط مباشر:');
-  if(!url||!url.startsWith('http')){return;}
-  const name=url.split('/').pop().split('?')[0]||'report.pdf';
-  window.D.proj[i].pdf=url;
-  window.D.proj[i].pdfName=name;
-  saveD();buildProjEd();render();
-  if(window._saveToFirebase)window._saveToFirebase();
-  showSync('synced','✓ PDF link saved!');
-}
+  const cloud=window.CLOUDINARY_CLOUD, preset=window.CLOUDINARY_PRESET;
+  const inp=document.createElement('input');
+  inp.type='file'; inp.accept='application/pdf';
+  inp.onchange=async e=>{
+    const f=e.target.files[0]; if(!f) return;
+    showSync('saving','☁ Uploading PDF…');
+    const fd=new FormData();
+    fd.append('file', f, f.name);
+    fd.append('upload_preset', preset);
+    fd.append('folder','portfolio_pdfs');
+    try{
+      const res=await fetch(
+    `https://api.cloudinary.com/v1_1/${cloud}/raw/upload`,
+        {method:'POST', body:fd}
+      );
       const data=await res.json();
       if(!data.secure_url) throw new Error('No URL: '+JSON.stringify(data));
       const pdfUrl=data.secure_url;
