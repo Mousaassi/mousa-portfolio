@@ -2698,51 +2698,49 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
 })();
 
 /* ════ STATS COUNTER ════ */
+/* ════ STATS COUNTER — FIXED ════ */
 (function(){
+  const labels={
+    proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},
+    cert:{en:'Certifications',tr:'Sertifikalar',ar:'الشهادات'},
+    exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},
+    sk:{en:'Skills',tr:'Yetenekler',ar:'المهارات'}
+  };
   function updateStats(){
     const D=window.D||{};
-    const stats=[
-      {id:'sn0',lbl:'sl0',val:(D.proj||[]).length,label:{en:'Projects',tr:'Projeler',ar:'المشاريع'},suffix:''},
-      {id:'sn1',lbl:'sl1',val:(D.certs||[]).length,label:{en:'Certifications',tr:'Sertifikalar',ar:'الشهادات'},suffix:''},
-      {id:'sn2',lbl:'sl2',val:(D.exp||[]).length,label:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},suffix:''},
-      {id:'sn3',lbl:'sl3',val:(D.skills||[]).reduce((a,s)=>a+(s.tags||[]).length,0),label:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},suffix:'+'},
-    ];
-    stats.forEach(s=>{
-      const el=document.getElementById(s.id);
-      const lb=document.getElementById(s.lbl);
-      if(el)el.dataset.target=s.val;
-      if(lb)lb.textContent=s.label[lang]||s.label.en;
+    const vals={
+      proj:(D.proj||[]).length,
+      cert:(D.certs||[]).length,
+      exp:(D.exp||[]).length,
+      sk:(D.skills||[]).reduce((a,s)=>a+(s.tags||[]).length,0)
+    };
+    Object.keys(vals).forEach(k=>{
+      const n=document.getElementById('st-'+k);
+      const l=document.getElementById('stl-'+k);
+      if(n){ n.dataset.target=vals[k]; n.dataset.suffix=k==='sk'?'+':''; }
+      if(l) l.textContent=labels[k][lang]||labels[k].en;
     });
   }
-
-  function animateCounters(strip){
-    strip.querySelectorAll('.stat-num').forEach(el=>{
-      if(el.dataset.animated)return;
-      el.dataset.animated='1';
-      const target=parseInt(el.dataset.target)||0;
-      const suffix=el.dataset.suffix||'';
-      let cur=0;
-      const step=Math.max(1,Math.ceil(target/50));
-      const iv=setInterval(()=>{
-        cur=Math.min(cur+step,target);
-        el.textContent=cur+suffix;
-        if(cur>=target)clearInterval(iv);
-      },30);
-    });
+ function animateCell(el){
+    if(el.dataset.animated)return;
+    el.dataset.animated='1';
+    const target=parseInt(el.dataset.target)||0;
+    const suffix=el.dataset.suffix||'';
+    let cur=0;const step=Math.max(1,Math.ceil(target/50));
+    const iv=setInterval(()=>{cur=Math.min(cur+step,target);el.textContent=cur+suffix;if(cur>=target)clearInterval(iv);},28);
   }
-
   const obsC=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{if(e.isIntersecting)animateCounters(e.target);});
+    entries.forEach(e=>{
+      if(!e.isIntersecting)return;
+      e.target.querySelectorAll('.stat-num').forEach(animateCell);
+    });
   },{threshold:0.3});
-
-  // Hook into render to update values dynamically
   const origRender=window.render;
   window.render=function(){
     origRender.apply(this,arguments);
     updateStats();
     const strip=document.getElementById('statsStrip');
     if(strip){
-      // Reset animations so they can re-run after language change
       strip.querySelectorAll('.stat-num').forEach(el=>delete el.dataset.animated);
       obsC.observe(strip);
     }
