@@ -2996,30 +2996,31 @@ function skView(mode, btn) {
 }  
 /* ════ SECTION NAV — ACTIVE STATE + LABELS ════ */
 (function(){
+  const navLabels={
+    edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},
+    proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},
+    exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},
+    skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},
+    certs:{en:'Certs',tr:'Sertifikalar',ar:'الشهادات'}
+  };
   function updateNavLabels(){
     const ti=window.D&&window.D.titles||{};
-    const defs={edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},certs:{en:'Certs',tr:'Sertifikalar',ar:'الشهادات'}};
     document.querySelectorAll('.snav-lnk').forEach(a=>{
       const key=a.dataset.key;
-      const obj=ti[key]||defs[key]||{};
+      const obj=ti[key]||navLabels[key]||{};
       a.textContent=obj[lang]||obj.en||key;
     });
   }
-
-  // Highlight active section on scroll
-  const sections=[
-    {id:'sec-edu',key:'edu'},{id:'sec-proj',key:'proj'},
-    {id:'sec-exp',key:'exp'},{id:'sec-skills',key:'skills'},{id:'sec-certs',key:'certs'}
-  ];
   const obsNav=new IntersectionObserver(entries=>{
     entries.forEach(e=>{
-      const link=document.querySelector(`.snav-lnk[data-key="${e.target.id.replace('sec-','')}"]`);
-      if(link)link.classList.toggle('active',e.isIntersecting);
+      const key=e.target.id.replace('sec-','');
+      const lnk=document.querySelector(`.snav-lnk[data-key="${key}"]`);
+      if(lnk)lnk.classList.toggle('active',e.isIntersecting);
     });
-  },{rootMargin:'-30% 0px -60% 0px'});
-  sections.forEach(s=>{const el=document.getElementById(s.id);if(el)obsNav.observe(el);});
-
-  // Update labels on render (language change)
+  },{rootMargin:'-20% 0px -70% 0px'});
+  ['sec-edu','sec-proj','sec-exp','sec-skills','sec-certs'].forEach(id=>{
+    const el=document.getElementById(id);if(el)obsNav.observe(el);
+  });
   const origRender=window.render;
   window.render=function(){origRender.apply(this,arguments);updateNavLabels();};
 })();
