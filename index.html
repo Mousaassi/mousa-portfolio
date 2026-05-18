@@ -1525,7 +1525,7 @@ function uploadPDF(i){
     fd.append('file', f, f.name);
     fd.append('upload_preset', preset);
     fd.append('folder','portfolio_pdfs');
-    fd.append('resource_type','raw');
+    fd.append('resource_type','auto');
     try{
        const res=await fetch(
         `https://api.cloudinary.com/v1_1/${cloud}/auto/upload`,
@@ -1549,7 +1549,11 @@ function removePDF(i){window.D.proj[i].pdf='';window.D.proj[i].pdfName='';saveD(
 function openPDF(i){
   const p = window.D.proj[i].pdf;
   if(!p) return;
-  window.open('https://docs.google.com/viewer?url='+encodeURIComponent(p), '_blank');
+  const a = document.createElement('a');
+  a.href = p;
+  a.target = '_blank';
+  a.rel = 'noopener';
+  a.click();
 }
 /* ════ LIGHTBOX ════ */
 function openLB(src){
