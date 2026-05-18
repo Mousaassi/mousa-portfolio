@@ -50,8 +50,9 @@ onAuthStateChanged(auth, user => {
   }
 });
 window._loadFromFirebase = async () => {
+  while(typeof showSync==='undefined'||typeof loadLocalD==='undefined'){await new Promise(r=>setTimeout(r,50));}
   try {
-    showSync('loading','☁ Loading…');
+    if(typeof showSync==='function') showSync('loading','☁ Loading…');
     let D = {};
     const hs = await getDoc(doc(db,'portfolio','hero'));
     if (hs.exists()) D.hero = hs.data();
@@ -89,7 +90,7 @@ window._loadFromFirebase = async () => {
 window.D = deepMerge(D, loadLocalD());
 window.render();
 document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero').forEach(el=>el.style.opacity='1');
-showSync('synced','✓ Loaded from Firebase');
+if(typeof showSync==='function') showSync('synced','✓ Loaded from Firebase');
   } catch(e) {
     console.error('Load error:', e);
     showSync('error','✗ Load error: ' + e.message);
