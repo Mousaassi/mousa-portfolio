@@ -1535,10 +1535,10 @@ function uploadPDF(i){
     fd.append('upload_preset', 'cv_pdf_upload'); // الـ preset الجديد
     fd.append('folder', 'portfolio_pdfs');
     try{
-      const res = await fetch(
-        `https://api.cloudinary.com/v1_1/${cloud}/raw/upload`,
-        {method:'POST', body:fd}
-      );
+  const res = await fetch(
+  `https://api.cloudinary.com/v1_1/${cloud}/image/upload`,
+  {method:'POST', body:fd}
+);
       const data = await res.json();
       if(!data.secure_url) throw new Error(data.error?.message || 'Upload failed');
       window.D.proj[i].pdf = data.secure_url;
@@ -1560,14 +1560,7 @@ function removePDF(i){
 function openPDF(i){
   const p = window.D.proj[i]?.pdf;
   if(!p) return;
-
-  if(p.includes('res.cloudinary.com')){
-    const viewer = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(p)}`;
-    window.open(viewer, '_blank');
-    return;
-  }
-
-  window.open(p, '_blank');
+  window.open(p, '_blank', 'noopener,noreferrer');
 }
 /* ════ LIGHTBOX ════ */
 function openLB(src){
