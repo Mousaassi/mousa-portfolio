@@ -1570,7 +1570,13 @@ function openPDF(i){
     return;
   }
   
-  // فتح مباشر — أبسط وأضمن
+  if(p.includes('cloudinary.com')){
+    // PDF.js viewer - يفتح أي PDF من أي مصدر
+    const viewer = `https://mozilla.github.io/pdf.js/web/viewer.html?file=${encodeURIComponent(p)}`;
+    window.open(viewer, '_blank', 'noopener,noreferrer');
+    return;
+  }
+  
   window.open(p, '_blank', 'noopener,noreferrer');
 }
 /* ════ LIGHTBOX ════ */
