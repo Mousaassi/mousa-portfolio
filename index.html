@@ -1555,11 +1555,23 @@ function removePDF(i){window.D.proj[i].pdf='';window.D.proj[i].pdfName='';saveD(
 function openPDF(i){
   const p = window.D.proj[i] && window.D.proj[i].pdf;
   if(!p) return;
-  // Force open in new tab with fl_attachment:false for Cloudinary
-  const url = p.includes('cloudinary.com') 
-    ? p.replace('/upload/', '/upload/fl_attachment:false/') 
-    : p;
-  window.open(url, '_blank', 'noopener,noreferrer');
+  
+  let url = p;
+  
+  if(p.includes('cloudinary.com')){
+    // Convert to viewer-friendly URL
+    url = p
+      .replace('/upload/', '/upload/fl_attachment:false/')
+      .replace('.pdf', '.pdf');
+    // Force open as PDF viewer
+    window.open(url, '_blank', 'noopener,noreferrer');
+  } else if(p.startsWith('data:')){
+    // Base64 PDF
+    const win = window.open('', '_blank');
+    win.document.write(`<iframe src="${p}" style="width:100%;height:100vh;border:none;"></iframe>`);
+  } else {
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
 }
 /* ════ LIGHTBOX ════ */
 function openLB(src){
