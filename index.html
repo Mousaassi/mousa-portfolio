@@ -1532,16 +1532,15 @@ function uploadPDF(i){
     fd.append('file', f, f.name);
     fd.append('upload_preset', preset);
     fd.append('folder','portfolio_pdfs');
-    fd.append('resource_type','auto');
+    // resource_type=raw مهم جداً للـ PDF
     try{
-       const res=await fetch(
-        `https://api.cloudinary.com/v1_1/${cloud}/auto/upload`,
+      const res=await fetch(
+        `https://api.cloudinary.com/v1_1/${cloud}/raw/upload`,
         {method:'POST', body:fd}
-        );
+      );
       const data=await res.json();
       if(!data.secure_url) throw new Error('No URL: '+JSON.stringify(data));
-      const pdfUrl=data.secure_url;
-      window.D.proj[i].pdf=pdfUrl;
+      window.D.proj[i].pdf=data.secure_url;
       window.D.proj[i].pdfName=f.name;
       saveD(); buildProjEd(); render();
       if(window._saveToFirebase) window._saveToFirebase();
