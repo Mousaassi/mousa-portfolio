@@ -1531,14 +1531,15 @@ function uploadPDF(i){
     const f = e.target.files[0]; if(!f) return;
     showSync('saving','☁ Uploading PDF…');
     const fd = new FormData();
-    fd.append('file', f, f.name);
-    fd.append('upload_preset', 'cv_pdf_upload'); // الـ preset الجديد
-    fd.append('folder', 'portfolio_pdfs');
-    try{
-  const res = await fetch(
-  `https://api.cloudinary.com/v1_1/${cloud}/image/upload`,
-  {method:'POST', body:fd}
-);
+fd.append('file', f, f.name);
+fd.append('upload_preset', 'cv_pdf_upload');
+fd.append('folder', 'portfolio_pdfs');
+
+const cleanName = f.name.replace(/\.[^/.]+$/, '');
+fd.append('public_id', cleanName);
+fd.append('use_filename', true);
+fd.append('unique_filename', false);
+fd.append('overwrite', true);
       const data = await res.json();
       if(!data.secure_url) throw new Error(data.error?.message || 'Upload failed');
       window.D.proj[i].pdf = data.secure_url;
