@@ -2682,11 +2682,13 @@ document.addEventListener('mouseout',e=>{if(e.target.classList.contains('sktag')
     };
     // Use custom lines if set (EN only for now), else use translated defaults
     let texts;
-    if(h&&h.typewriterLines&&h.typewriterLines.length&&lang==='en'){
-      texts=h.typewriterLines;
-    }else{
-      texts=defaultLines[lang]||defaultLines.en;
-    }
+    if(h&&h.subtitleTexts&&h.subtitleTexts[lang]&&h.subtitleTexts[lang].length){
+  texts=h.subtitleTexts[lang];
+}else if(h&&h.typewriterLines&&h.typewriterLines.length&&lang==='en'){
+  texts=h.typewriterLines;
+}else{
+  texts=defaultLines[lang]||defaultLines.en;
+}
     let idx=0;
     let active=true;
     window._stopTW=function(){active=false;};
