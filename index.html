@@ -1523,34 +1523,60 @@ function removeCertImg(idx){window.D.certs[idx].img='';saveD();buildCertEd();ren
 /* ════ PDF ════ */
 function uploadPDF(i){
   const cloud = window.CLOUDINARY_CLOUD;
-  
-  const inp = document.createElement('input');
-  inp.type = 'file'; 
-  inp.accept = 'application/pdf';
-  inp.onchange = async e => {
-    const f = e.target.files[0]; if(!f) return;
-    showSync('saving','☁ Uploading PDF…');
-    const fd = new FormData();
-fd.append('file', f, f.name);
-fd.append('upload_preset', 'cv_pdf_upload');
-fd.append('folder', 'portfolio_pdfs');
 
-const cleanName = f.name.replace(/\.[^/.]+$/, '');
-fd.append('public_id', cleanName);
-fd.append('use_filename', true);
-fd.append('unique_filename', false);
-fd.append('overwrite', true);
+  const inp = document.createElement('input');
+  inp.type = 'file';
+  inp.accept = 'application/pdf';
+
+  inp.onchange = async e => {
+    const f = e.target.files[0];
+    if(!f) return;
+
+    showSync('saving','☁ Uploading PDF…');
+
+    const fd = new FormData();
+
+    fd.append('file', f);
+    fd.append('upload_preset', 'cv_pdf_upload');
+    fd.append('folder', 'portfolio_pdfs');
+
+    const cleanName = f.name.replace(/\.pdf$/i, '');
+    fd.append('public_id', cleanName);
+    fd.append('overwrite', 'true');
+
+    try{
+      const res = await fetch(
+        `https://api.cloudinary.com/v1_1/${cloud}/image/upload`,
+        {
+          method:'POST',
+          body: fd
+        }
+      );
+
       const data = await res.json();
-      if(!data.secure_url) throw new Error(data.error?.message || 'Upload failed');
+
+      if(!data.secure_url){
+        throw new Error(data.error?.message || 'Upload failed');
+      }
+
       window.D.proj[i].pdf = data.secure_url;
       window.D.proj[i].pdfName = f.name;
-      saveD(); buildProjEd(); render();
-      if(window._saveToFirebase) window._saveToFirebase();
+
+      saveD();
+      buildProjEd();
+      render();
+
+      if(window._saveToFirebase){
+        window._saveToFirebase();
+      }
+
       showSync('synced','✓ PDF uploaded!');
     }catch(err){
-      showSync('error','✗ '+err.message);
+      showSync('error','✗ ' + err.message);
+      console.error(err);
     }
   };
+
   inp.click();
 }
 function removePDF(i){
