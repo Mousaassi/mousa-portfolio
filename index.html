@@ -2051,6 +2051,11 @@ window.D.titles.certs={en:document.getElementById('eTiCeEN').value,tr:document.g
 // Save typewriter lines
 const twLines=document.getElementById('eTypewriterLines').value.split('\n').map(l=>l.trim()).filter(Boolean);
 if(twLines.length)h.typewriterLines=twLines;
+const twTR=document.getElementById('eTWtr').value.split('\n').map(l=>l.trim()).filter(Boolean);
+const twAR=document.getElementById('eTWar').value.split('\n').map(l=>l.trim()).filter(Boolean);
+if(twTR.length||twAR.length){
+  h.subtitleTexts={en:twLines,tr:twTR,ar:twAR};
+}
   // Page Title
   const pgTitle=document.getElementById('ePageTitle').value.trim();
   if(pgTitle)document.title=pgTitle;
@@ -2102,6 +2107,7 @@ document.getElementById('eTiCeEN').value=(ti.certs&&ti.certs.en)||'';
 document.getElementById('eTiCeTR').value=(ti.certs&&ti.certs.tr)||'';
 document.getElementById('eTiCeAR').value=(ti.certs&&ti.certs.ar)||'';
 document.getElementById('eTypewriterLines').value=(h.typewriterLines||[]).join('\n');
+document.getElementById('eTWar').value=((h.subtitleTexts&&h.subtitleTexts.ar)||[]).join('\n');
   // Page Title
   document.getElementById('ePageTitle').value=document.title||'Mousa Assi — Portfolio';
   // CV Links
