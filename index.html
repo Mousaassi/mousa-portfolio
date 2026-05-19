@@ -1557,27 +1557,13 @@ function removePDF(i){
   window.D.proj[i].pdfName='';
   saveD();buildProjEd();render();
 }
-
 function openPDF(i){
   const p = window.D.proj[i]?.pdf;
   if(!p) return;
 
-  if(p.startsWith('data:')){
-    const win = window.open('', '_blank');
-    win.document.write(`
-      <!DOCTYPE html>
-      <html>
-        <body style="margin:0">
-          <iframe src="${p}" style="width:100vw;height:100vh;border:none;"></iframe>
-        </body>
-      </html>
-    `);
-    return;
-  }
-
   if(p.includes('res.cloudinary.com')){
-    const pdfUrl = p.replace('/upload/', '/upload/fl_attachment:false/');
-    window.open(pdfUrl, '_blank');
+    const viewer = `https://docs.google.com/gview?embedded=true&url=${encodeURIComponent(p)}`;
+    window.open(viewer, '_blank');
     return;
   }
 
