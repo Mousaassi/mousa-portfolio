@@ -1560,7 +1560,65 @@ function removePDF(i){
 function openPDF(i){
   const p = window.D.proj[i]?.pdf;
   if(!p) return;
-  window.open(p, '_blank', 'noopener,noreferrer');
+
+  let modal = document.getElementById('pdfModal');
+
+  if(!modal){
+    modal = document.createElement('div');
+    modal.id = 'pdfModal';
+    modal.innerHTML = `
+      <div id="pdfOverlay" style="
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.75);
+        z-index:99999;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+      ">
+        <div style="
+          width:90vw;
+          height:90vh;
+          background:white;
+          border-radius:14px;
+          overflow:hidden;
+          position:relative;
+          box-shadow:0 20px 60px rgba(0,0,0,.4);
+        ">
+          <button id="closePdfBtn" style="
+            position:absolute;
+            top:10px;
+            right:10px;
+            z-index:2;
+            border:none;
+            background:#111;
+            color:white;
+            padding:10px 14px;
+            border-radius:8px;
+            cursor:pointer;
+            font-size:16px;
+          ">✕</button>
+
+          <iframe id="pdfFrame"
+            style="width:100%;height:100%;border:none;"
+            allow="fullscreen">
+          </iframe>
+        </div>
+      </div>
+    `;
+
+    document.body.appendChild(modal);
+
+    document.getElementById('closePdfBtn').onclick = () => {
+      modal.remove();
+    };
+
+    document.getElementById('pdfOverlay').onclick = (e) => {
+      if(e.target.id === 'pdfOverlay') modal.remove();
+    };
+  }
+
+  document.getElementById('pdfFrame').src = p;
 }
 /* ════ LIGHTBOX ════ */
 function openLB(src){
