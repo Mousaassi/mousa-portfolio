@@ -1540,7 +1540,12 @@ fd.append('file', f);
 fd.append('upload_preset', 'cv_pdf_upload');
 fd.append('folder', 'portfolio_pdfs');
 
-const cleanName = f.name.replace(/\.[^/.]+$/, '');
+const cleanName = f.name
+  .replace(/\.[^/.]+$/, '')       // حذف الامتداد
+  .replace(/[^\w\-]+/g, '_')      // تحويل الرموز والمسافات إلى _
+  .replace(/_+/g, '_')            // منع تكرار _
+  .replace(/^_|_$/g, '');         // حذف _ من البداية والنهاية
+
 fd.append('public_id', cleanName);
 
     try{
