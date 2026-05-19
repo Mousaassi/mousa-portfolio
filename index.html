@@ -1534,15 +1534,14 @@ function uploadPDF(i){
 
     showSync('saving','☁ Uploading PDF…');
 
-    const fd = new FormData();
+   const fd = new FormData();
 
-    fd.append('file', f);
-    fd.append('upload_preset', 'cv_pdf_upload');
-    fd.append('folder', 'portfolio_pdfs');
+fd.append('file', f);
+fd.append('upload_preset', 'cv_pdf_upload');
+fd.append('folder', 'portfolio_pdfs');
 
-    const cleanName = f.name.replace(/\.pdf$/i, '');
-    fd.append('public_id', cleanName);
-    fd.append('overwrite', 'true');
+const cleanName = f.name.replace(/\.[^/.]+$/, '');
+fd.append('public_id', cleanName);
 
     try{
       const res = await fetch(
