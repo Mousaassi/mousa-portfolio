@@ -1532,16 +1532,36 @@ function uploadPDF(i){
     fd.append('file', f, f.name);
     fd.append('upload_preset', preset);
     fd.append('folder','portfolio_pdfs');
-    // resource_type=raw مهم جداً للـ PDF
+    fd.append('resource_type','raw');
     try{
-      const res=await fetch(
+      // جرب raw أولاً
+      let res = await fetch(
         `https://api.cloudinary.com/v1_1/${cloud}/raw/upload`,
         {method:'POST', body:fd}
       );
-      const data=await res.json();
-      if(!data.secure_url) throw new Error('No URL: '+JSON.stringify(data));
-      window.D.proj[i].pdf=data.secure_url;
-      window.D.proj[i].pdfName=f.name;
+      let data = await res.json();
+      
+      // إذا فشل جرب auto
+      if(!data.secure_url){
+        const fd2=new FormData();
+        fd2.append('file', f, f.name);
+        fd2.append('upload_preset', preset);
+        fd2.append('folder','portfolio_pdfs');
+        res = await fetch(
+          `https://api.cloudinary.com/v1_1/${cloud}/auto/upload`,
+          {method:'POST', body:fd2}
+        );
+        data = await res.json();
+      }
+      
+      if(!data.secure_url) throw new Error(data.error?.message || 'Upload failed');
+      
+      // تأكد إن الرابط نهايته .pdf
+      let pdfUrl = data.secure_url;
+      if(!pdfUrl.endsWith('.pdf')) pdfUrl = pdfUrl + '.pdf';
+      
+      window.D.proj[i].pdf = pdfUrl;
+      window.D.proj[i].pdfName = f.name;
       saveD(); buildProjEd(); render();
       if(window._saveToFirebase) window._saveToFirebase();
       showSync('synced','✓ PDF uploaded!');
@@ -1551,27 +1571,37 @@ function uploadPDF(i){
   };
   inp.click();
 }
-function removePDF(i){window.D.proj[i].pdf='';window.D.proj[i].pdfName='';saveD();buildProjEd();render();}
+function removePDF(i){
+  window.D.proj[i].pdf='';
+  window.D.proj[i].pdfName='';
+  saveD();buildProjEd();render();
+}
+
 function openPDF(i){
   const p = window.D.proj[i] && window.D.proj[i].pdf;
   if(!p) return;
   
-  let url = p;
+  if(p.startsWith('data:')){
+    // Base64 — افتح في iframe
+    const win = window.open('');
+    win.document.write(`
+      <!DOCTYPE html><html><head><title>PDF</title></head>
+      <body style="margin:0">
+        <iframe src="${p}" style="width:100vw;height:100vh;border:none;"></iframe>
+      </body></html>
+    `);
+    return;
+  }
   
   if(p.includes('cloudinary.com')){
-    // Convert to viewer-friendly URL
-    url = p
-      .replace('/upload/', '/upload/fl_attachment:false/')
-      .replace('.pdf', '.pdf');
-    // Force open as PDF viewer
-    window.open(url, '_blank', 'noopener,noreferrer');
-  } else if(p.startsWith('data:')){
-    // Base64 PDF
-    const win = window.open('', '_blank');
-    win.document.write(`<iframe src="${p}" style="width:100%;height:100vh;border:none;"></iframe>`);
-  } else {
-    window.open(url, '_blank', 'noopener,noreferrer');
+    // استخدم Google Docs viewer كـ fallback موثوق
+    const viewer = `https://docs.google.com/viewer?url=${encodeURIComponent(p)}&embedded=false`;
+    window.open(viewer, '_blank', 'noopener,noreferrer');
+    return;
   }
+  
+  // رابط عادي
+  window.open(p, '_blank', 'noopener,noreferrer');
 }
 /* ════ LIGHTBOX ════ */
 function openLB(src){
