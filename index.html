@@ -1522,45 +1522,26 @@ function removeCertImg(idx){window.D.certs[idx].img='';saveD();buildCertEd();ren
 
 /* ════ PDF ════ */
 function uploadPDF(i){
-  const cloud=window.CLOUDINARY_CLOUD, preset=window.CLOUDINARY_PRESET;
-  const inp=document.createElement('input');
-  inp.type='file'; inp.accept='application/pdf';
-  inp.onchange=async e=>{
-    const f=e.target.files[0]; if(!f) return;
+  const cloud = window.CLOUDINARY_CLOUD;
+  
+  const inp = document.createElement('input');
+  inp.type = 'file'; 
+  inp.accept = 'application/pdf';
+  inp.onchange = async e => {
+    const f = e.target.files[0]; if(!f) return;
     showSync('saving','☁ Uploading PDF…');
-    const fd=new FormData();
+    const fd = new FormData();
     fd.append('file', f, f.name);
-    fd.append('upload_preset', preset);
-    fd.append('folder','portfolio_pdfs');
-    fd.append('resource_type','raw');
+    fd.append('upload_preset', 'cv_pdf_upload'); // الـ preset الجديد
+    fd.append('folder', 'portfolio_pdfs');
     try{
-      // جرب raw أولاً
-      let res = await fetch(
+      const res = await fetch(
         `https://api.cloudinary.com/v1_1/${cloud}/raw/upload`,
         {method:'POST', body:fd}
       );
-      let data = await res.json();
-      
-      // إذا فشل جرب auto
-      if(!data.secure_url){
-        const fd2=new FormData();
-        fd2.append('file', f, f.name);
-        fd2.append('upload_preset', preset);
-        fd2.append('folder','portfolio_pdfs');
-        res = await fetch(
-          `https://api.cloudinary.com/v1_1/${cloud}/auto/upload`,
-          {method:'POST', body:fd2}
-        );
-        data = await res.json();
-      }
-      
+      const data = await res.json();
       if(!data.secure_url) throw new Error(data.error?.message || 'Upload failed');
-      
-      // تأكد إن الرابط نهايته .pdf
-      let pdfUrl = data.secure_url;
-      if(!pdfUrl.endsWith('.pdf')) pdfUrl = pdfUrl + '.pdf';
-      
-      window.D.proj[i].pdf = pdfUrl;
+      window.D.proj[i].pdf = data.secure_url;
       window.D.proj[i].pdfName = f.name;
       saveD(); buildProjEd(); render();
       if(window._saveToFirebase) window._saveToFirebase();
