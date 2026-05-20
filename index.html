@@ -1245,12 +1245,12 @@ function filterProjects(){
   if(clr)clr.style.display=(anyHidden||q||_projYearFilter)?'block':'none';
 }
 // Hook into render
-(function(){
-  const orig=window.render;
-  window.render=function(){
-    orig.apply(this,arguments);
-    setTimeout(buildProjFilters, 100);
-  };
+(function waitProjData(){
+  if(window.D && window.D.proj && window.D.proj.length){
+    buildProjFilters();
+    return;
+  }
+  setTimeout(waitProjData, 200);
 })();
 /* ════ SYNC ════ */
 let _sT;
