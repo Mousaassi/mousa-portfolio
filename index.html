@@ -1859,11 +1859,6 @@ let lks=``;
   const GL2=(obj,fb)=>obj?((obj[lang]||obj.en)||fb):fb;
   document.getElementById('ctTitle').textContent=GL2(ctS.title,cDef.t);
   document.getElementById('ctDesc').textContent=GL2(ctS.desc,cDef.d);
-  document.getElementById('lbFN').textContent=GL2(ctS.fn,cDef.fn);
-  document.getElementById('lbLN').textContent=GL2(ctS.ln,cDef.ln);
-  document.getElementById('lbPH').textContent=GL2(ctS.ph,cDef.ph);
-  document.getElementById('lbMS').textContent=GL2(ctS.ms,cDef.ms);
-  document.getElementById('cfBtnTxt').textContent=GL2(ctS.sb,cDef.sb);
   document.getElementById('ctDet').innerHTML=`
     <div class="cdet-row">${SI.mail}<a href="mailto:${h.email||''}">${h.email||''}</a></div>
     <div class="cdet-row">${SI.phone}<span>${h.phone||''}</span></div>
