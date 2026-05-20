@@ -225,6 +225,15 @@ window._firebaseReady = true;
 </script>
 
 <style>
+.proj-filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
+.proj-search{flex:1;min-width:180px;padding:9px 16px;background:var(--sf);border:1px solid var(--bd);border-radius:50px;color:var(--tx);font-family:var(--fb);font-size:.84rem;outline:none;transition:border-color .2s;}
+.proj-search:focus{border-color:var(--ac);}
+.proj-year-filters{display:flex;gap:6px;flex-wrap:wrap;}
+.pf-btn{padding:5px 13px;background:var(--s2);border:1px solid var(--bd);border-radius:50px;font-family:var(--fm);font-size:.72rem;color:var(--td);cursor:pointer;transition:var(--tr);}
+.pf-btn:hover,.pf-btn.active{background:var(--ac);border-color:var(--ac);color:var(--bg);font-weight:600;}
+.proj-filter-clear{padding:5px 14px;background:transparent;border:1px solid var(--bd);border-radius:50px;color:var(--tm);font-size:.74rem;cursor:pointer;transition:var(--tr);}
+.proj-filter-clear:hover{border-color:#e87a7a;color:#e87a7a;}
+.pc.hidden-proj{display:none;}
 .quicktheme-btn{width:36px;height:36px;border-radius:50%;background:var(--s2);border:1px solid var(--bd);color:var(--td);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr);flex-shrink:0;}
 .quicktheme-btn:hover{border-color:var(--ac);color:var(--ac);transform:rotate(20deg);}
 :root{--r:14px;--fd:'Playfair Display',serif;--fb:'DM Sans',sans-serif;--fm:'JetBrains Mono',monospace;--tr:all .25s cubic-bezier(.4,0,.2,1);}
@@ -854,7 +863,13 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 <div class="sdiv"></div>
 <div class="sec fade-in" id="sec-edu"><div class="sh"><span class="sn">01</span><h2 class="st" id="tEdu"></h2><div class="sl"></div></div><div class="edu-grid" id="eduGrid"></div></div>
 <div class="sdiv"></div>
-<div class="sec fade-in" id="sec-proj"><div class="sh"><span class="sn">02</span><h2 class="st" id="tProj"></h2><div class="sl"></div></div><div class="pgrid" id="projGrid"></div></div>
+<div class="sec fade-in" id="sec-proj"><div class="sh"><span class="sn">02</span><h2 class="st" id="tProj"></h2><div class="sl"></div></div>
+  <div class="proj-filter-bar" id="projFilterBar">
+  <input class="proj-search" id="projSearch" placeholder="🔍 Search projects…" oninput="filterProjects()">
+  <div class="proj-year-filters" id="projYearFilters"></div>
+  <button class="proj-filter-clear" id="projFilterClear" onclick="clearProjFilter()" style="display:none">✕ Clear</button>
+</div>
+  <div class="pgrid" id="projGrid"></div></div>
 <div class="sdiv"></div>
 <div class="sec fade-in" id="sec-exp"><div class="sh"><span class="sn">03</span><h2 class="st" id="tExp">></h2><div class="sl"></div></div><div class="exp-list" id="expList"></div></div>
 <div class="sdiv"></div>
@@ -1199,6 +1214,44 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 </div>
 
 <script>
+  let _projYearFilter = null;
+function buildProjFilters(){
+  const years=[...new Set((window.D.proj||[]).map(p=>p.year).filter(Boolean))].sort();
+  const el=document.getElementById('projYearFilters');
+  if(el) el.innerHTML=years.map(y=>`<button class="pf-btn${_projYearFilter===y?' active':''}" onclick="setProjFilter('${y}')">${y}</button>`).join('');
+}
+function setProjFilter(yr){
+  _projYearFilter=_projYearFilter===yr?null:yr;
+  buildProjFilters();filterProjects();
+}
+function clearProjFilter(){
+  _projYearFilter=null;
+  const s=document.getElementById('projSearch');if(s)s.value='';
+  buildProjFilters();filterProjects();
+}
+function filterProjects(){
+  const q=(document.getElementById('projSearch')?.value||'').toLowerCase();
+  const cards=document.querySelectorAll('#projGrid .pc');
+  let anyHidden=false;
+  cards.forEach((card,i)=>{
+    const proj=(window.D.proj||[])[i];if(!proj){card.classList.remove('hidden-proj');return;}
+    const matchQ=!q||JSON.stringify(proj).toLowerCase().includes(q);
+    const matchY=!_projYearFilter||proj.year===_projYearFilter;
+    const hide=!matchQ||!matchY;
+    card.classList.toggle('hidden-proj',hide);
+    if(hide)anyHidden=true;
+  });
+  const clr=document.getElementById('projFilterClear');
+  if(clr)clr.style.display=(anyHidden||q||_projYearFilter)?'block':'none';
+}
+// Hook into render
+(function(){
+  const orig=window.render;
+  window.render=function(){
+    orig.apply(this,arguments);
+    requestAnimationFrame(buildProjFilters);
+  };
+})();
 /* ════ SYNC ════ */
 let _sT;
 function showSync(s,m){
