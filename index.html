@@ -225,30 +225,6 @@ window._firebaseReady = true;
 </script>
 
 <style>
-@keyframes floatIn{from{opacity:0;transform:translateY(16px) scale(.85)}to{opacity:1;transform:none}}
-@keyframes floatItemIn{from{opacity:0;transform:scale(.6) translateY(10px)}to{opacity:1;transform:none}}
-.float-contact{position:fixed;bottom:28px;right:24px;z-index:8000;display:flex;flex-direction:column;align-items:center;gap:10px;animation:floatIn .6s cubic-bezier(.34,1.2,.64,1) both;}
-.float-main{width:52px;height:52px;border-radius:50%;background:var(--ac);border:none;color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.35);transition:transform .25s,box-shadow .25s;position:relative;}
-.float-main:hover{transform:scale(1.1);box-shadow:0 8px 28px rgba(0,0,0,.4);}
-.float-main::before{content:'';position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--ac);opacity:.35;animation:availPulse 2s infinite;}
-.float-menu{display:flex;flex-direction:column;gap:8px;align-items:center;overflow:hidden;max-height:0;transition:max-height .35s cubic-bezier(.4,0,.2,1);}
-.float-menu.open{max-height:120px;}
-.float-item{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,.3);transition:transform .2s,box-shadow .2s;animation:floatItemIn .3s ease both;}
-.float-item:hover{transform:scale(1.12);}
-.float-wa{background:#25D366;color:#fff;}
-.float-tg{background:#0088cc;color:#fff;}
-.float-contact.hide{transform:translateY(90px);opacity:0;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s;}
-.proj-filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:24px;flex-wrap:wrap;}
-.proj-search{flex:1;min-width:180px;padding:9px 16px;background:var(--sf);border:1px solid var(--bd);border-radius:50px;color:var(--tx);font-family:var(--fb);font-size:.84rem;outline:none;transition:border-color .2s;}
-.proj-search:focus{border-color:var(--ac);}
-.proj-year-filters{display:flex;gap:6px;flex-wrap:wrap;}
-.pf-btn{padding:5px 13px;background:var(--s2);border:1px solid var(--bd);border-radius:50px;font-family:var(--fm);font-size:.72rem;color:var(--td);cursor:pointer;transition:var(--tr);}
-.pf-btn:hover,.pf-btn.active{background:var(--ac);border-color:var(--ac);color:var(--bg);font-weight:600;}
-.proj-filter-clear{padding:5px 14px;background:transparent;border:1px solid var(--bd);border-radius:50px;color:var(--tm);font-size:.74rem;cursor:pointer;transition:var(--tr);}
-.proj-filter-clear:hover{border-color:#e87a7a;color:#e87a7a;}
-.pc.hidden-proj{display:none;}
-.quicktheme-btn{width:36px;height:36px;border-radius:50%;background:var(--s2);border:1px solid var(--bd);color:var(--td);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr);flex-shrink:0;}
-.quicktheme-btn:hover{border-color:var(--ac);color:var(--ac);transform:rotate(20deg);}
 :root{--r:14px;--fd:'Playfair Display',serif;--fb:'DM Sans',sans-serif;--fm:'JetBrains Mono',monospace;--tr:all .25s cubic-bezier(.4,0,.2,1);}
 [data-theme="dark"]  {--bg:#0a0a0f;--sf:#111118;--s2:#1a1a26;--bd:#2a2a40;--ac:#e8c87a;--a2:#7a9ee8;--a3:#e87a9e;--tx:#e8e8f0;--td:#8888a8;--tm:#55556a;--hb:rgba(10,10,15,.9);--gl:rgba(232,200,122,.12);}
 [data-theme="light"] {--bg:#f5f4f0;--sf:#fff;--s2:#f0ede8;--bd:#d8d4cc;--ac:#b8860b;--a2:#3a6ab8;--a3:#c0305c;--tx:#1a1814;--td:#5a5650;--tm:#9a9690;--hb:rgba(245,244,240,.93);--gl:rgba(184,134,11,.08);}
@@ -794,9 +770,6 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 <header>
   <div style="display:flex;align-items:center;gap:10px;">
     <div class="logo" id="logoBtn">MA</div>
-    <button class="quicktheme-btn" id="quickThemeBtn" onclick="quickToggleTheme()" title="Toggle Dark/Light">
-  <svg id="qtIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
-</button>
   </div>
   <nav class="sec-nav" id="secNav">
   <a href="#sec-edu" class="snav-lnk" data-key="edu">Education</a>
@@ -876,13 +849,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 <div class="sdiv"></div>
 <div class="sec fade-in" id="sec-edu"><div class="sh"><span class="sn">01</span><h2 class="st" id="tEdu"></h2><div class="sl"></div></div><div class="edu-grid" id="eduGrid"></div></div>
 <div class="sdiv"></div>
-<div class="sec fade-in" id="sec-proj"><div class="sh"><span class="sn">02</span><h2 class="st" id="tProj"></h2><div class="sl"></div></div>
-  <div class="proj-filter-bar" id="projFilterBar">
-  <input class="proj-search" id="projSearch" placeholder="🔍 Search projects…" oninput="filterProjects()">
-  <div class="proj-year-filters" id="projYearFilters"></div>
-  <button class="proj-filter-clear" id="projFilterClear" onclick="clearProjFilter()" style="display:none">✕ Clear</button>
-</div>
-  <div class="pgrid" id="projGrid"></div></div>
+<div class="sec fade-in" id="sec-proj"><div class="sh"><span class="sn">02</span><h2 class="st" id="tProj"></h2><div class="sl"></div></div><div class="pgrid" id="projGrid"></div></div>
 <div class="sdiv"></div>
 <div class="sec fade-in" id="sec-exp"><div class="sh"><span class="sn">03</span><h2 class="st" id="tExp">></h2><div class="sl"></div></div><div class="exp-list" id="expList"></div></div>
 <div class="sdiv"></div>
@@ -911,6 +878,20 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
         <p id="ctDesc">Have a project in mind or want to collaborate? Send me a message and I'll get back to you soon.</p>
         <div class="cdet" id="ctDet"></div>
       </div>
+      <form class="cform" id="contactForm" onsubmit="submitContact(event)">
+        <div class="cf-row">
+          <div class="cfg"><label class="cfl" id="lbFN">First Name</label><input class="cfi" id="cfFirst" required placeholder="Mousa"></div>
+          <div class="cfg"><label class="cfl" id="lbLN">Last Name</label><input class="cfi" id="cfLast" required placeholder="Assi"></div>
+        </div>
+        <div class="cfg"><label class="cfl" id="lbPH">Phone (optional)</label><input class="cfi" id="cfPhone" type="tel" placeholder="+90 555 ..."></div>
+        <div class="cfg"><label class="cfl" id="lbMS">Message</label><textarea class="cfta" id="cfMsg" required placeholder="Your message…"></textarea></div>
+        <div class="cf-er" id="cfErr"></div>
+        <div class="cf-ok" id="cfOk">✓ Message sent successfully!</div>
+        <button class="cfsub" type="submit" id="cfBtn">
+          <span class="cfspin" id="cfSpin"></span>
+          <span id="cfBtnTxt">Send Message</span>
+        </button>
+      </form>
     </div>
   </div>
 </div>
@@ -1114,9 +1095,38 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <div class="ef"><label class="el">Description EN</label><textarea class="eta" id="eCtDescEN"></textarea></div>
           <div class="ef"><label class="el">Description TR</label><textarea class="eta" id="eCtDescTR"></textarea></div>
           <div class="ef"><label class="el">Description AR</label><textarea class="eta" id="eCtDescAR" dir="rtl"></textarea></div>
+          <div style="border-top:1px solid var(--bd);padding-top:14px;margin-top:6px;">
+            <label class="el" style="margin-bottom:10px;display:block;">Form Labels (EN / TR / AR)</label>
+            <div class="thr">
+              <div class="ef"><label class="el">First Name EN</label><input class="ei" id="eCtFnEN" placeholder="First Name"></div>
+              <div class="ef"><label class="el">First Name TR</label><input class="ei" id="eCtFnTR" placeholder="Ad"></div>
+              <div class="ef"><label class="el">First Name AR</label><input class="ei" id="eCtFnAR" dir="rtl" placeholder="الاسم الأول"></div>
+            </div>
+            <div class="thr">
+              <div class="ef"><label class="el">Last Name EN</label><input class="ei" id="eCtLnEN" placeholder="Last Name"></div>
+              <div class="ef"><label class="el">Last Name TR</label><input class="ei" id="eCtLnTR" placeholder="Soyad"></div>
+              <div class="ef"><label class="el">Last Name AR</label><input class="ei" id="eCtLnAR" dir="rtl" placeholder="الاسم الأخير"></div>
+            </div>
+            <div class="thr">
+              <div class="ef"><label class="el">Phone Label EN</label><input class="ei" id="eCtPhEN" placeholder="Phone (optional)"></div>
+              <div class="ef"><label class="el">Phone Label TR</label><input class="ei" id="eCtPhTR" placeholder="Telefon (isteğe bağlı)"></div>
+              <div class="ef"><label class="el">Phone Label AR</label><input class="ei" id="eCtPhAR" dir="rtl" placeholder="الهاتف (اختياري)"></div>
+            </div>
+            <div class="thr">
+              <div class="ef"><label class="el">Message Label EN</label><input class="ei" id="eCtMsEN" placeholder="Message"></div>
+              <div class="ef"><label class="el">Message Label TR</label><input class="ei" id="eCtMsTR" placeholder="Mesaj"></div>
+              <div class="ef"><label class="el">Message Label AR</label><input class="ei" id="eCtMsAR" dir="rtl" placeholder="الرسالة"></div>
+            </div>
+            <div class="thr">
+              <div class="ef"><label class="el">Send Button EN</label><input class="ei" id="eCtSbEN" placeholder="Send Message"></div>
+              <div class="ef"><label class="el">Send Button TR</label><input class="ei" id="eCtSbTR" placeholder="Gönder"></div>
+              <div class="ef"><label class="el">Send Button AR</label><input class="ei" id="eCtSbAR" dir="rtl" placeholder="إرسال"></div>
+            </div>
+          </div>
           <button class="sbtn" onclick="saveContact()" type="button">Save Contact</button>
           <p class="sok" id="contactOk">✓ Saved — press ☁ Sync</p>
         </div>
+
         <!-- DEEP DIVE PANEL -->
         <div class="ep" id="epDeepDive">
           <div class="cinfo-box">
@@ -1184,79 +1194,6 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 </div>
 
 <script>
- (function(){
-  let floatOpen=false;
-  let lastY=window.scrollY;
-  const btn=document.getElementById('floatContact');
-  // Set links from D.hero (phone for WhatsApp, social for Telegram)
-  function updateFloatLinks(){
-  const h=window.D&&window.D.hero;
-  const phone=(h&&h.phone||'').replace(/\D/g,'');
-  const wa=document.getElementById('floatWA');
-  const tg=document.getElementById('floatTG');
-  const mail=document.getElementById('floatMail');
-
-  if(wa&&phone) wa.href=`https://wa.me/${phone}`;
-
-  const tgLink=(window.D&&window.D.social||[]).find(s=>s.icon==='telegram');
-  if(tg&&tgLink) tg.href=tgLink.url;
-  else if(tg) tg.href='#';
-
-  if(mail && h && h.email) mail.href=`mailto:${h.email}`;
-  else if(mail) mail.href='#';
-}
-  window.toggleFloat=function(){
-    floatOpen=!floatOpen;
-    document.getElementById('floatMenu').classList.toggle('open',floatOpen);
-  };
-  window.addEventListener('scroll',()=>{
-    if(!btn)return;
-    const dir=window.scrollY<lastY;lastY=window.scrollY;
-    btn.classList.toggle('hide',!dir&&window.scrollY>200);
-  },{passive:true});
-  // Hook into render to update links
-  const orig=window.render;
-  window.render=function(){orig.apply(this,arguments);updateFloatLinks();};
-  updateFloatLinks();
-})(); 
-let _projYearFilter = null;
-function buildProjFilters(){
-  const years=[...new Set((window.D.proj||[]).map(p=>p.year).filter(Boolean))].sort();
-  const el=document.getElementById('projYearFilters');
-  if(el) el.innerHTML=years.map(y=>`<button class="pf-btn${_projYearFilter===y?' active':''}" onclick="setProjFilter('${y}')">${y}</button>`).join('');
-}
-function setProjFilter(yr){
-  _projYearFilter=_projYearFilter===yr?null:yr;
-  buildProjFilters();filterProjects();
-}
-function clearProjFilter(){
-  _projYearFilter=null;
-  const s=document.getElementById('projSearch');if(s)s.value='';
-  buildProjFilters();filterProjects();
-}
-function filterProjects(){
-  const q=(document.getElementById('projSearch')?.value||'').toLowerCase();
-  const cards=document.querySelectorAll('#projGrid .pc');
-  let anyHidden=false;
-  cards.forEach((card,i)=>{
-    const proj=(window.D.proj||[])[i];if(!proj){card.classList.remove('hidden-proj');return;}
-    const matchQ=!q||JSON.stringify(proj).toLowerCase().includes(q);
-    const matchY=!_projYearFilter||proj.year===_projYearFilter;
-    const hide=!matchQ||!matchY;
-    card.classList.toggle('hidden-proj',hide);
-    if(hide)anyHidden=true;
-  });
-  const clr=document.getElementById('projFilterClear');
-  if(clr)clr.style.display=(anyHidden||q||_projYearFilter)?'block':'none';
-}
-// Hook into render
-(function waitProjData(){
-  if(window.D && window.D.proj && window.D.proj.length){
-    buildProjFilters();
-    return;
-  }
-  setTimeout(waitProjData, 200);
-})();
 /* ════ SYNC ════ */
 let _sT;
 function showSync(s,m){
@@ -1287,17 +1224,6 @@ function applyTheme(id){
   CT=id;document.documentElement.setAttribute('data-theme',id);localStorage.setItem('ma_theme',id);
   document.querySelectorAll('.tsw').forEach(s=>s.classList.remove('active'));
   const sw=document.getElementById('sw_'+id);if(sw)sw.classList.add('active');closeTP();
-}
-function quickToggleTheme(){
-  const next = CT === 'dark' ? 'light' : CT === 'light' ? 'dark' : 'dark';
-  applyTheme(next);
-  const icon = document.getElementById('qtIcon');
-  if(icon){
-    const isSun = next === 'light';
-    icon.innerHTML = isSun
-      ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'  // moon
-      : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>';
-  }
 }
 function toggleTP(){document.getElementById('themePanel').classList.toggle('open');}
 function closeTP(){document.getElementById('themePanel').classList.remove('open');}
@@ -1744,6 +1670,37 @@ function closeLB(e){
   document.getElementById('lightbox').classList.remove('open');
   document.body.style.overflow='';
 }
+
+/* ════ CONTACT ════ */
+async function submitContact(e){
+  e.preventDefault();
+  const first=document.getElementById('cfFirst').value.trim();
+  const last=document.getElementById('cfLast').value.trim();
+  const phone=document.getElementById('cfPhone').value.trim();
+  const msg=document.getElementById('cfMsg').value.trim();
+  if(!first||!last||!msg){
+    const er=document.getElementById('cfErr');er.textContent='Please fill in all required fields.';er.classList.add('show');
+    setTimeout(()=>er.classList.remove('show'),4000);return;
+  }
+  const btn=document.getElementById('cfBtn'),spin=document.getElementById('cfSpin'),txt=document.getElementById('cfBtnTxt');
+  btn.disabled=true;spin.classList.add('show');
+  txt.textContent=lang==='ar'?'جاري الإرسال…':lang==='tr'?'Gönderiliyor…':'Sending…';
+  let ok=false;
+  if(window._saveContactMsg){ok=await window._saveContactMsg(first,last,phone,msg);}
+  spin.classList.remove('show');
+  if(ok){
+    document.getElementById('cfOk').classList.add('show');
+    document.getElementById('cfFirst').value='';document.getElementById('cfLast').value='';
+    document.getElementById('cfPhone').value='';document.getElementById('cfMsg').value='';
+    setTimeout(()=>document.getElementById('cfOk').classList.remove('show'),6000);
+  }else{
+    const er=document.getElementById('cfErr');er.textContent='Could not send. Please email directly: mousaassi.swi@gmail.com';
+    er.classList.add('show');setTimeout(()=>er.classList.remove('show'),7000);
+  }
+  btn.disabled=false;
+  txt.textContent=lang==='ar'?'إرسال الرسالة':lang==='tr'?'Gönder':'Send Message';
+}
+
 /* ════ RENDER ════ */
 function GL(o,fb){if(!o)return fb||'';if(typeof o==='string')return o;return o[lang]||o.en||o.tr||o.ar||fb||'';}
 
@@ -1835,6 +1792,11 @@ let lks=``;
   const GL2=(obj,fb)=>obj?((obj[lang]||obj.en)||fb):fb;
   document.getElementById('ctTitle').textContent=GL2(ctS.title,cDef.t);
   document.getElementById('ctDesc').textContent=GL2(ctS.desc,cDef.d);
+  document.getElementById('lbFN').textContent=GL2(ctS.fn,cDef.fn);
+  document.getElementById('lbLN').textContent=GL2(ctS.ln,cDef.ln);
+  document.getElementById('lbPH').textContent=GL2(ctS.ph,cDef.ph);
+  document.getElementById('lbMS').textContent=GL2(ctS.ms,cDef.ms);
+  document.getElementById('cfBtnTxt').textContent=GL2(ctS.sb,cDef.sb);
   document.getElementById('ctDet').innerHTML=`
     <div class="cdet-row">${SI.mail}<a href="mailto:${h.email||''}">${h.email||''}</a></div>
     <div class="cdet-row">${SI.phone}<span>${h.phone||''}</span></div>
@@ -2165,6 +2127,27 @@ document.getElementById('eTWar').value=((h.subtitleTexts&&h.subtitleTexts.ar)||[
   if(cvPrev)cvPrev.innerHTML=`<a href="${h.cvEnUrl||'cv-en.pdf'}" class="slink" style="pointer-events:none;opacity:.7">${h.cvEnLbl||'📄 Download CV (EN)'}</a><a href="${h.cvTrUrl||'cv-tr.pdf'}" class="slink" style="pointer-events:none;opacity:.7">${h.cvTrLbl||'📄 CV (TR)'}</a>`;
   // Contact
   const ct2=window.D.contact||{};
+  document.getElementById('eCtTitleEN').value=(ct2.title&&ct2.title.en)||'Get In Touch';
+  document.getElementById('eCtTitleTR').value=(ct2.title&&ct2.title.tr)||'İletişime Geç';
+  document.getElementById('eCtTitleAR').value=(ct2.title&&ct2.title.ar)||'تواصل معي';
+  document.getElementById('eCtDescEN').value=(ct2.desc&&ct2.desc.en)||'Have a project in mind or want to collaborate? Send me a message.';
+  document.getElementById('eCtDescTR').value=(ct2.desc&&ct2.desc.tr)||'Bir projeniz mi var? Mesaj gönderin.';
+  document.getElementById('eCtDescAR').value=(ct2.desc&&ct2.desc.ar)||'هل لديك مشروع؟ أرسل رسالة.';
+  document.getElementById('eCtFnEN').value=(ct2.fn&&ct2.fn.en)||'First Name';
+  document.getElementById('eCtFnTR').value=(ct2.fn&&ct2.fn.tr)||'Ad';
+  document.getElementById('eCtFnAR').value=(ct2.fn&&ct2.fn.ar)||'الاسم الأول';
+  document.getElementById('eCtLnEN').value=(ct2.ln&&ct2.ln.en)||'Last Name';
+  document.getElementById('eCtLnTR').value=(ct2.ln&&ct2.ln.tr)||'Soyad';
+  document.getElementById('eCtLnAR').value=(ct2.ln&&ct2.ln.ar)||'الاسم الأخير';
+  document.getElementById('eCtPhEN').value=(ct2.ph&&ct2.ph.en)||'Phone (optional)';
+  document.getElementById('eCtPhTR').value=(ct2.ph&&ct2.ph.tr)||'Telefon (isteğe bağlı)';
+  document.getElementById('eCtPhAR').value=(ct2.ph&&ct2.ph.ar)||'الهاتف (اختياري)';
+  document.getElementById('eCtMsEN').value=(ct2.ms&&ct2.ms.en)||'Message';
+  document.getElementById('eCtMsTR').value=(ct2.ms&&ct2.ms.tr)||'Mesaj';
+  document.getElementById('eCtMsAR').value=(ct2.ms&&ct2.ms.ar)||'الرسالة';
+  document.getElementById('eCtSbEN').value=(ct2.sb&&ct2.sb.en)||'Send Message';
+  document.getElementById('eCtSbTR').value=(ct2.sb&&ct2.sb.tr)||'Gönder';
+  document.getElementById('eCtSbAR').value=(ct2.sb&&ct2.sb.ar)||'إرسال';
   document.getElementById('editorOverlay').classList.add('active');
 }
 function closeEditor(){document.getElementById('editorOverlay').classList.remove('active');}
@@ -3245,24 +3228,5 @@ function skView(mode, btn) {
   window.render=function(){origRender.apply(this,arguments);updateNavLabels();};
 })();
 </script>
-  <div id="floatContact" class="float-contact">
-  <div class="float-menu" id="floatMenu">
-    <a id="floatWA" href="#" class="float-item float-wa" target="_blank" rel="noopener" title="WhatsApp">
-      <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.107 1.523 5.826L.057 23.857a.5.5 0 0 0 .608.608l6.084-1.47A11.943 11.943 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.843 9.843 0 0 1-5.011-1.371l-.36-.213-3.718.898.914-3.635-.234-.373A9.853 9.853 0 0 1 2.118 12C2.118 6.52 6.52 2.118 12 2.118S21.882 6.52 21.882 12 17.48 21.882 12 21.882z"/></svg>
-    </a>
-    <a id="floatTG" href="#" class="float-item float-tg" target="_blank" rel="noopener" title="Telegram">
-      <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
-    </a>
-    <a id="floatMail" href="#" class="float-item float-mail" target="_blank" rel="noopener" title="Email">
-  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20">
-    <rect x="3" y="5" width="18" height="14" rx="2"></rect>
-    <path d="M3 7l9 6 9-6"></path>
-  </svg>
-</a>
-  </div>
-  <button class="float-main" id="floatMain" onclick="toggleFloat()" title="Contact">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-  </button>
-</div>
 </body>
 </html>
