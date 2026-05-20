@@ -1249,7 +1249,7 @@ function filterProjects(){
   const orig=window.render;
   window.render=function(){
     orig.apply(this,arguments);
-    requestAnimationFrame(buildProjFilters);
+    setTimeout(buildProjFilters, 100);
   };
 })();
 /* ════ SYNC ════ */
