@@ -225,6 +225,8 @@ window._firebaseReady = true;
 </script>
 
 <style>
+.quicktheme-btn{width:36px;height:36px;border-radius:50%;background:var(--s2);border:1px solid var(--bd);color:var(--td);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:var(--tr);flex-shrink:0;}
+.quicktheme-btn:hover{border-color:var(--ac);color:var(--ac);transform:rotate(20deg);}
 :root{--r:14px;--fd:'Playfair Display',serif;--fb:'DM Sans',sans-serif;--fm:'JetBrains Mono',monospace;--tr:all .25s cubic-bezier(.4,0,.2,1);}
 [data-theme="dark"]  {--bg:#0a0a0f;--sf:#111118;--s2:#1a1a26;--bd:#2a2a40;--ac:#e8c87a;--a2:#7a9ee8;--a3:#e87a9e;--tx:#e8e8f0;--td:#8888a8;--tm:#55556a;--hb:rgba(10,10,15,.9);--gl:rgba(232,200,122,.12);}
 [data-theme="light"] {--bg:#f5f4f0;--sf:#fff;--s2:#f0ede8;--bd:#d8d4cc;--ac:#b8860b;--a2:#3a6ab8;--a3:#c0305c;--tx:#1a1814;--td:#5a5650;--tm:#9a9690;--hb:rgba(245,244,240,.93);--gl:rgba(184,134,11,.08);}
@@ -770,6 +772,9 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 <header>
   <div style="display:flex;align-items:center;gap:10px;">
     <div class="logo" id="logoBtn">MA</div>
+    <button class="quicktheme-btn" id="quickThemeBtn" onclick="quickToggleTheme()" title="Toggle Dark/Light">
+  <svg id="qtIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+</button>
   </div>
   <nav class="sec-nav" id="secNav">
   <a href="#sec-edu" class="snav-lnk" data-key="edu">Education</a>
@@ -1224,6 +1229,17 @@ function applyTheme(id){
   CT=id;document.documentElement.setAttribute('data-theme',id);localStorage.setItem('ma_theme',id);
   document.querySelectorAll('.tsw').forEach(s=>s.classList.remove('active'));
   const sw=document.getElementById('sw_'+id);if(sw)sw.classList.add('active');closeTP();
+}
+function quickToggleTheme(){
+  const next = CT === 'dark' ? 'light' : CT === 'light' ? 'dark' : 'dark';
+  applyTheme(next);
+  const icon = document.getElementById('qtIcon');
+  if(icon){
+    const isSun = next === 'light';
+    icon.innerHTML = isSun
+      ? '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>'  // moon
+      : '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/>';
+  }
 }
 function toggleTP(){document.getElementById('themePanel').classList.toggle('open');}
 function closeTP(){document.getElementById('themePanel').classList.remove('open');}
