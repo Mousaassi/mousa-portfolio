@@ -1768,37 +1768,6 @@ function closeLB(e){
   document.getElementById('lightbox').classList.remove('open');
   document.body.style.overflow='';
 }
-
-/* ════ CONTACT ════ */
-async function submitContact(e){
-  e.preventDefault();
-  const first=document.getElementById('cfFirst').value.trim();
-  const last=document.getElementById('cfLast').value.trim();
-  const phone=document.getElementById('cfPhone').value.trim();
-  const msg=document.getElementById('cfMsg').value.trim();
-  if(!first||!last||!msg){
-    const er=document.getElementById('cfErr');er.textContent='Please fill in all required fields.';er.classList.add('show');
-    setTimeout(()=>er.classList.remove('show'),4000);return;
-  }
-  const btn=document.getElementById('cfBtn'),spin=document.getElementById('cfSpin'),txt=document.getElementById('cfBtnTxt');
-  btn.disabled=true;spin.classList.add('show');
-  txt.textContent=lang==='ar'?'جاري الإرسال…':lang==='tr'?'Gönderiliyor…':'Sending…';
-  let ok=false;
-  if(window._saveContactMsg){ok=await window._saveContactMsg(first,last,phone,msg);}
-  spin.classList.remove('show');
-  if(ok){
-    document.getElementById('cfOk').classList.add('show');
-    document.getElementById('cfFirst').value='';document.getElementById('cfLast').value='';
-    document.getElementById('cfPhone').value='';document.getElementById('cfMsg').value='';
-    setTimeout(()=>document.getElementById('cfOk').classList.remove('show'),6000);
-  }else{
-    const er=document.getElementById('cfErr');er.textContent='Could not send. Please email directly: mousaassi.swi@gmail.com';
-    er.classList.add('show');setTimeout(()=>er.classList.remove('show'),7000);
-  }
-  btn.disabled=false;
-  txt.textContent=lang==='ar'?'إرسال الرسالة':lang==='tr'?'Gönder':'Send Message';
-}
-
 /* ════ RENDER ════ */
 function GL(o,fb){if(!o)return fb||'';if(typeof o==='string')return o;return o[lang]||o.en||o.tr||o.ar||fb||'';}
 
