@@ -158,19 +158,6 @@ const projClean = (window.D.proj||[]).map(p => ({
   }
 };
 
-window._saveContactMsg = async (name, surname, phone, message) => {
-  try {
-    await addDoc(collection(db,'contact_messages'), {
-      name, surname, phone, message,
-      sentAt: new Date().toISOString()
-    });
-    return true;
-  } catch(e) {
-    console.error('Contact error:', e);
-    return false;
-  }
-};
-
 window._firebaseLogin = async (email, password) => {
   try {
     await signInWithEmailAndPassword(auth, email, password);
@@ -508,33 +495,6 @@ header{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:
 .sic{width:28px;height:28px;border-radius:7px;background:var(--bd);display:flex;align-items:center;justify-content:center;color:var(--td);}
 .sic svg{width:14px;height:14px;}
 
-.contact-wrap{padding:0 48px 80px;max-width:1200px;margin:0 auto;}
-.contact-box{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:44px 48px;}
-.contact-inner{display:grid;grid-template-columns:1fr 1.4fr;gap:64px;align-items:start;}
-.cinfo-left h3{font-family:var(--fd);font-size:1.6rem;font-weight:700;margin-bottom:14px;}
-.cinfo-left p{font-size:.9rem;color:var(--td);line-height:1.8;margin-bottom:24px;}
-.cdet{display:flex;flex-direction:column;gap:12px;}
-.cdet-row{display:flex;align-items:center;gap:10px;font-size:.83rem;color:var(--td);}
-.cdet-row svg{width:14px;height:14px;color:var(--ac);flex-shrink:0;}
-.cdet-row a{color:var(--td);text-decoration:none;transition:color .2s;}
-.cdet-row a:hover{color:var(--ac);}
-.cform{display:flex;flex-direction:column;gap:14px;}
-.cf-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
-.cfg{display:flex;flex-direction:column;gap:6px;}
-.cfl{font-family:var(--fm);font-size:.67rem;color:var(--td);text-transform:uppercase;letter-spacing:.06em;}
-.cfi,.cfta{width:100%;padding:12px 14px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;color:var(--tx);font-family:var(--fb);font-size:.9rem;outline:none;transition:border-color .2s;}
-.cfi:focus,.cfta:focus{border-color:var(--ac);}
-.cfta{resize:vertical;min-height:100px;}
-.cfsub{padding:13px 28px;background:var(--ac);border:none;border-radius:10px;color:var(--bg);font-family:var(--fb);font-size:.9rem;font-weight:700;cursor:pointer;transition:var(--tr);display:flex;align-items:center;justify-content:center;gap:8px;}
-.cfsub:hover{opacity:.88;transform:translateY(-1px);}
-.cfsub:disabled{opacity:.4;cursor:not-allowed;transform:none;}
-.cfspin{width:14px;height:14px;border:2px solid rgba(0,0,0,.2);border-top-color:var(--bg);border-radius:50%;animation:spin .7s linear infinite;display:none;}
-.cfspin.show{display:block;}
-.cf-ok{display:none;padding:14px;background:rgba(78,203,113,.1);border:1px solid rgba(78,203,113,.3);border-radius:10px;color:#4ecb71;font-size:.85rem;text-align:center;}
-.cf-ok.show{display:block;}
-.cf-er{display:none;padding:10px 14px;background:rgba(232,122,122,.08);border:1px solid rgba(232,122,122,.25);border-radius:8px;color:#e87a7a;font-size:.82rem;}
-.cf-er.show{display:block;}
-
 .fade-in{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease;}
 .fade-in.visible{opacity:1;transform:none;}
 
@@ -868,33 +828,6 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 <div class="sdiv"></div>
 <div class="sec fade-in" id="sec-certs"><div class="sh"><span class="sn">05</span><h2 class="st" id="tCerts"></h2><div class="sl"></div></div><div class="cgrid" id="certGrid"></div></div>
 <div id="customContainer"></div>
-
-<div class="sdiv"></div>
-<div class="contact-wrap fade-in">
-  <div class="contact-box">
-    <div class="contact-inner">
-      <div class="cinfo-left">
-        <h3 id="ctTitle">Get In Touch</h3>
-        <p id="ctDesc">Have a project in mind or want to collaborate? Send me a message and I'll get back to you soon.</p>
-        <div class="cdet" id="ctDet"></div>
-      </div>
-      <form class="cform" id="contactForm" onsubmit="submitContact(event)">
-        <div class="cf-row">
-          <div class="cfg"><label class="cfl" id="lbFN">First Name</label><input class="cfi" id="cfFirst" required placeholder="Mousa"></div>
-          <div class="cfg"><label class="cfl" id="lbLN">Last Name</label><input class="cfi" id="cfLast" required placeholder="Assi"></div>
-        </div>
-        <div class="cfg"><label class="cfl" id="lbPH">Phone (optional)</label><input class="cfi" id="cfPhone" type="tel" placeholder="+90 555 ..."></div>
-        <div class="cfg"><label class="cfl" id="lbMS">Message</label><textarea class="cfta" id="cfMsg" required placeholder="Your message…"></textarea></div>
-        <div class="cf-er" id="cfErr"></div>
-        <div class="cf-ok" id="cfOk">✓ Message sent successfully!</div>
-        <button class="cfsub" type="submit" id="cfBtn">
-          <span class="cfspin" id="cfSpin"></span>
-          <span id="cfBtnTxt">Send Message</span>
-        </button>
-      </form>
-    </div>
-  </div>
-</div>
 
 <footer><p id="footerTxt"></p></footer>
 
