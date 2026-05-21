@@ -889,7 +889,6 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="etab" onclick="eTab('epSoc',this)">🔗 Links</button>
           <button class="etab" onclick="eTab('epCus',this)">➕ Sections</button>
           <button class="etab" onclick="eTab('epCV',this)">📥 CV Links</button>
-          <button class="etab" onclick="eTab('epContact',this)">📞 Contact</button>
           <button class="etab" onclick="eTab('epDeepDive',this)">🔍 Deep Dive</button>
         </div>
       </div>
@@ -1016,50 +1015,6 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="sbtn" onclick="saveCVLinks()" type="button">Save CV Links</button>
           <p class="sok" id="cvOk">✓ Saved — press ☁ Sync</p>
         </div>
-
-        <!-- CONTACT PANEL -->
-        <div class="ep" id="epContact">
-          <div class="cinfo-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>تعديل نصوص قسم التواصل وعناوين الفورم.</div>
-          <div class="thr">
-            <div class="ef"><label class="el">Section Title EN</label><input class="ei" id="eCtTitleEN" placeholder="Get In Touch"></div>
-            <div class="ef"><label class="el">Section Title TR</label><input class="ei" id="eCtTitleTR" placeholder="İletişime Geç"></div>
-            <div class="ef"><label class="el">Section Title AR</label><input class="ei" id="eCtTitleAR" dir="rtl" placeholder="تواصل معي"></div>
-          </div>
-          <div class="ef"><label class="el">Description EN</label><textarea class="eta" id="eCtDescEN"></textarea></div>
-          <div class="ef"><label class="el">Description TR</label><textarea class="eta" id="eCtDescTR"></textarea></div>
-          <div class="ef"><label class="el">Description AR</label><textarea class="eta" id="eCtDescAR" dir="rtl"></textarea></div>
-          <div style="border-top:1px solid var(--bd);padding-top:14px;margin-top:6px;">
-            <label class="el" style="margin-bottom:10px;display:block;">Form Labels (EN / TR / AR)</label>
-            <div class="thr">
-              <div class="ef"><label class="el">First Name EN</label><input class="ei" id="eCtFnEN" placeholder="First Name"></div>
-              <div class="ef"><label class="el">First Name TR</label><input class="ei" id="eCtFnTR" placeholder="Ad"></div>
-              <div class="ef"><label class="el">First Name AR</label><input class="ei" id="eCtFnAR" dir="rtl" placeholder="الاسم الأول"></div>
-            </div>
-            <div class="thr">
-              <div class="ef"><label class="el">Last Name EN</label><input class="ei" id="eCtLnEN" placeholder="Last Name"></div>
-              <div class="ef"><label class="el">Last Name TR</label><input class="ei" id="eCtLnTR" placeholder="Soyad"></div>
-              <div class="ef"><label class="el">Last Name AR</label><input class="ei" id="eCtLnAR" dir="rtl" placeholder="الاسم الأخير"></div>
-            </div>
-            <div class="thr">
-              <div class="ef"><label class="el">Phone Label EN</label><input class="ei" id="eCtPhEN" placeholder="Phone (optional)"></div>
-              <div class="ef"><label class="el">Phone Label TR</label><input class="ei" id="eCtPhTR" placeholder="Telefon (isteğe bağlı)"></div>
-              <div class="ef"><label class="el">Phone Label AR</label><input class="ei" id="eCtPhAR" dir="rtl" placeholder="الهاتف (اختياري)"></div>
-            </div>
-            <div class="thr">
-              <div class="ef"><label class="el">Message Label EN</label><input class="ei" id="eCtMsEN" placeholder="Message"></div>
-              <div class="ef"><label class="el">Message Label TR</label><input class="ei" id="eCtMsTR" placeholder="Mesaj"></div>
-              <div class="ef"><label class="el">Message Label AR</label><input class="ei" id="eCtMsAR" dir="rtl" placeholder="الرسالة"></div>
-            </div>
-            <div class="thr">
-              <div class="ef"><label class="el">Send Button EN</label><input class="ei" id="eCtSbEN" placeholder="Send Message"></div>
-              <div class="ef"><label class="el">Send Button TR</label><input class="ei" id="eCtSbTR" placeholder="Gönder"></div>
-              <div class="ef"><label class="el">Send Button AR</label><input class="ei" id="eCtSbAR" dir="rtl" placeholder="إرسال"></div>
-            </div>
-          </div>
-          <button class="sbtn" onclick="saveContact()" type="button">Save Contact</button>
-          <p class="sok" id="contactOk">✓ Saved — press ☁ Sync</p>
-        </div>
-
         <!-- DEEP DIVE PANEL -->
         <div class="ep" id="epDeepDive">
           <div class="cinfo-box">
@@ -1897,21 +1852,6 @@ function saveCVLinks(){
   const prev=document.getElementById('cvPreview');
   if(prev)prev.innerHTML=`<a href="${h.cvEnUrl}" class="slink" style="pointer-events:none;opacity:.7">${h.cvEnLbl}</a><a href="${h.cvTrUrl}" class="slink" style="pointer-events:none;opacity:.7">${h.cvTrLbl}</a>`;
 }
-
-/* ════ CONTACT SECTION SAVE ════ */
-function saveContact(){
-  if(!window.D.contact)window.D.contact={};
-  const c=window.D.contact;
-  c.title={en:document.getElementById('eCtTitleEN').value,tr:document.getElementById('eCtTitleTR').value,ar:document.getElementById('eCtTitleAR').value};
-  c.desc ={en:document.getElementById('eCtDescEN').value, tr:document.getElementById('eCtDescTR').value, ar:document.getElementById('eCtDescAR').value};
-  c.fn   ={en:document.getElementById('eCtFnEN').value,   tr:document.getElementById('eCtFnTR').value,   ar:document.getElementById('eCtFnAR').value};
-  c.ln   ={en:document.getElementById('eCtLnEN').value,   tr:document.getElementById('eCtLnTR').value,   ar:document.getElementById('eCtLnAR').value};
-  c.ph   ={en:document.getElementById('eCtPhEN').value,   tr:document.getElementById('eCtPhTR').value,   ar:document.getElementById('eCtPhAR').value};
-  c.ms   ={en:document.getElementById('eCtMsEN').value,   tr:document.getElementById('eCtMsTR').value,   ar:document.getElementById('eCtMsAR').value};
-  c.sb   ={en:document.getElementById('eCtSbEN').value,   tr:document.getElementById('eCtSbTR').value,   ar:document.getElementById('eCtSbAR').value};
-  saveD();render();showOK('contactOk');
-}
-
 /* ════ CLOUDINARY PROFILE PHOTO ════ */
 async function uploadProfileToCloudinary(){
   const cloud=window.CLOUDINARY_CLOUD,preset=window.CLOUDINARY_PRESET;
@@ -2042,28 +1982,6 @@ document.getElementById('eTWar').value=((h.subtitleTexts&&h.subtitleTexts.ar)||[
   const cvPrev=document.getElementById('cvPreview');
   if(cvPrev)cvPrev.innerHTML=`<a href="${h.cvEnUrl||'cv-en.pdf'}" class="slink" style="pointer-events:none;opacity:.7">${h.cvEnLbl||'📄 Download CV (EN)'}</a><a href="${h.cvTrUrl||'cv-tr.pdf'}" class="slink" style="pointer-events:none;opacity:.7">${h.cvTrLbl||'📄 CV (TR)'}</a>`;
   // Contact
-  const ct2=window.D.contact||{};
-  document.getElementById('eCtTitleEN').value=(ct2.title&&ct2.title.en)||'Get In Touch';
-  document.getElementById('eCtTitleTR').value=(ct2.title&&ct2.title.tr)||'İletişime Geç';
-  document.getElementById('eCtTitleAR').value=(ct2.title&&ct2.title.ar)||'تواصل معي';
-  document.getElementById('eCtDescEN').value=(ct2.desc&&ct2.desc.en)||'Have a project in mind or want to collaborate? Send me a message.';
-  document.getElementById('eCtDescTR').value=(ct2.desc&&ct2.desc.tr)||'Bir projeniz mi var? Mesaj gönderin.';
-  document.getElementById('eCtDescAR').value=(ct2.desc&&ct2.desc.ar)||'هل لديك مشروع؟ أرسل رسالة.';
-  document.getElementById('eCtFnEN').value=(ct2.fn&&ct2.fn.en)||'First Name';
-  document.getElementById('eCtFnTR').value=(ct2.fn&&ct2.fn.tr)||'Ad';
-  document.getElementById('eCtFnAR').value=(ct2.fn&&ct2.fn.ar)||'الاسم الأول';
-  document.getElementById('eCtLnEN').value=(ct2.ln&&ct2.ln.en)||'Last Name';
-  document.getElementById('eCtLnTR').value=(ct2.ln&&ct2.ln.tr)||'Soyad';
-  document.getElementById('eCtLnAR').value=(ct2.ln&&ct2.ln.ar)||'الاسم الأخير';
-  document.getElementById('eCtPhEN').value=(ct2.ph&&ct2.ph.en)||'Phone (optional)';
-  document.getElementById('eCtPhTR').value=(ct2.ph&&ct2.ph.tr)||'Telefon (isteğe bağlı)';
-  document.getElementById('eCtPhAR').value=(ct2.ph&&ct2.ph.ar)||'الهاتف (اختياري)';
-  document.getElementById('eCtMsEN').value=(ct2.ms&&ct2.ms.en)||'Message';
-  document.getElementById('eCtMsTR').value=(ct2.ms&&ct2.ms.tr)||'Mesaj';
-  document.getElementById('eCtMsAR').value=(ct2.ms&&ct2.ms.ar)||'الرسالة';
-  document.getElementById('eCtSbEN').value=(ct2.sb&&ct2.sb.en)||'Send Message';
-  document.getElementById('eCtSbTR').value=(ct2.sb&&ct2.sb.tr)||'Gönder';
-  document.getElementById('eCtSbAR').value=(ct2.sb&&ct2.sb.ar)||'إرسال';
   document.getElementById('editorOverlay').classList.add('active');
 }
 function closeEditor(){document.getElementById('editorOverlay').classList.remove('active');}
