@@ -50,12 +50,18 @@ onAuthStateChanged(auth, user => {
   }
 });
 window._loadFromFirebase = async () => {
-  while(typeof showSync==='undefined'||typeof loadLocalD==='undefined'){await new Promise(r=>setTimeout(r,50));}
+  while(typeof showSync==='undefined'||typeof loadLocalD==='undefined'){await new Promise(r=>setTimeout(r,50));
+  }
+  
   try {
     if(typeof showSync==='function') showSync('loading','☁ Loading…');
     let D = {};
     const hs = await getDoc(doc(db,'portfolio','hero'));
     if (hs.exists()) D.hero = hs.data();
+    try{
+  const fs=await getDoc(doc(db,'portfolio','floatContact'));
+  if(fs.exists())D.floatContact=fs.data();
+}catch(e){}
     const ts = await getDoc(doc(db,'portfolio','titles'));
     if (ts.exists()) D.titles = ts.data();
     const snap = async id => {
@@ -131,6 +137,9 @@ const projClean = (window.D.proj||[]).map(p => ({
     if(window.D.contact){
       batch.set(doc(db,'portfolio','contact'), window.D.contact);
     }
+    if(window.D.floatContact){
+  batch.set(doc(db,'portfolio','floatContact'), window.D.floatContact);
+}
     // Save DD_DATA to Firebase
     if(window.DD_DATA){
       batch.set(doc(db,'portfolio','dddata'), { data: JSON.stringify(window.DD_DATA), updatedAt: new Date().toISOString() });
@@ -212,6 +221,22 @@ window._firebaseReady = true;
 </script>
 
 <style>
+/* ══ FLOAT CONTACT BUTTON ══ */
+@keyframes floatIn{from{opacity:0;transform:translateY(16px) scale(.85)}to{opacity:1;transform:none}}
+@keyframes floatItemIn{from{opacity:0;transform:scale(.6) translateY(10px)}to{opacity:1;transform:none}}
+.float-contact{position:fixed;bottom:28px;right:24px;z-index:8000;display:flex;flex-direction:column;align-items:center;gap:10px;animation:floatIn .6s cubic-bezier(.34,1.2,.64,1) both;}
+.float-main{width:52px;height:52px;border-radius:50%;background:var(--ac);border:none;color:var(--bg);cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.35);transition:transform .25s,box-shadow .25s;position:relative;}
+.float-main:hover{transform:scale(1.1);box-shadow:0 8px 28px rgba(0,0,0,.4);}
+.float-main::before{content:'';position:absolute;inset:-3px;border-radius:50%;border:2px solid var(--ac);opacity:.35;animation:availPulse 2s infinite;}
+.float-menu{display:flex;flex-direction:column;gap:8px;align-items:center;overflow:hidden;max-height:0;transition:max-height .35s cubic-bezier(.4,0,.2,1);}
+.float-menu.open{max-height:180px;}
+.float-item{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 3px 12px rgba(0,0,0,.3);transition:transform .2s,box-shadow .2s;animation:floatItemIn .3s ease both;}
+.float-item:hover{transform:scale(1.12);box-shadow:0 5px 18px rgba(0,0,0,.4);}
+.float-wa{background:#25D366;color:#fff;}
+.float-tg{background:#0088cc;color:#fff;}
+.float-ml{background:var(--a2);color:#fff;}
+.float-contact.hide{transform:translateY(90px);opacity:0;transition:transform .4s cubic-bezier(.4,0,.2,1),opacity .4s;}
+@media(max-width:768px){.float-contact{bottom:18px;right:14px;}}
 :root{--r:14px;--fd:'Playfair Display',serif;--fb:'DM Sans',sans-serif;--fm:'JetBrains Mono',monospace;--tr:all .25s cubic-bezier(.4,0,.2,1);}
 [data-theme="dark"]  {--bg:#0a0a0f;--sf:#111118;--s2:#1a1a26;--bd:#2a2a40;--ac:#e8c87a;--a2:#7a9ee8;--a3:#e87a9e;--tx:#e8e8f0;--td:#8888a8;--tm:#55556a;--hb:rgba(10,10,15,.9);--gl:rgba(232,200,122,.12);}
 [data-theme="light"] {--bg:#f5f4f0;--sf:#fff;--s2:#f0ede8;--bd:#d8d4cc;--ac:#b8860b;--a2:#3a6ab8;--a3:#c0305c;--tx:#1a1814;--td:#5a5650;--tm:#9a9690;--hb:rgba(245,244,240,.93);--gl:rgba(184,134,11,.08);}
@@ -888,11 +913,46 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="etab" onclick="eTab('epCert',this)">📜 Certs</button>
           <button class="etab" onclick="eTab('epSoc',this)">🔗 Links</button>
           <button class="etab" onclick="eTab('epCus',this)">➕ Sections</button>
-          <button class="etab" onclick="eTab('epCV',this)">📥 CV Links</button>
+          <button class="etab" onclick="eTab('epFloat',this)">💬 Float</button>
           <button class="etab" onclick="eTab('epDeepDive',this)">🔍 Deep Dive</button>
+          <button class="etab" onclick="eTab('epCV',this)">📥 CV Links</button>
+
         </div>
       </div>
       <div class="ebody">
+      <!-- FLOAT CONTACT PANEL -->
+<div class="ep" id="epFloat">
+  <div class="cinfo-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    تعديل بيانات زر التواصل العائم (واتساب / تلغرام / إيميل).
+  </div>
+  <div class="ef">
+    <label class="el">WhatsApp Number (with country code)</label>
+    <input class="ei" id="eFloatWA" placeholder="+90 555 144 11 57">
+    <p style="font-size:.67rem;color:var(--tm);margin-top:4px;font-family:var(--fm);">مثال: +905551441157 — بدون مسافات أو رموز</p>
+  </div>
+  <div class="ef">
+    <label class="el">Telegram Username or Link</label>
+    <input class="ei" id="eFloatTG" placeholder="https://t.me/username">
+    <p style="font-size:.67rem;color:var(--tm);margin-top:4px;font-family:var(--fm);">مثال: https://t.me/mousaassi</p>
+  </div>
+  <div class="ef">
+    <label class="el">Email Address</label>
+    <input class="ei" id="eFloatML" placeholder="mousaassi.swi@gmail.com">
+    <p style="font-size:.67rem;color:var(--tm);margin-top:4px;font-family:var(--fm);">عند الضغط سيفتح تطبيق الإيميل مباشرة</p>
+  </div>
+  <div class="ef" style="margin-top:10px;">
+    <label class="el">Preview</label>
+    <div style="display:flex;gap:10px;padding:14px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;margin-top:8px;align-items:center;">
+      <div style="width:42px;height:42px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem;font-family:var(--fm);">WA</div>
+      <div style="width:42px;height:42px;border-radius:50%;background:#0088cc;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem;font-family:var(--fm);">TG</div>
+      <div style="width:42px;height:42px;border-radius:50%;background:var(--a2);display:flex;align-items:center;justify-content:center;color:#fff;font-size:.7rem;font-family:var(--fm);">✉</div>
+      <span style="font-size:.75rem;color:var(--tm);font-family:var(--fm);">← الأيقونات ستظهر هكذا</span>
+    </div>
+  </div>
+  <button class="sbtn" onclick="saveFloatLinks()" type="button">Save Float Links</button>
+  <p class="sok" id="floatOk">✓ Saved — press ☁ Sync</p>
+</div>
         <div class="ep active" id="epHero">
           <div class="cinfo-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>Save edits then press "☁ Sync" to publish globally.</div>
           <div class="ef"><label class="el">Profile Photo</label>
@@ -1982,6 +2042,14 @@ document.getElementById('eTWar').value=((h.subtitleTexts&&h.subtitleTexts.ar)||[
   const cvPrev=document.getElementById('cvPreview');
   if(cvPrev)cvPrev.innerHTML=`<a href="${h.cvEnUrl||'cv-en.pdf'}" class="slink" style="pointer-events:none;opacity:.7">${h.cvEnLbl||'📄 Download CV (EN)'}</a><a href="${h.cvTrUrl||'cv-tr.pdf'}" class="slink" style="pointer-events:none;opacity:.7">${h.cvTrLbl||'📄 CV (TR)'}</a>`;
   // Contact
+// Float Contact
+  const fc=window.D.floatContact||{};
+  const fcWA=document.getElementById('eFloatWA');
+  const fcTG=document.getElementById('eFloatTG');
+  const fcML=document.getElementById('eFloatML');
+  if(fcWA)fcWA.value=fc.wa||(h.phone||'');
+  if(fcTG)fcTG.value=fc.tg||'';
+  if(fcML)fcML.value=fc.email||(h.email||'');
   document.getElementById('editorOverlay').classList.add('active');
 }
 function closeEditor(){document.getElementById('editorOverlay').classList.remove('active');}
@@ -3061,6 +3129,94 @@ function skView(mode, btn) {
   const origRender=window.render;
   window.render=function(){origRender.apply(this,arguments);updateNavLabels();};
 })();
+/* ════ FLOAT CONTACT BUTTON ════ */
+(function(){
+  let floatOpen=false;
+  let lastY=window.scrollY;
+  const btn=document.getElementById('floatContact');
+
+  function updateFloatLinks(){
+    const h=window.D&&window.D.hero;
+    const fc=window.D&&window.D.floatContact||{};
+
+    const wa=document.getElementById('floatWA');
+    const tg=document.getElementById('floatTG');
+    const ml=document.getElementById('floatML');
+
+    // WhatsApp — من floatContact أو من hero.phone
+    const waNum=(fc.wa||(h&&h.phone)||'').replace(/[\s\-\(\)]/g,'');
+    if(wa)wa.href=waNum?`https://wa.me/${waNum}`:'#';
+
+    // Telegram — من floatContact أو من social links
+    const tgUrl=fc.tg||((window.D&&window.D.social||[]).find(s=>s.icon==='telegram')||{}).url||'#';
+    if(tg)tg.href=tgUrl;
+
+    // Email — من floatContact أو من hero.email
+    const email=fc.email||(h&&h.email)||'';
+    if(ml)ml.href=email?`mailto:${email}`:'#';
+  }
+
+  window.toggleFloat=function(){
+    floatOpen=!floatOpen;
+    document.getElementById('floatMenu').classList.toggle('open',floatOpen);
+  };
+
+  // إخفاء عند scroll للأسفل
+  window.addEventListener('scroll',()=>{
+    if(!btn)return;
+    const goingUp=window.scrollY<lastY;
+    lastY=window.scrollY;
+    btn.classList.toggle('hide',!goingUp&&window.scrollY>300);
+  },{passive:true});
+
+  // إغلاق عند الضغط خارجه
+  document.addEventListener('click',e=>{
+    if(floatOpen&&!e.target.closest('.float-contact')){
+      floatOpen=false;
+      document.getElementById('floatMenu').classList.remove('open');
+    }
+  });
+
+  // ربط مع render
+  const orig=window.render;
+  window.render=function(){orig.apply(this,arguments);updateFloatLinks();};
+  updateFloatLinks();
+})();
+
+/* ════ FLOAT LINKS SAVE ════ */
+function saveFloatLinks(){
+  if(!window.D.floatContact)window.D.floatContact={};
+  const fc=window.D.floatContact;
+  fc.wa=document.getElementById('eFloatWA').value.trim().replace(/[\s\-\(\)]/g,'');
+  fc.tg=document.getElementById('eFloatTG').value.trim();
+  fc.email=document.getElementById('eFloatML').value.trim();
+  saveD();
+  // Update links immediately
+  const waEl=document.getElementById('floatWA');
+  const tgEl=document.getElementById('floatTG');
+  const mlEl=document.getElementById('floatML');
+  if(waEl)waEl.href=fc.wa?`https://wa.me/${fc.wa}`:'#';
+  if(tgEl)tgEl.href=fc.tg||'#';
+  if(mlEl)mlEl.href=fc.email?`mailto:${fc.email}`:'#';
+  showOK('floatOk');
+}
 </script>
+<!-- FLOAT CONTACT BUTTON -->
+<div id="floatContact" class="float-contact">
+  <div class="float-menu" id="floatMenu">
+    <a id="floatWA" href="#" class="float-item float-wa" target="_blank" rel="noopener" title="WhatsApp">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.122.554 4.107 1.523 5.826L.057 23.857a.5.5 0 0 0 .608.608l6.084-1.47A11.943 11.943 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.882a9.843 9.843 0 0 1-5.011-1.371l-.36-.213-3.718.898.914-3.635-.234-.373A9.853 9.853 0 0 1 2.118 12C2.118 6.52 6.52 2.118 12 2.118S21.882 6.52 21.882 12 17.48 21.882 12 21.882z"/></svg>
+    </a>
+    <a id="floatTG" href="#" class="float-item float-tg" target="_blank" rel="noopener" title="Telegram">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+    </a>
+    <a id="floatML" href="#" class="float-item float-ml" title="Email">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+    </a>
+  </div>
+  <button class="float-main" id="floatMain" onclick="toggleFloat()" title="Contact">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+  </button>
+</div>
 </body>
 </html>
