@@ -225,6 +225,30 @@ window._firebaseReady = true;
 </script>
 
 <style>
+/* ══ TECH BANNER ══ */
+.tech-banner{width:100%;background:#0a0f1a;border-top:1px solid #1a2a40;border-bottom:1px solid #1a2a40;overflow:hidden;position:relative;}
+.tech-banner .tb-bg{position:absolute;inset:0;background:linear-gradient(135deg,#0d1b2a,#0a0f1a 50%,#0d1b2a);}
+.tech-banner .tb-grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(100,200,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(100,200,255,.04) 1px,transparent 1px);background-size:40px 40px;}
+.tb-inner{position:relative;z-index:2;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;min-height:180px;max-width:1200px;margin:0 auto;padding:0 48px;gap:32px;}
+.tb-left{display:flex;flex-direction:column;gap:16px;align-items:flex-end;}
+.tb-right{display:flex;flex-direction:column;gap:16px;align-items:flex-start;}
+.tb-card{background:rgba(10,20,35,.7);border:1px solid rgba(100,200,255,.15);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;transition:border-color .3s,transform .3s;width:220px;}
+.tb-card:hover{border-color:rgba(100,200,255,.45);transform:translateY(-2px);}
+.tb-card-icon{width:42px;height:42px;border-radius:9px;background:rgba(100,200,255,.08);border:1px solid rgba(100,200,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:rgba(100,200,255,.9);}
+.tb-card-txt{display:flex;flex-direction:column;gap:2px;}
+.tb-card-title{font-family:var(--fb);font-size:.82rem;font-weight:600;color:#c8e8ff;}
+.tb-card-sub{font-family:var(--fm);font-size:.62rem;color:rgba(100,180,230,.5);letter-spacing:.06em;}
+.tb-center{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.tb-title-en{font-family:var(--fm);font-size:.6rem;font-weight:700;color:rgba(100,200,255,.35);letter-spacing:.2em;text-transform:uppercase;text-align:center;}
+.tb-orb{width:86px;height:86px;border-radius:50%;border:1.5px solid rgba(100,200,255,.2);display:flex;align-items:center;justify-content:center;position:relative;}
+.tb-orb::before{content:'';position:absolute;width:120%;height:120%;border-radius:50%;border:1px solid rgba(100,200,255,.07);}
+.tb-orb-inner{width:58px;height:58px;border-radius:50%;background:rgba(100,200,255,.06);border:1.5px solid rgba(100,200,255,.28);display:flex;align-items:center;justify-content:center;font-size:1.4rem;animation:tbPulse 3s ease-in-out infinite;}
+@keyframes tbPulse{0%,100%{opacity:.5;transform:scale(1)}50%{opacity:1;transform:scale(1.08)}}
+.tb-badge{background:rgba(100,200,255,.06);border:1px solid rgba(100,200,255,.18);border-radius:50px;padding:5px 18px;font-family:var(--fm);font-size:.68rem;color:rgba(100,200,255,.65);letter-spacing:.07em;white-space:nowrap;}
+.tb-dots{display:flex;gap:5px;}
+.tbd{width:4px;height:4px;border-radius:50%;background:rgba(100,200,255,.25);}
+.tbd.active{background:rgba(100,200,255,.75);}
+@media(max-width:768px){.tb-inner{grid-template-columns:1fr;padding:24px 18px;gap:20px;min-height:auto;}.tb-left,.tb-right{align-items:center;}.tb-card{width:100%;max-width:300px;}}
 :root{--r:14px;--fd:'Playfair Display',serif;--fb:'DM Sans',sans-serif;--fm:'JetBrains Mono',monospace;--tr:all .25s cubic-bezier(.4,0,.2,1);}
 [data-theme="dark"]  {--bg:#0a0a0f;--sf:#111118;--s2:#1a1a26;--bd:#2a2a40;--ac:#e8c87a;--a2:#7a9ee8;--a3:#e87a9e;--tx:#e8e8f0;--td:#8888a8;--tm:#55556a;--hb:rgba(10,10,15,.9);--gl:rgba(232,200,122,.12);}
 [data-theme="light"] {--bg:#f5f4f0;--sf:#fff;--s2:#f0ede8;--bd:#d8d4cc;--ac:#b8860b;--a2:#3a6ab8;--a3:#c0305c;--tx:#1a1814;--td:#5a5650;--tm:#9a9690;--hb:rgba(245,244,240,.93);--gl:rgba(184,134,11,.08);}
@@ -836,7 +860,63 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
     </div>
   </div>
 </section>
-
+<!-- ══ TECH BANNER ══ -->
+<div class="tech-banner">
+  <div class="tb-bg"></div>
+  <div class="tb-grid-bg"></div>
+  <div class="tb-inner">
+    <div class="tb-left">
+      <div class="tb-card">
+        <div class="tb-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="22" height="22"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+        </div>
+        <div class="tb-card-txt">
+          <span class="tb-card-title" data-en="UAV Systems" data-tr="İHA Sistemleri" data-ar="أنظمة الطائرات">UAV Systems</span>
+          <span class="tb-card-sub">AUTONOMOUS FLIGHT</span>
+        </div>
+      </div>
+      <div class="tb-card">
+        <div class="tb-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="22" height="22"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+        </div>
+        <div class="tb-card-txt">
+          <span class="tb-card-title" data-en="Kinematic Modeling" data-tr="Kinematik Modelleme" data-ar="النمذجة الحركية">Kinematic Modeling</span>
+          <span class="tb-card-sub">IK / FK SOLVER</span>
+        </div>
+      </div>
+    </div>
+    <div class="tb-center">
+      <div class="tb-title-en" id="tbTitle">MECHATRONICS &amp; MECHANICAL ENGINEERING</div>
+      <div class="tb-orb">
+        <div class="tb-orb-inner">⚙️</div>
+      </div>
+      <div class="tb-badge" id="tbBadge">Mousa Assi — Portfolio</div>
+      <div class="tb-dots">
+        <span class="tbd active"></span><span class="tbd"></span><span class="tbd active"></span><span class="tbd"></span><span class="tbd active"></span>
+      </div>
+    </div>
+    <div class="tb-right">
+      <div class="tb-card">
+        <div class="tb-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="22" height="22"><path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 3v18m0 0h10a2 2 0 0 0 2-2V9M9 21H5a2 2 0 0 1-2-2V9m0 0h18"/></svg>
+        </div>
+        <div class="tb-card-txt">
+          <span class="tb-card-title" data-en="Embedded Systems" data-tr="Gömülü Sistemler" data-ar="الأنظمة المدمجة">Embedded Systems</span>
+          <span class="tb-card-sub">ARDUINO · STM32</span>
+        </div>
+      </div>
+      <div class="tb-card">
+        <div class="tb-card-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="22" height="22"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        </div>
+        <div class="tb-card-txt">
+          <span class="tb-card-title" data-en="PID Control" data-tr="PID Kontrol" data-ar="تحكم PID">PID Control</span>
+          <span class="tb-card-sub">ATTITUDE SYSTEMS</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- STATS STRIP -->
 <div class="sdiv"></div>
   
