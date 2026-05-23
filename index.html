@@ -743,58 +743,13 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 </style>
 </head>
 <body>
-<!-- ══ LOADING SCREEN ══ -->
-<div id="loaderScreen" style="
-  position:fixed;inset:0;background:#0a0a0f;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  z-index:99999;transition:opacity .6s ease, visibility .6s ease;
-">
-  <div id="loaderMA" style="
-    font-family:'Playfair Display',serif;font-size:5rem;font-weight:900;
-    color:#e8c87a;opacity:0;transition:opacity 1.4s ease;
-    text-shadow:0 0 60px rgba(232,200,122,.3);
-    letter-spacing:-.02em;
-  ">MA</div>
-  <div id="loaderLine" style="
-    width:0;height:2px;background:linear-gradient(90deg,transparent,#e8c87a,transparent);
-    margin-top:20px;transition:width 1.2s ease .4s;
-  "></div>
-  <div id="loaderSub" style="
-    font-family:'JetBrains Mono',monospace;font-size:.72rem;
-    color:#55556a;letter-spacing:.18em;text-transform:uppercase;
-    margin-top:18px;opacity:0;transition:opacity .8s ease 1s;
-  ">Mousa Assi · Portfolio</div>
-</div>
-
-<script>
-(function(){
-  // Start animation
-  requestAnimationFrame(()=>{
-    document.getElementById('loaderMA').style.opacity='1';
-    document.getElementById('loaderLine').style.width='120px';
-    document.getElementById('loaderSub').style.opacity='1';
-  });
-
-  // Hide after page loads (min 1.8s)
-  const startTime = Date.now();
-  function hideLoader(){
-    const elapsed = Date.now() - startTime;
-    const delay = Math.max(0, 1800 - elapsed);
-    setTimeout(()=>{
-      const screen = document.getElementById('loaderScreen');
-      screen.style.opacity = '0';
-      screen.style.visibility = 'hidden';
-      setTimeout(()=>screen.remove(), 650);
-    }, delay);
-  }
-
-  if(document.readyState === 'complete') hideLoader();
-  else window.addEventListener('load', hideLoader);
-})();
-</script>
 <style>
   #sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero{opacity:0;transition:opacity .4s ease;}
 </style>
+<style>
+@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
+</style>
+
 <!-- ══ LOADING SCREEN — TYPEWRITER ══ -->
 <div id="loaderScreen" style="
   position:fixed;inset:0;background:#0a0a0f;
@@ -827,11 +782,6 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
   ">Mechanical · Mechatronics · Engineer</div>
 </div>
 
-<style>
-@keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
-@keyframes loaderFadeOut{to{opacity:0;visibility:hidden}}
-</style>
-
 <script>
 (function(){
   const text='MA';
@@ -840,27 +790,19 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
   const line=document.getElementById('loaderLine');
   const sub=document.getElementById('loaderSub');
   let i=0;
-
-  // Step 1: type MA
   const typeIv=setInterval(()=>{
-    if(i<=text.length){
-      el.textContent=text.slice(0,i);
-      i++;
-    } else {
+    if(i<=text.length){el.textContent=text.slice(0,i);i++;}
+    else{
       clearInterval(typeIv);
-      // Step 2: cursor blinks 3 times then fades
       setTimeout(()=>{
         cursor.style.animation='none';
         cursor.style.opacity='0';
         cursor.style.transition='opacity .3s';
-        // Step 3: line expands + subtitle appears
         line.style.width='160px';
         sub.style.opacity='1';
       },900);
     }
   },120);
-
-  // Step 4: hide loader
   const startTime=Date.now();
   function hideLoader(){
     const elapsed=Date.now()-startTime;
@@ -870,11 +812,10 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
       if(!screen)return;
       screen.style.opacity='0';
       screen.style.visibility='hidden';
-      setTimeout(()=>{ if(screen.parentNode)screen.remove(); },750);
+      setTimeout(()=>{if(screen.parentNode)screen.remove();},750);
     },delay);
   }
-
-  if(document.readyState==='complete') hideLoader();
+  if(document.readyState==='complete')hideLoader();
   else window.addEventListener('load',hideLoader);
 })();
 </script>
