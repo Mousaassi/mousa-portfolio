@@ -31,6 +31,35 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const db   = getFirestore(app);
 const auth = getAuth(app);
+// ══ VISITOR COUNTER ══
+async function incrementVisitor() {
+  try {
+    const ref = doc(db, 'portfolio', 'stats');
+    const snap = await getDoc(ref);
+    const current = snap.exists() ? (snap.data().visitors || 0) : 0;
+    await setDoc(ref, { visitors: current + 1 }, { merge: true });
+    return current + 1;
+  } catch(e) {
+    console.log('Counter error:', e);
+    return null;
+  }
+}
+
+async function getVisitorCount() {
+  try {
+    const snap = await getDoc(doc(db, 'portfolio', 'stats'));
+    return snap.exists() ? (snap.data().visitors || 0) : 0;
+  } catch(e) { return null; }
+}
+
+// تشغيل العداد
+window._initVisitorCounter = async function() {
+  const count = await incrementVisitor();
+  const el = document.getElementById('visitorCount');
+  if(el && count !== null) {
+    el.textContent = count.toLocaleString();
+  }
+};
 onAuthStateChanged(auth, user => {
   window._fbUser  = user;
   window._isAdmin = !!user;
@@ -928,8 +957,13 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 <div class="sec fade-in" id="sec-certs"><div class="sh"><span class="sn">05</span><h2 class="st" id="tCerts"></h2><div class="sl"></div></div><div class="cgrid" id="certGrid"></div></div>
 <div id="customContainer"></div>
 
-<footer><p id="footerTxt"></p></footer>
-
+<footer>
+  <p id="footerTxt"></p>
+  <p style="margin-top:10px;font-family:var(--fm);font-size:.68rem;color:var(--tm);display:flex;align-items:center;justify-content:center;gap:8px;">
+    <span style="width:6px;height:6px;border-radius:50%;background:#4ecb71;display:inline-block;animation:dotP 2s infinite;"></span>
+    Visitors: <span id="visitorCount" style="color:var(--ac);font-weight:600;">—</span>
+  </p>
+</footer>
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLB(event)">
   <button class="lb-x" onclick="closeLB()">✕</button>
@@ -2484,7 +2518,8 @@ buildTG();
 window.D=loadLocalD();
 render();
 document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero').forEach(el=>el.style.opacity='1');
-  
+if(window._initVisitorCounter) window._initVisitorCounter();
+
 /* ════ SCROLL PROGRESS ════ */
 (function(){
   const bar=document.getElementById('scrollProg');
