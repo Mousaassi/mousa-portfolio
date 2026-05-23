@@ -959,9 +959,15 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 
 <footer>
   <p id="footerTxt"></p>
-  <p style="margin-top:10px;font-family:var(--fm);font-size:.68rem;color:var(--tm);display:flex;align-items:center;justify-content:center;gap:8px;">
-    <span style="width:6px;height:6px;border-radius:50%;background:#4ecb71;display:inline-block;animation:dotP 2s infinite;"></span>
-    Visitors: <span id="visitorCount" style="color:var(--ac);font-weight:600;">—</span>
+  <p style="margin-top:10px;font-family:var(--fm);font-size:.68rem;
+     color:var(--tm);display:flex;align-items:center;
+     justify-content:center;gap:8px;">
+    <span style="width:6px;height:6px;border-radius:50%;
+      background:#4ecb71;display:inline-block;
+      animation:dotP 2s infinite;"></span>
+    Visitors: 
+    <span id="visitorCount" 
+      style="color:var(--ac);font-weight:600;min-width:20px;">—</span>
   </p>
 </footer>
 <!-- LIGHTBOX -->
@@ -2518,8 +2524,9 @@ buildTG();
 window.D=loadLocalD();
 render();
 document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero').forEach(el=>el.style.opacity='1');
-if(window._initVisitorCounter) window._initVisitorCounter();
-
+setTimeout(() => {
+  if(window._initVisitorCounter) window._initVisitorCounter();
+}, 800);
 /* ════ SCROLL PROGRESS ════ */
 (function(){
   const bar=document.getElementById('scrollProg');
