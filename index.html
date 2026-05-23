@@ -800,13 +800,13 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
         cursor.style.transition='opacity .3s';
         line.style.width='220px';
         sub.style.opacity='1';
-      },900);
+      },1400);
     }
   },220);
   const startTime=Date.now();
   function hideLoader(){
     const elapsed=Date.now()-startTime;
-    const delay=Math.max(0,2400-elapsed);
+    const delay=Math.max(0,4200-elapsed);
     setTimeout(()=>{
       const screen=document.getElementById('loaderScreen');
       if(!screen)return;
