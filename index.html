@@ -34,6 +34,16 @@ const auth = getAuth(app);
 // ══ VISITOR COUNTER ══
 async function incrementVisitor() {
   try {
+    // تحقق إذا هالجهاز زار اليوم مسبقاً
+    const today = new Date().toDateString();
+    const visited = sessionStorage.getItem('ma_visited');
+    if(visited === today) {
+      // بس اقرأ العدد بدون إضافة
+      const snap = await getDoc(doc(db, 'portfolio', 'stats'));
+      return snap.exists() ? (snap.data().visitors || 0) : 0;
+    }
+    // أول مرة بهالجلسة — أضف 1
+    sessionStorage.setItem('ma_visited', today);
     const ref = doc(db, 'portfolio', 'stats');
     const snap = await getDoc(ref);
     const current = snap.exists() ? (snap.data().visitors || 0) : 0;
@@ -55,10 +65,8 @@ async function getVisitorCount() {
 // تشغيل العداد
 window._initVisitorCounter = async function() {
   const count = await incrementVisitor();
-  const el = document.getElementById('visitorCount');
-  if(el && count !== null) {
-    el.textContent = count.toLocaleString();
-  }
+  // بس خزّن الرقم — لا تعرضه
+  window._visitorCount = count;
 };
 onAuthStateChanged(auth, user => {
   window._fbUser  = user;
@@ -957,19 +965,6 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 <div class="sec fade-in" id="sec-certs"><div class="sh"><span class="sn">05</span><h2 class="st" id="tCerts"></h2><div class="sl"></div></div><div class="cgrid" id="certGrid"></div></div>
 <div id="customContainer"></div>
 
-<footer>
-  <p id="footerTxt"></p>
-  <p style="margin-top:10px;font-family:var(--fm);font-size:.68rem;
-     color:var(--tm);display:flex;align-items:center;
-     justify-content:center;gap:8px;">
-    <span style="width:6px;height:6px;border-radius:50%;
-      background:#4ecb71;display:inline-block;
-      animation:dotP 2s infinite;"></span>
-    Visitors: 
-    <span id="visitorCount" 
-      style="color:var(--ac);font-weight:600;min-width:20px;">—</span>
-  </p>
-</footer>
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLB(event)">
   <button class="lb-x" onclick="closeLB()">✕</button>
@@ -1845,8 +1840,13 @@ let lks=``;
   const cvRow=document.getElementById('cvLinksRow');
   if(cvRow){const cvEn=h.cvEnUrl||'cv-en.pdf',cvTr=h.cvTrUrl||'cv-tr.pdf',cvEnL=h.cvEnLbl||'📄 Download CV (EN)',cvTrL=h.cvTrLbl||'📄 CV (TR)';cvRow.innerHTML=`<a href="${cvEn}" download class="slink">${cvEnL}</a><a href="${cvTr}" download class="slink">${cvTrL}</a>`;}
 
-  const ftEl=document.getElementById('footerTxt');
-  if(ftEl)ftEl.textContent=`© 2025 ${h.firstName||''} ${h.lastName||''} · ${h.location||''}`;
+const ftEl=document.getElementById('footerTxt');
+if(ftEl){
+  ftEl.textContent=`© 2025 ${h.firstName||''} ${h.lastName||''} · ${h.location||''}`;
+  if(window._isAdmin && window._visitorCount){
+    ftEl.innerHTML+=` &nbsp;|&nbsp;<span style="color:#4ecb71;font-family:var(--fm);">👁 ${window._visitorCount.toLocaleString()} visitors</span>`;
+  }
+}
   document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===lang));
   document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
   requestAnimationFrame(injectDDButtons);
