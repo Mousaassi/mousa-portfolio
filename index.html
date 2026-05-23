@@ -752,13 +752,13 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 
 <!-- ══ LOADING SCREEN — TYPEWRITER ══ -->
 <div id="loaderScreen" style="
-  position:fixed;inset:0;background:#0a0a0f;
+  position:fixed;inset:0;background:radial-gradient(circle at center,#12121b 0%,#050508 100%);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   z-index:99999;transition:opacity .7s ease,visibility .7s ease;
 ">
   <div style="position:relative;display:flex;align-items:center;">
     <div id="loaderMA" style="
-      font-family:'Playfair Display',serif;font-size:5.5rem;font-weight:900;
+      font-family:'Playfair Display',serif;font-size:6.5rem;font-weight:900;
       color:#e8c87a;letter-spacing:-.02em;
       text-shadow:0 0 80px rgba(232,200,122,.25);
       min-width:3ch;
@@ -784,7 +784,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 
 <script>
 (function(){
-  const text='MA';
+  const text='HELLO, I AM MOUSA';
   const el=document.getElementById('loaderMA');
   const cursor=document.getElementById('loaderCursor');
   const line=document.getElementById('loaderLine');
@@ -798,7 +798,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
         cursor.style.animation='none';
         cursor.style.opacity='0';
         cursor.style.transition='opacity .3s';
-        line.style.width='160px';
+        line.style.width='220px';
         sub.style.opacity='1';
       },900);
     }
