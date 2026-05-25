@@ -1617,7 +1617,6 @@ function normExp(e){return{role:ensureLO(e.role,{}),company:e.company||'',period
 function normSk(s){return{cat:ensureLO(s.cat,{}),tags:s.tags||[],hl:s.hl||[]};}
 function normCert(c){return{name:c.name||'',year:c.year||'',img:c.img||'',url:c.url||''};}
 
-const DEFS={
 /* ════ LEADERSHIP & ACTIVITIES DATA ════ */
 const DEFS_LEAD = [
   {
@@ -1685,8 +1684,7 @@ function saveLeadLocal(){
 }
 
 const DEFS={
-  hero:{firstName:'Mousa', ...
-  hero:{firstName:'Mousa',lastName:'Assi',
+    hero:{firstName:'Mousa',lastName:'Assi',
     eyebrow:{en:'Mechanical & Mechatronics Engineer',tr:'Makine & Mekatronik Mühendisi',ar:'مهندس ميكانيكا وميكاترونيكس'},
     subtitle:{en:'UAV Systems · Robotics · Embedded Design',tr:'İHA Sistemleri · Robotik · Gömülü Tasarım',ar:'أنظمة الطائرات المسيّرة · الروبوتيكس · التصميم المدمج'},
     desc:{en:'Mechanical Engineering graduate pursuing Mechatronics at Selcuk University. Building drones, robotic arms, and autonomous systems — from concept to tested prototype.',
