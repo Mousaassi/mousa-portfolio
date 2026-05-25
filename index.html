@@ -1087,6 +1087,8 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="etab" onclick="eTab('epDeepDive',this)">🔍 Deep Dive</button>
           <button class="etab" onclick="eTab('epLead',this)">🏆 Leadership</button>
           <button class="etab" onclick="eTab('epCV',this)">📥 CV Links</button>
+          <button class="etab" onclick="eTab('epOrder',this)">🔀 Order</button>
+
 
         </div>
       </div>
@@ -1256,6 +1258,16 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="sbtn" onclick="saveCVLinks()" type="button">Save CV Links</button>
           <p class="sok" id="cvOk">✓ Saved — press ☁ Sync</p>
         </div>
+        <!-- SECTION ORDER PANEL -->
+<div class="ep" id="epOrder">
+  <div class="cinfo-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--ac);flex-shrink:0;"><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+    رتّب الأقسام بالضغط على ↑↓ — بعد الحفظ اضغط ☁ Sync.
+  </div>
+  <div id="sectionOrderList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+  <button class="sbtn" onclick="saveSectionOrder()" type="button">Save Order</button>
+  <p class="sok" id="orderOk">✓ Saved — press ☁ Sync</p>
+</div>
         <!-- DEEP DIVE PANEL -->
         <div class="ep" id="epDeepDive">
           <div class="cinfo-box">
@@ -1616,8 +1628,7 @@ function normEdu(e){return{year:e.year||'',degree:ensureLO(e.degree,{}),school:e
 function normProj(p){return{year:p.year||'',title:ensureLO(p.title,{}),bullets:normBullets(p.bullets),pdf:p.pdf||'',pdfName:p.pdfName||''};}
 function normExp(e){return{role:ensureLO(e.role,{}),company:e.company||'',period:e.period||'',loc:e.loc||'',bullets:normBullets(e.bullets)};}
 function normSk(s){return{cat:ensureLO(s.cat,{}),tags:s.tags||[],hl:s.hl||[]};}
-function normCert(c){return{name:c.name||'',year:c.year||'',img:c.img||'',url:c.url||''};}
-
+  function normCert(c){return{name:c.name||'',name_tr:c.name_tr||'',name_ar:c.name_ar||'',year:c.year||'',img:c.img||'',url:c.url||''};}
 /* ════ LEADERSHIP & ACTIVITIES DATA ════ */
 const DEFS_LEAD = [
   {
@@ -2135,18 +2146,20 @@ if(ftEl){
     ftEl.innerHTML+=` &nbsp;|&nbsp;<span style="color:#4ecb71;font-family:var(--fm);">👁 ${window._visitorCount.toLocaleString()} visitors</span>`;
   }
 }
-  document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===lang));
+document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===lang));
   document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
   requestAnimationFrame(injectDDButtons);
+  renderLead();
 };
-  function setLang(l){
-  lang=l;render();
+function setLang(l){
+  lang=l;
+  render();
   if(window._stopTW)window._stopTW();
   window._twCycling=false;
   const el=document.getElementById('heroSub');
   if(el)el.textContent='';
   setTimeout(window._startTWCycle,400);
-  }
+}
 /* ════ EDITORS ════ */
 function esc(s){return(s||'').replace(/"/g,'&quot;').replace(/</g,'&lt;');}
 function bRows(sec,i,buls){
@@ -2799,7 +2812,127 @@ window.deleteDDProject=function(i){
   if(typeof window.render==='function')window.render();
   buildDDEdList();
 };
+/* ════ SECTION ORDER ════ */
+window.SECTION_ORDER = window.SECTION_ORDER || ['edu','proj','exp','skills','certs','lead'];
 
+const SECTION_META = {
+  edu:    { label:{ en:'Education',           tr:'Eğitim',              ar:'التعليم'         }, id:'sec-edu',    num:'01' },
+  proj:   { label:{ en:'Projects',            tr:'Projeler',            ar:'المشاريع'        }, id:'sec-proj',   num:'02' },
+  exp:    { label:{ en:'Experience',          tr:'Deneyim',             ar:'الخبرات'         }, id:'sec-exp',    num:'03' },
+  skills: { label:{ en:'Skills',              tr:'Yetenekler',          ar:'المهارات'        }, id:'sec-skills', num:'04' },
+  certs:  { label:{ en:'Certifications',      tr:'Sertifikalar',        ar:'الشهادات'        }, id:'sec-certs',  num:'05' },
+  lead:   { label:{ en:'Leadership & Activities', tr:'Liderlik & Aktiviteler', ar:'القيادة والأنشطة' }, id:'sec-lead', num:'06' },
+};
+
+function buildSectionOrderUI(){
+  const el = document.getElementById('sectionOrderList');
+  if(!el) return;
+  el.innerHTML = window.SECTION_ORDER.map((key, i) => {
+    const meta = SECTION_META[key];
+    const lbl = meta ? (meta.label[lang] || meta.label.en) : key;
+    return `
+      <div style="display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;">
+        <span style="font-family:var(--fm);font-size:.68rem;color:var(--ac);width:24px;">${String(i+1).padStart(2,'0')}</span>
+        <span style="flex:1;font-family:var(--fd);font-size:.92rem;font-weight:600;">${lbl}</span>
+        <div style="display:flex;gap:5px;">
+          <button class="dbtn" onclick="moveSectionOrder(${i},-1)" type="button" ${i===0?'disabled style="opacity:.3"':''}>↑</button>
+          <button class="dbtn" onclick="moveSectionOrder(${i},1)"  type="button" ${i===window.SECTION_ORDER.length-1?'disabled style="opacity:.3"':''}>↓</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+window.moveSectionOrder = function(i, dir){
+  const arr = window.SECTION_ORDER;
+  const ni = i + dir;
+  if(ni < 0 || ni >= arr.length) return;
+  [arr[i], arr[ni]] = [arr[ni], arr[i]];
+  buildSectionOrderUI();
+};
+
+window.saveSectionOrder = function(){
+  try{ localStorage.setItem('ma_sec_order_v1', JSON.stringify(window.SECTION_ORDER)); }catch(e){}
+  applySectionOrder();
+  if(window._saveToFirebase) window._saveToFirebase();
+  showOK('orderOk');
+};
+
+function applySectionOrder(){
+  const container = document.querySelector('body');
+  const dividers = [];
+  // جمع كل الأقسام والـ dividers
+  window.SECTION_ORDER.forEach((key, i) => {
+    const meta = SECTION_META[key];
+    if(!meta) return;
+    const sec = document.getElementById(meta.id);
+    if(!sec) return;
+    // تحديث رقم القسم
+    const sn = sec.querySelector('.sn');
+    if(sn) sn.textContent = String(i+1).padStart(2,'0');
+    // تحريك القسم
+    const parent = sec.parentNode;
+    const nextSdiv = sec.nextElementSibling;
+    // نحتاج نجيب الـ sdiv قبل القسم
+    const prevSdiv = sec.previousElementSibling;
+    // احفظ موقعهم الجديد
+    sec._orderIndex = i;
+  });
+
+  // إعادة ترتيب DOM
+  const statsStrip = document.getElementById('statsStrip');
+  const lastSdiv = statsStrip ? statsStrip.nextElementSibling : null;
+  let insertAfter = lastSdiv || statsStrip;
+
+  window.SECTION_ORDER.forEach((key) => {
+    const meta = SECTION_META[key];
+    if(!meta) return;
+    const sec = document.getElementById(meta.id);
+    if(!sec || !insertAfter) return;
+    // أضف divider
+    const sdiv = document.createElement('div');
+    sdiv.className = 'sdiv';
+    insertAfter.parentNode.insertBefore(sdiv, insertAfter.nextSibling);
+    // أضف القسم بعد الـ divider
+    sdiv.parentNode.insertBefore(sec, sdiv.nextSibling);
+    insertAfter = sec;
+  });
+
+  // تحديث nav links
+  updateSecNavOrder();
+  renderLead();
+}
+
+function updateSecNavOrder(){
+  const nav = document.getElementById('secNav');
+  if(!nav) return;
+  const links = {};
+  nav.querySelectorAll('.snav-lnk').forEach(a => { links[a.dataset.key] = a; });
+  // إعادة ترتيب الـ nav links
+  window.SECTION_ORDER.forEach(key => {
+    const lnk = links[key];
+    if(lnk) nav.appendChild(lnk);
+  });
+}
+
+// تحميل الترتيب المحفوظ
+(function(){
+  try{
+    const saved = localStorage.getItem('ma_sec_order_v1');
+    if(saved){
+      const arr = JSON.parse(saved);
+      if(Array.isArray(arr) && arr.length >= 3) window.SECTION_ORDER = arr;
+    }
+  }catch(e){}
+  // تطبيق الترتيب عند التحميل
+  setTimeout(applySectionOrder, 800);
+})();
+
+// ربط buildSectionOrderUI مع فتح الـ tab
+const _origETabForOrder = eTab;
+eTab = function(id, btn){
+  _origETabForOrder(id, btn);
+  if(id === 'epOrder') buildSectionOrderUI();
+};
 window.saveDDData=function(){
   saveDDLocal();
   if(window._saveToFirebase)window._saveToFirebase();
