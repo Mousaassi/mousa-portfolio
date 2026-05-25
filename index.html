@@ -89,7 +89,13 @@ onAuthStateChanged(auth, user => {
 window._loadFromFirebase = async () => {
   while(typeof showSync==='undefined'||typeof loadLocalD==='undefined'){await new Promise(r=>setTimeout(r,50));
   }
-  
+  try {
+  const lds = await getDoc(doc(db,'portfolio','leaddata'));
+  if(lds.exists() && lds.data().data) {
+    window.LEAD_DATA = JSON.parse(lds.data().data);
+    try { localStorage.setItem('ma_lead_v1', JSON.stringify(window.LEAD_DATA)); } catch(e){}
+  }
+} catch(e){}
   try {
     if(typeof showSync==='function') showSync('loading','☁ Loading…');
     let D = {};
@@ -181,6 +187,12 @@ const projClean = (window.D.proj||[]).map(p => ({
     if(window.DD_DATA){
       batch.set(doc(db,'portfolio','dddata'), { data: JSON.stringify(window.DD_DATA), updatedAt: new Date().toISOString() });
     }
+  if(window.LEAD_DATA) {
+  batch.set(doc(db,'portfolio','leaddata'), { 
+    data: JSON.stringify(window.LEAD_DATA), 
+    updatedAt: new Date().toISOString() 
+  });
+}
     await batch.commit();
     if (window.profilePhoto && window.profilePhoto.startsWith('data:')) {
       const sz = new Blob([window.profilePhoto]).size;
@@ -781,6 +793,38 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 </head>
 <body>
 <style>
+/* ══ LEADERSHIP SECTION ══ */
+.lead-list { display: grid; gap: 16px; }
+.lead-card {
+  display: flex; gap: 20px; padding: 22px 26px;
+  background: var(--sf); border: 1px solid var(--bd);
+  border-radius: var(--r); transition: var(--tr);
+}
+.lead-card:hover {
+  border-color: var(--a3); transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,.25);
+}
+.lead-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--a3); margin-top: 6px; flex-shrink: 0;
+  box-shadow: 0 0 14px var(--a3);
+}
+.lead-body { flex: 1; }
+.lead-body h3 {
+  font-family: var(--fd); font-size: 1.03rem;
+  font-weight: 700; margin-bottom: 4px;
+}
+.lead-meta { display: flex; gap: 12px; margin-bottom: 9px; flex-wrap: wrap; }
+.lead-org  { color: var(--a3); font-size: .84rem; font-weight: 500; }
+.lead-period { font-family: var(--fm); font-size: .7rem; color: var(--tm); }
+.lead-ul { list-style: none; display: flex; flex-direction: column; gap: 5px; }
+.lead-ul li {
+  font-size: .82rem; color: var(--td);
+  padding-left: 15px; position: relative; line-height: 1.5;
+}
+.lead-ul li::before { content: '▸'; position: absolute; left: 0; color: var(--a3); }
+[dir=rtl] .lead-ul li { padding-left: 0; padding-right: 15px; }
+[dir=rtl] .lead-ul li::before { left: auto; right: 0; }
   #sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero{opacity:0;transition:opacity .4s ease;}
 </style>
 <style>
@@ -963,6 +1007,16 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 </div>
 <div class="sdiv"></div>
 <div class="sec fade-in" id="sec-certs"><div class="sh"><span class="sn">05</span><h2 class="st" id="tCerts"></h2><div class="sl"></div></div><div class="cgrid" id="certGrid"></div></div>
+  <!-- ══ LEADERSHIP & ACTIVITIES SECTION ══ -->
+<div class="sdiv"></div>
+<div class="sec fade-in" id="sec-lead">
+  <div class="sh">
+    <span class="sn">06</span>
+    <h2 class="st" id="tLead">Leadership & Activities</h2>
+    <div class="sl"></div>
+  </div>
+  <div class="lead-list" id="leadList"></div>
+</div>
 <div id="customContainer"></div>
 
 <!-- LIGHTBOX -->
@@ -1024,12 +1078,23 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="etab" onclick="eTab('epCus',this)">➕ Sections</button>
           <button class="etab" onclick="eTab('epFloat',this)">💬 Float</button>
           <button class="etab" onclick="eTab('epDeepDive',this)">🔍 Deep Dive</button>
+          <button class="etab" onclick="eTab('epLead',this)">🏆 Leadership</button>
           <button class="etab" onclick="eTab('epCV',this)">📥 CV Links</button>
 
         </div>
       </div>
       <div class="ebody">
       <!-- FLOAT CONTACT PANEL -->
+      <div class="ep" id="epLead">
+  <div class="cinfo-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    قسم القيادة والأنشطة — قابل للتعديل بـ 3 لغات.
+  </div>
+  <div class="led" id="leadEd"></div>
+  <button class="addbtn" onclick="addLeadItem()" type="button">+ Add Activity</button>
+  <button class="sbtn" onclick="saveLeadData()" type="button">Save Leadership</button>
+  <p class="sok" id="leadOk">✓ Saved — press ☁ Sync</p>
+</div>
 <div class="ep" id="epFloat">
   <div class="cinfo-box">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -1251,6 +1316,162 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 </div>
 
 <script>
+/* ════ RENDER LEADERSHIP ════ */
+function renderLead() {
+  const list = document.getElementById('leadList');
+  if(!list) return;
+  
+  // Update section title
+  const tLead = document.getElementById('tLead');
+  if(tLead) {
+    const titles = { en:'Leadership & Activities', tr:'Liderlik & Aktiviteler', ar:'القيادة والأنشطة' };
+    tLead.textContent = (window.D && window.D.titles && window.D.titles.lead)
+      ? GL(window.D.titles.lead, titles[lang])
+      : (titles[lang] || titles.en);
+  }
+  
+  list.innerHTML = (window.LEAD_DATA || []).map((item, i) => `
+    <div class="lead-card holo-card">
+      <div style="position:relative;width:10px;height:10px;flex-shrink:0;margin-top:6px;">
+        <div class="lead-dot" style="position:absolute;top:0;left:0;margin:0;"></div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+          width:10px;height:10px;border-radius:50%;background:var(--a3);opacity:0;
+          animation:pulseRing 2s ease-out infinite;"></div>
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+          width:10px;height:10px;border-radius:50%;background:var(--a3);opacity:0;
+          animation:pulseRing 2s ease-out infinite 1s;"></div>
+      </div>
+      <div class="lead-body">
+        <h3>${GL(item.role, '')}</h3>
+        <div class="lead-meta">
+          <span class="lead-org">${GL(item.org, '')}</span>
+          <span class="lead-period">${GL(item.period, '')} · ${item.loc || ''}</span>
+        </div>
+        <ul class="lead-ul">
+          ${(item.bullets || []).map(b => `<li>${GL(b, '')}</li>`).join('')}
+        </ul>
+      </div>
+    </div>
+  `).join('');
+}
+
+/* Hook into render */
+const _origRenderForLead = window.render;
+window.render = function() {
+  _origRenderForLead.apply(this, arguments);
+  renderLead();
+};
+/* ════ LEADERSHIP EDITOR ════ */
+function buildLeadEd() {
+  const el = document.getElementById('leadEd');
+  if(!el) return;
+  el.innerHTML = (window.LEAD_DATA || []).map((item, i) => `
+    <div class="lrow">
+      <div class="rh">
+        <span class="rn">Activity #${i+1}</span>
+        <div style="display:flex;gap:5px;">
+          <button class="dbtn" onclick="moveLeadI(${i},-1)" type="button">↑</button>
+          <button class="dbtn" onclick="moveLeadI(${i},1)"  type="button">↓</button>
+          <button class="dbtn" onclick="delLeadI(${i})"    type="button">Remove</button>
+        </div>
+      </div>
+      <div class="thr">
+        <div class="ef"><label class="el">Organization EN</label>
+          <input class="ei" value="${esc(item.org&&item.org.en||'')}" oninput="window.LEAD_DATA[${i}].org.en=this.value">
+        </div>
+        <div class="ef"><label class="el">Organization TR</label>
+          <input class="ei" value="${esc(item.org&&item.org.tr||'')}" oninput="window.LEAD_DATA[${i}].org.tr=this.value">
+        </div>
+        <div class="ef"><label class="el">Organization AR</label>
+          <input class="ei" value="${esc(item.org&&item.org.ar||'')}" oninput="window.LEAD_DATA[${i}].org.ar=this.value" dir="rtl">
+        </div>
+      </div>
+      <div class="thr">
+        <div class="ef"><label class="el">Role EN</label>
+          <input class="ei" value="${esc(item.role&&item.role.en||'')}" oninput="window.LEAD_DATA[${i}].role.en=this.value">
+        </div>
+        <div class="ef"><label class="el">Role TR</label>
+          <input class="ei" value="${esc(item.role&&item.role.tr||'')}" oninput="window.LEAD_DATA[${i}].role.tr=this.value">
+        </div>
+        <div class="ef"><label class="el">Role AR</label>
+          <input class="ei" value="${esc(item.role&&item.role.ar||'')}" oninput="window.LEAD_DATA[${i}].role.ar=this.value" dir="rtl">
+        </div>
+      </div>
+      <div class="thr">
+        <div class="ef"><label class="el">Period EN</label>
+          <input class="ei" value="${esc(item.period&&item.period.en||'')}" oninput="window.LEAD_DATA[${i}].period.en=this.value">
+        </div>
+        <div class="ef"><label class="el">Period TR</label>
+          <input class="ei" value="${esc(item.period&&item.period.tr||'')}" oninput="window.LEAD_DATA[${i}].period.tr=this.value">
+        </div>
+        <div class="ef"><label class="el">Period AR</label>
+          <input class="ei" value="${esc(item.period&&item.period.ar||'')}" oninput="window.LEAD_DATA[${i}].period.ar=this.value" dir="rtl">
+        </div>
+      </div>
+      <div class="ef">
+        <label class="el">Location</label>
+        <input class="ei" value="${esc(item.loc||'')}" oninput="window.LEAD_DATA[${i}].loc=this.value">
+      </div>
+      <div class="ef">
+        <label class="el">Bullets (EN / TR / AR)</label>
+        <div style="display:flex;flex-direction:column;gap:6px;margin-top:6px;">
+          ${(item.bullets||[]).map((b,bi) => `
+            <div style="background:var(--sf);border:1px solid var(--bd);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:5px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;">
+                <span style="font-family:var(--fm);font-size:.64rem;color:var(--a3);">Bullet ${bi+1}</span>
+                <button class="bdel" onclick="delLeadBul(${i},${bi})" type="button">✕</button>
+              </div>
+              <input class="ei" placeholder="English" value="${esc(b.en||'')}" oninput="window.LEAD_DATA[${i}].bullets[${bi}].en=this.value">
+              <input class="ei" placeholder="Türkçe"  value="${esc(b.tr||'')}" oninput="window.LEAD_DATA[${i}].bullets[${bi}].tr=this.value">
+              <input class="ei" placeholder="العربية" value="${esc(b.ar||'')}" oninput="window.LEAD_DATA[${i}].bullets[${bi}].ar=this.value" dir="rtl">
+            </div>
+          `).join('')}
+        </div>
+        <button class="badd" onclick="addLeadBul(${i})" type="button">+ Add bullet</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function addLeadItem() {
+  window.LEAD_DATA.push({
+    org:    { en:'', tr:'', ar:'' },
+    role:   { en:'', tr:'', ar:'' },
+    period: { en:'', tr:'', ar:'' },
+    loc:    '',
+    bullets:[ { en:'', tr:'', ar:'' } ]
+  });
+  buildLeadEd();
+}
+
+function delLeadI(i)    { window.LEAD_DATA.splice(i,1); buildLeadEd(); }
+function addLeadBul(i)  { window.LEAD_DATA[i].bullets.push({en:'',tr:'',ar:''}); buildLeadEd(); }
+function delLeadBul(i,bi){ window.LEAD_DATA[i].bullets.splice(bi,1); buildLeadEd(); }
+function moveLeadI(i,dir){
+  const arr = window.LEAD_DATA, ni = i+dir;
+  if(ni<0||ni>=arr.length) return;
+  [arr[i],arr[ni]] = [arr[ni],arr[i]];
+  buildLeadEd();
+}
+
+function saveLeadData() {
+  saveLeadLocal();
+  renderLead();
+  showOK('leadOk');
+  // Save to Firebase
+  if(window._isAdmin && window._fbUser && window._saveToFirebase) {
+    window._saveToFirebase();
+  }
+}
+
+/* Hook tab open */
+const _origETab = window.eTab || eTab;
+// Override eTab to catch epLead
+const _prevETab = eTab;
+window.eTab = function(id, btn) {
+  _prevETab(id, btn);
+  if(id === 'epLead') buildLeadEd();
+};
 /* ════ SYNC ════ */
 let _sT;
 function showSync(s,m){
@@ -1397,6 +1618,71 @@ function normSk(s){return{cat:ensureLO(s.cat,{}),tags:s.tags||[],hl:s.hl||[]};}
 function normCert(c){return{name:c.name||'',year:c.year||'',img:c.img||'',url:c.url||''};}
 
 const DEFS={
+  /* ════ LEADERSHIP & ACTIVITIES DATA ════ */
+const DEFS_LEAD = [
+  {
+    org:    { en:'TEKNO-SEL Technology Fair', tr:'TEKNO-SEL Teknoloji Fuarı', ar:'معرض TEKNO-SEL للتكنولوجيا' },
+    loc:    'Konya, Türkiye',
+    role:   { en:'Project Presenter', tr:'Proje Sunucusu', ar:'عارض مشروع' },
+    period: { en:'May 2025', tr:'Mayıs 2025', ar:'مايو 2025' },
+    bullets:[
+      { en:'Presented medical supply delivery UAV project targeting emergency health solutions',
+        tr:'Acil sağlık çözümlerine yönelik tıbbi malzeme taşıma İHA projesini sundum',
+        ar:'قدّمت مشروع طائرة مسيّرة لتوصيل المستلزمات الطبية في حالات الطوارئ' },
+      { en:'Explained system architecture, payload release mechanism, and autonomous navigation',
+        tr:'Sistem mimarisi, yük bırakma mekanizması ve otonom navigasyon konseptini açıkladım',
+        ar:'شرحت معمارية النظام وآلية إسقاط الحمولة والملاحة المستقلة' },
+      { en:'Engaged with technical evaluators and industry representatives',
+        tr:'Teknik değerlendiriciler ve sektör temsilcileri ile iletişim kurdum',
+        ar:'تواصلت مع المقيّمين التقنيين وممثلي الصناعة' }
+    ]
+  },
+  {
+    org:    { en:'University Engineering Projects Team', tr:'Üniversite Mühendislik Projeleri Ekibi', ar:'فريق مشاريع الهندسة الجامعية' },
+    loc:    'Konya, Türkiye',
+    role:   { en:'Project Leader', tr:'Proje Lideri', ar:'قائد مشروع' },
+    period: { en:'2023 – Present', tr:'2023 – Günümüz', ar:'2023 – حتى الآن' },
+    bullets:[
+      { en:'Participated in interdisciplinary engineering projects covering robotics and UAV systems',
+        tr:'Robotik ve insansız hava aracı sistemlerini kapsayan disiplinler arası projelerde görev aldım',
+        ar:'شاركت في مشاريع هندسية متعددة التخصصات تشمل الروبوتيكس وأنظمة الطائرات المسيّرة' },
+      { en:'Contributed to system integration, testing, and technical documentation',
+        tr:'Sistem entegrasyonu, test ve teknik dokümantasyon süreçlerine katkı sağladım',
+        ar:'أسهمت في تكامل الأنظمة والاختبار والتوثيق التقني' },
+      { en:'Participated in project presentations and academic seminars',
+        tr:'Proje tanıtımları ve akademik sunumlara katıldım',
+        ar:'شاركت في عروض المشاريع والندوات الأكاديمية' }
+    ]
+  },
+  {
+    org:    { en:'Individual Engineering Projects', tr:'Bireysel Mühendislik Projeleri', ar:'مشاريع هندسية مستقلة' },
+    loc:    'Konya, Türkiye',
+    role:   { en:'Independent Developer', tr:'Bağımsız Geliştirici', ar:'مطور مستقل' },
+    period: { en:'2021 – Present', tr:'2021 – Günümüz', ar:'2021 – حتى الآن' },
+    bullets:[
+      { en:'Continuously conducted hands-on engineering projects in robotics, UAV, and embedded systems',
+        tr:'Robotik, İHA ve gömülü sistemler alanlarında sürekli uygulamalı projeler yürüttüm',
+        ar:'أجريت باستمرار مشاريع هندسية عملية في الروبوتيكس وأنظمة الطائرات والأنظمة المدمجة' },
+      { en:'Managed full project lifecycle including assembly, testing, debugging, and documentation',
+        tr:'Montaj, test, hata giderme ve dokümantasyon dahil proje yaşam döngüsünü yönettim',
+        ar:'أدرت دورة حياة المشروع الكاملة بما يشمل التجميع والاختبار وإصلاح الأخطاء والتوثيق' },
+      { en:'Sustained technical growth through independent research and experimental work',
+        tr:'Bağımsız araştırma ve deneysel çalışmalar ile teknik gelişimi sürdürdüm',
+        ar:'واصلت النمو التقني من خلال البحث المستقل والعمل التجريبي' }
+    ]
+  }
+];
+
+// Load from localStorage if saved
+try {
+  const _sl = localStorage.getItem('ma_lead_v1');
+  if(_sl) window.LEAD_DATA = JSON.parse(_sl);
+  else window.LEAD_DATA = JSON.parse(JSON.stringify(DEFS_LEAD));
+} catch(e) { window.LEAD_DATA = JSON.parse(JSON.stringify(DEFS_LEAD)); }
+
+function saveLeadLocal(){
+  try{ localStorage.setItem('ma_lead_v1', JSON.stringify(window.LEAD_DATA)); }catch(e){}
+}
   hero:{firstName:'Mousa',lastName:'Assi',
     eyebrow:{en:'Mechanical & Mechatronics Engineer',tr:'Makine & Mekatronik Mühendisi',ar:'مهندس ميكانيكا وميكاترونيكس'},
     subtitle:{en:'UAV Systems · Robotics · Embedded Design',tr:'İHA Sistemleri · Robotik · Gömülü Tasarım',ar:'أنظمة الطائرات المسيّرة · الروبوتيكس · التصميم المدمج'},
