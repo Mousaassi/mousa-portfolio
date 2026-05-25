@@ -101,6 +101,13 @@ window._loadFromFirebase = async () => {
     let D = {};
     const hs = await getDoc(doc(db,'portfolio','hero'));
     if (hs.exists()) D.hero = hs.data();
+    const leadSnap = await getDoc(doc(db,'portfolio','leaddata'));
+
+if (leadSnap.exists()) {
+  window.LEAD_DATA = JSON.parse(leadSnap.data().data || '[]');
+} else {
+  window.LEAD_DATA = [];
+}
     try{
   const fs=await getDoc(doc(db,'portfolio','floatContact'));
   if(fs.exists())D.floatContact=fs.data();
@@ -1355,12 +1362,6 @@ function renderLead() {
   `).join('');
 }
 
-/* Hook into render */
-const _origRenderForLead = window.render;
-window.render = function() {
-  _origRenderForLead.apply(this, arguments);
-  renderLead();
-};
 /* ════ LEADERSHIP EDITOR ════ */
 function buildLeadEd() {
   const el = document.getElementById('leadEd');
