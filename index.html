@@ -1618,7 +1618,7 @@ function normSk(s){return{cat:ensureLO(s.cat,{}),tags:s.tags||[],hl:s.hl||[]};}
 function normCert(c){return{name:c.name||'',year:c.year||'',img:c.img||'',url:c.url||''};}
 
 const DEFS={
-  /* ════ LEADERSHIP & ACTIVITIES DATA ════ */
+/* ════ LEADERSHIP & ACTIVITIES DATA ════ */
 const DEFS_LEAD = [
   {
     org:    { en:'TEKNO-SEL Technology Fair', tr:'TEKNO-SEL Teknoloji Fuarı', ar:'معرض TEKNO-SEL للتكنولوجيا' },
@@ -1667,13 +1667,13 @@ const DEFS_LEAD = [
         tr:'Montaj, test, hata giderme ve dokümantasyon dahil proje yaşam döngüsünü yönettim',
         ar:'أدرت دورة حياة المشروع الكاملة بما يشمل التجميع والاختبار وإصلاح الأخطاء والتوثيق' },
       { en:'Sustained technical growth through independent research and experimental work',
-        tr:'Bağımsız araştırma ve deneysel çalışmalar ile teknik gelişimi sürdürdüm',
+        tr:'Bağımsız araştırma ve deneysel çalışmalar ile teknik gelişimi sürdürdüم',
         ar:'واصلت النمو التقني من خلال البحث المستقل والعمل التجريبي' }
     ]
   }
 ];
 
-// Load from localStorage if saved
+// تحميل من localStorage إذا موجود
 try {
   const _sl = localStorage.getItem('ma_lead_v1');
   if(_sl) window.LEAD_DATA = JSON.parse(_sl);
@@ -1683,6 +1683,9 @@ try {
 function saveLeadLocal(){
   try{ localStorage.setItem('ma_lead_v1', JSON.stringify(window.LEAD_DATA)); }catch(e){}
 }
+
+const DEFS={
+  hero:{firstName:'Mousa', ...
   hero:{firstName:'Mousa',lastName:'Assi',
     eyebrow:{en:'Mechanical & Mechatronics Engineer',tr:'Makine & Mekatronik Mühendisi',ar:'مهندس ميكانيكا وميكاترونيكس'},
     subtitle:{en:'UAV Systems · Robotics · Embedded Design',tr:'İHA Sistemleri · Robotik · Gömülü Tasarım',ar:'أنظمة الطائرات المسيّرة · الروبوتيكس · التصميم المدمج'},
