@@ -2271,9 +2271,6 @@ document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textCo
   document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
 requestAnimationFrame(injectDDButtons);
   if(typeof renderLead === 'function') renderLead();
-requestAnimationFrame(()=>{
-    if(typeof applySectionOrder === 'function') applySectionOrder();
-  });
 };
 function setLang(l){
   lang=l;
