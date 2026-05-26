@@ -3018,11 +3018,11 @@ function applySectionOrder(){
   const statsStrip = document.getElementById('statsStrip');
   if(!statsStrip) return;
 
-  // احذف كل sdiv وsec بعد statsStrip
+ // احذف بس الـ sdivs المضافة ديناميكياً — مش الأقسام الأصلية
   let node = statsStrip.nextSibling;
   while(node){
     const next = node.nextSibling;
-    if(node.nodeType === 1 && (node.classList.contains('sdiv') || node.classList.contains('sec') || node.id === 'customContainer')){
+    if(node.nodeType === 1 && node.classList.contains('sdiv') && node.dataset.dynamic){
       node.remove();
     }
     node = next;
@@ -3038,6 +3038,7 @@ function applySectionOrder(){
     if(sn) sn.textContent = String(i+1).padStart(2,'0');
     const sdiv = document.createElement('div');
     sdiv.className = 'sdiv';
+    sdiv.dataset.dynamic = '1';
     insertRef.parentNode.insertBefore(sdiv, insertRef.nextSibling);
     insertRef = sdiv;
     insertRef.parentNode.insertBefore(sec, insertRef.nextSibling);
@@ -3052,7 +3053,7 @@ function applySectionOrder(){
     const saved = localStorage.getItem('ma_sec_order_v1');
     if(saved){ const arr = JSON.parse(saved); if(Array.isArray(arr) && arr.length >= 3) window.SECTION_ORDER = arr; }
   }catch(e){}
-  setTimeout(()=>{ if(typeof applySectionOrder==='function') applySectionOrder(); }, 900);
+  // لا تشغل applySectionOrder تلقائياً — بس عند Sync أو Save Order
 })();
 
 (function(){
@@ -3800,7 +3801,14 @@ function skView(mode, btn) {
     if(!nav) return;
     const allSections = getAllSections();
 
-    nav.innerHTML = allSections.map(sec => {
+// رتّب حسب SECTION_ORDER إذا موجود
+    const ordered = window.SECTION_ORDER
+      ? window.SECTION_ORDER.map(k => allSections.find(s=>s.key===k)).filter(Boolean)
+      : allSections;
+    // أضف أي sections جديدة ما في SECTION_ORDER
+    allSections.forEach(s=>{ if(!ordered.find(o=>o.key===s.key)) ordered.push(s); });
+
+    nav.innerHTML = ordered.map(sec => {
       const ti     = window.D && window.D.titles || {};
       const titObj = ti[sec.key];
       const lbl    = titObj ? (titObj[lang] || titObj.en) : (sec.label[lang] || sec.label.en);
