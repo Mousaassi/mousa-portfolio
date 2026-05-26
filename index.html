@@ -2239,22 +2239,25 @@ let lks=``;
     </div>`).join('');
 
 document.getElementById('customContainer').innerHTML=(window.D.custom||[]).map((s,i)=>`
-    <div class="sec fade-in visible" id="sec-cus-${i}">
-      <div class="sh">
-        <span class="sn">${String(7+i).padStart(2,'0')}</span>
-        <h2 class="st">${
-          lang==='tr'?(s.title_tr||s.title||''):
-          lang==='ar'?(s.title_ar||s.title||''):
-          (s.title||'')
-        }</h2>
-        <div class="sl"></div>
-      </div>
-      <div class="csc">${
-        lang==='tr'?(s.content_tr||s.content||''):
-        lang==='ar'?(s.content_ar||s.content||''):
-        (s.content||'')
-      }</div>
-    </div>`).join('');
+const cusContainer = document.getElementById('customContainer');
+  if(cusContainer){
+    cusContainer.innerHTML = (window.D.custom||[]).map((s,i)=>`
+      <div class="sec fade-in visible" id="sec-cus-${i}">
+        <div class="sh">
+          <span class="sn">${String(7+i).padStart(2,'0')}</span>
+          <h2 class="st">${
+            lang==='tr'?(s.title_tr||s.title||''):
+            lang==='ar'?(s.title_ar||s.title||''):
+            (s.title||'')
+          }</h2>
+          <div class="sl"></div>
+        </div>
+        <div class="csc">${
+          lang==='tr'?(s.content_tr||s.content||''):
+          lang==='ar'?(s.content_ar||s.content||''):
+          (s.content||'')
+        }</div>
+      </div>`).join('');
   }
   <div class="sec fade-in visible" id="sec-cus-${i}">
       <div class="sh"><span class="sn">${String(7+i).padStart(2,'0')}</span><h2 class="st">${
@@ -2284,9 +2287,6 @@ document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textCo
   document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
 requestAnimationFrame(injectDDButtons);
   if(typeof renderLead === 'function') renderLead();
-requestAnimationFrame(()=>{
-    if(typeof applySectionOrder === 'function') applySectionOrder();
-  });
 };
 function setLang(l){
   lang=l;
@@ -3935,8 +3935,11 @@ function skView(mode, btn) {
   window.render = function(){
     origRender.apply(this, arguments);
     rebuildNav();
-rebuildNav();
-    if(typeof renderLead === 'function') renderLead();
+   if(typeof renderLead === 'function') renderLead();
+  // أعد تطبيق الترتيب المحفوظ بعد كل render
+  requestAnimationFrame(()=>{
+    if(typeof applySectionOrder === 'function') applySectionOrder();
+  });
 };
 })();
 /* ════ FLOAT CONTACT BUTTON ════ */
