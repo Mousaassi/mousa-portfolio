@@ -1725,8 +1725,8 @@ function normEdu(e){return{year:e.year||'',degree:ensureLO(e.degree,{}),school:e
 function normProj(p){return{year:p.year||'',title:ensureLO(p.title,{}),bullets:normBullets(p.bullets),pdf:p.pdf||'',pdfName:p.pdfName||''};}
 function normExp(e){return{role:ensureLO(e.role,{}),company:e.company||'',period:e.period||'',loc:e.loc||'',bullets:normBullets(e.bullets)};}
 function normSk(s){return{cat:ensureLO(s.cat,{}),tags:s.tags||[],hl:s.hl||[]};}
-function normCert(c){return{name:c.name||'',year:c.year||'',img:c.img||'',url:c.url||''};}
-
+function normCert(c){return{name:c.name||'',name_tr:c.name_tr||'',name_ar:c.name_ar||'',year:c.year||'',img:c.img||'',url:c.url||''};}
+  
 /* ════ LEADERSHIP & ACTIVITIES DATA ════ */
 const DEFS_LEAD = [
   {
@@ -2244,12 +2244,14 @@ if(ftEl){
     ftEl.innerHTML+=` &nbsp;|&nbsp;<span style="color:#4ecb71;font-family:var(--fm);">👁 ${window._visitorCount.toLocaleString()} visitors</span>`;
   }
 }
-  document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===lang));
+document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===lang));
   document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
   requestAnimationFrame(injectDDButtons);
+  renderLead();
 };
   function setLang(l){
-  lang=l;render();
+  lang=l;
+  render();
   if(window._stopTW)window._stopTW();
   window._twCycling=false;
   const el=document.getElementById('heroSub');
