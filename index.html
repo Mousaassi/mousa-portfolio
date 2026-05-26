@@ -2129,11 +2129,19 @@ let lks=``;
       ${c.url?`<a href="${c.url}" class="cvbtn" target="_blank">${SI.eye} View Certificate</a>`:''}
     </div>`).join('');
 
-  document.getElementById('customContainer').innerHTML=(window.D.custom||[]).map((s,i)=>`
+document.getElementById('customContainer').innerHTML=(window.D.custom||[]).map((s,i)=>`
     <div class="sdiv"></div>
-    <div class="sec fade-in visible">
-      <div class="sh"><span class="sn">0${6+i}</span><h2 class="st">${s.title||''}</h2><div class="sl"></div></div>
-      <div class="csc">${s.content||''}</div>
+    <div class="sec fade-in visible" id="sec-cus-${i}">
+      <div class="sh"><span class="sn">${String(7+i).padStart(2,'0')}</span><h2 class="st">${
+        lang==='tr'?(s.title_tr||s.title||''):
+        lang==='ar'?(s.title_ar||s.title||''):
+        (s.title||'')
+      }</h2><div class="sl"></div></div>
+      <div class="csc">${
+        lang==='tr'?(s.content_tr||s.content||''):
+        lang==='ar'?(s.content_ar||s.content||''):
+        (s.content||'')
+      }</div>
     </div>`).join('');
 
   // CV Links dynamic
@@ -2282,10 +2290,25 @@ function buildSocEd(){
 }
 
 function buildCusEd(){document.getElementById('cusEd').innerHTML=(window.D.custom||[]).map((s,i)=>`
-  <div class="lrow"><div class="rh"><span class="rn">Section #${i+1}</span><button class="dbtn" onclick="delI('custom',${i})" type="button">Remove</button></div>
-    <div class="ef"><label class="el">Title</label><input class="ei" value="${esc(s.title||'')}" oninput="window.D.custom[${i}].title=this.value"></div>
-    <div class="ef"><label class="el">Content</label><textarea class="eta" oninput="window.D.custom[${i}].content=this.value">${s.content||''}</textarea></div>
+  <div class="lrow">
+    <div class="rh">
+      <span class="rn">Section #${i+1}</span>
+      <div style="display:flex;gap:5px;">
+        <button class="dbtn" onclick="moveI('custom',${i},-1)" type="button">↑</button>
+        <button class="dbtn" onclick="moveI('custom',${i},1)"  type="button">↓</button>
+        <button class="dbtn" onclick="delI('custom',${i})"     type="button">Remove</button>
+      </div>
+    </div>
+    <div class="thr">
+      <div class="ef"><label class="el">Title EN</label><input class="ei" value="${esc(s.title||'')}"    oninput="window.D.custom[${i}].title=this.value"></div>
+      <div class="ef"><label class="el">Title TR</label><input class="ei" value="${esc(s.title_tr||'')}" oninput="window.D.custom[${i}].title_tr=this.value"></div>
+      <div class="ef"><label class="el">Title AR</label><input class="ei" value="${esc(s.title_ar||'')}" oninput="window.D.custom[${i}].title_ar=this.value" dir="rtl"></div>
+    </div>
+    <div class="ef"><label class="el">Content EN</label><textarea class="eta" oninput="window.D.custom[${i}].content=this.value">${esc(s.content||'')}</textarea></div>
+    <div class="ef"><label class="el">Content TR</label><textarea class="eta" oninput="window.D.custom[${i}].content_tr=this.value">${esc(s.content_tr||'')}</textarea></div>
+    <div class="ef"><label class="el">Content AR</label><textarea class="eta" oninput="window.D.custom[${i}].content_ar=this.value" dir="rtl">${esc(s.content_ar||'')}</textarea></div>
   </div>`).join('');}
+  
 
 const EB={edu:buildEduEd,proj:buildProjEd,exp:buildExpEd,skills:buildSkEd,certs:buildCertEd,social:buildSocEd,custom:buildCusEd};
 function addEdu(){window.D.edu.push({year:'20XX',degree:{en:'',tr:'',ar:''},school:'',loc:''});buildEduEd();}
@@ -3639,34 +3662,79 @@ function skView(mode, btn) {
 }  
 /* ════ SECTION NAV — ACTIVE STATE + LABELS ════ */
 (function(){
-   const navLabels={
-    edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},
-    proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},
-    exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},
-    skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},
-    certs:{en:'Certs',tr:'Sertifikalar',ar:'الشهادات'},
-    lead:{en:'Leadership',tr:'Liderlik',ar:'القيادة'}
-  };
-  function updateNavLabels(){
-    const ti=window.D&&window.D.titles||{};
-    document.querySelectorAll('.snav-lnk').forEach(a=>{
-      const key=a.dataset.key;
-      const obj=ti[key]||navLabels[key]||{};
-      a.textContent=obj[lang]||obj.en||key;
+  const STATIC_SECTIONS = [
+    { key:'edu',    id:'sec-edu',    label:{en:'Education',    tr:'Eğitim',     ar:'التعليم'   }, num:'01' },
+    { key:'proj',   id:'sec-proj',   label:{en:'Projects',     tr:'Projeler',   ar:'المشاريع'  }, num:'02' },
+    { key:'exp',    id:'sec-exp',    label:{en:'Experience',   tr:'Deneyim',    ar:'الخبرات'   }, num:'03' },
+    { key:'skills', id:'sec-skills', label:{en:'Skills',       tr:'Yetenekler', ar:'المهارات'  }, num:'04' },
+    { key:'certs',  id:'sec-certs',  label:{en:'Certifications',tr:'Sertifikalar',ar:'الشهادات'}, num:'05' },
+    { key:'lead',   id:'sec-lead',   label:{en:'Leadership',   tr:'Liderlik',   ar:'القيادة'   }, num:'06' },
+  ];
+
+  let obsNav = null;
+
+  function rebuildNav(){
+    const nav = document.getElementById('secNav');
+    if(!nav) return;
+
+    // اجمع كل الأقسام: الثابتة + الـ custom
+    const allSections = [...STATIC_SECTIONS];
+
+    // أضف الـ custom sections ديناميكياً
+    (window.D && window.D.custom || []).forEach((s, i) => {
+      allSections.push({
+        key:   'custom_' + i,
+        id:    'sec-cus-' + i,
+        label: {
+          en: s.title || ('Section ' + (i+1)),
+          tr: s.title_tr || s.title || ('Bölüm ' + (i+1)),
+          ar: s.title_ar || s.title || ('قسم ' + (i+1))
+        },
+        num: String(7 + i).padStart(2,'0')
+      });
+    });
+
+    // امسح الـ nav وأعد بناءه
+    nav.innerHTML = allSections.map(sec => {
+      const lbl = sec.label[lang] || sec.label.en;
+      // خذ العنوان من D.titles إذا موجود
+      const ti = window.D && window.D.titles || {};
+      const titObj = ti[sec.key];
+      const finalLbl = titObj ? (titObj[lang] || titObj.en || lbl) : lbl;
+      return `<a href="#${sec.id}" class="snav-lnk" data-key="${sec.key}">${finalLbl}</a>`;
+    }).join('');
+
+    // إعادة ربط smooth scroll
+    nav.querySelectorAll('.snav-lnk').forEach(a => {
+      a.addEventListener('click', e => {
+        const target = document.querySelector(a.getAttribute('href'));
+        if(target){ e.preventDefault(); window.scrollTo({top: target.offsetTop - 80, behavior:'smooth'}); }
+      });
+    });
+
+    // إعادة ربط IntersectionObserver
+    if(obsNav) obsNav.disconnect();
+    obsNav = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        const key = e.target.id.replace('sec-','').replace('cus-','custom_');
+        const lnk = nav.querySelector(`.snav-lnk[data-key="${key}"]`);
+        if(lnk) lnk.classList.toggle('active', e.isIntersecting);
+      });
+    }, {rootMargin:'-20% 0px -70% 0px'});
+
+    allSections.forEach(sec => {
+      const el = document.getElementById(sec.id);
+      if(el) obsNav.observe(el);
     });
   }
-  const obsNav=new IntersectionObserver(entries=>{
-    entries.forEach(e=>{
-      const key=e.target.id.replace('sec-','');
-      const lnk=document.querySelector(`.snav-lnk[data-key="${key}"]`);
-      if(lnk)lnk.classList.toggle('active',e.isIntersecting);
-    });
-  },{rootMargin:'-20% 0px -70% 0px'});
- ['sec-edu','sec-proj','sec-exp','sec-skills','sec-certs','sec-lead'].forEach(id=>{
-    const el=document.getElementById(id);if(el)obsNav.observe(el);
-  });
-  const origRender=window.render;
-  window.render=function(){origRender.apply(this,arguments);updateNavLabels();};
+
+  // ربط مع render — بيتنادى كل مرة تتغير اللغة أو البيانات
+  const origRender = window.render;
+  window.render = function(){
+    origRender.apply(this, arguments);
+    rebuildNav();
+    if(typeof renderLead === 'function') renderLead();
+  };
 })();
 /* ════ FLOAT CONTACT BUTTON ════ */
 (function(){
