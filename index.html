@@ -838,185 +838,75 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 @keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
 </style>
 
-<!-- ══ LOADING SCREEN ══ -->
-<style>
-@keyframes loaderCursorBlink{0%,100%{opacity:1}50%{opacity:0}}
-@keyframes loaderDotPulse{0%,100%{opacity:.2}50%{opacity:1}}
-@keyframes loaderFadeOut{to{opacity:0;visibility:hidden}}
-</style>
-
+<!-- ══ LOADING SCREEN — TYPEWRITER ══ -->
 <div id="loaderScreen" style="
-  position:fixed;inset:0;z-index:99999;
-  background:radial-gradient(ellipse 90% 70% at 50% 55%,#0d0d1e 0%,#050508 100%);
+  position:fixed;inset:0;background:radial-gradient(circle at center,#12121b 0%,#050508 100%);
   display:flex;flex-direction:column;align-items:center;justify-content:center;
-  transition:opacity .7s ease,visibility .7s ease;
+  z-index:99999;transition:opacity .7s ease,visibility .7s ease;
 ">
-  <canvas id="loaderCanvas" style="position:absolute;inset:0;opacity:.55;pointer-events:none;"></canvas>
-
-  <div style="position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;">
-
-    <!-- الاسم -->
-    <div style="display:flex;align-items:center;min-height:88px;">
-      <span id="loaderName" style="
-        font-family:'Playfair Display',serif;font-size:clamp(42px,8vw,72px);
-        font-weight:900;letter-spacing:-.025em;color:#e8c87a;
-        text-shadow:0 0 60px rgba(232,200,122,.18);
-      "></span>
-      <span id="loaderCursor" style="
-        display:inline-block;width:3px;height:clamp(38px,7vw,64px);
-        background:#e8c87a;margin-left:4px;border-radius:2px;
-        animation:loaderCursorBlink .55s steps(1) infinite;vertical-align:middle;
-      "></span>
-    </div>
-
-    <!-- الخط -->
-    <div id="loaderLine" style="
-      width:0;height:1px;
-      background:linear-gradient(90deg,transparent,rgba(232,200,122,.5),#e8c87a,rgba(232,200,122,.5),transparent);
-      transition:width 1.5s cubic-bezier(.4,0,.2,1);margin-top:16px;
+  <div style="position:relative;display:flex;align-items:center;">
+    <div id="loaderMA" style="
+      font-family:'Playfair Display',serif;font-size:6.5rem;font-weight:900;
+      color:#e8c87a;letter-spacing:-.02em;
+      text-shadow:0 0 80px rgba(232,200,122,.25);
+      min-width:3ch;
     "></div>
-
-    <!-- التخصص -->
-    <div id="loaderSub" style="
-      font-family:'JetBrains Mono',monospace;font-size:clamp(9px,1.4vw,11px);
-      letter-spacing:.22em;text-transform:uppercase;color:#3a3a55;
-      margin-top:16px;opacity:0;transition:opacity .7s ease;
-    ">Mechanical · Mechatronics · Engineer</div>
-
-    <!-- نقاط التحميل -->
-    <div id="loaderDots" style="display:flex;gap:7px;margin-top:32px;opacity:0;transition:opacity .6s ease;">
-      <div class="ldot" style="width:5px;height:5px;border-radius:50%;background:#e8c87a;opacity:.2;transition:opacity .2s;"></div>
-      <div class="ldot" style="width:5px;height:5px;border-radius:50%;background:#e8c87a;opacity:.2;transition:opacity .2s;"></div>
-      <div class="ldot" style="width:5px;height:5px;border-radius:50%;background:#e8c87a;opacity:.2;transition:opacity .2s;"></div>
-    </div>
+    <span id="loaderCursor" style="
+      display:inline-block;width:3px;height:5.5rem;
+      background:#e8c87a;margin-left:4px;
+      animation:cursorBlink .7s steps(1) infinite;
+      vertical-align:middle;border-radius:2px;
+    "></span>
   </div>
-
-  <!-- أسفل الشاشة -->
-  <div id="loaderBottom" style="
-    position:absolute;bottom:24px;
-    font-family:'JetBrains Mono',monospace;font-size:10px;
-    letter-spacing:.16em;text-transform:uppercase;color:#28283a;
-    opacity:0;transition:opacity .8s ease;display:flex;align-items:center;gap:8px;
-  ">
-    <span style="width:4px;height:4px;border-radius:50%;background:#e8c87a;opacity:.5;display:inline-block;"></span>
-    Loading portfolio
-    <span style="width:4px;height:4px;border-radius:50%;background:#e8c87a;opacity:.5;display:inline-block;"></span>
-  </div>
+  <div id="loaderLine" style="
+    width:0;height:1px;
+    background:linear-gradient(90deg,transparent,#e8c87a,transparent);
+    margin-top:18px;transition:width 2.2s ease;
+  "></div>
+  <div id="loaderSub" style="
+    font-family:'JetBrains Mono',monospace;font-size:.7rem;
+    color:#55556a;letter-spacing:.2em;text-transform:uppercase;
+    margin-top:14px;opacity:0;transition:opacity .6s ease;
+  ">Mechanical · Mechatronics · Engineer</div>
 </div>
 
 <script>
 (function(){
-  /* ── Particle canvas ── */
-  const canvas = document.getElementById('loaderCanvas');
-  const ctx    = canvas.getContext('2d');
-  let W, H, pts = [], animId;
-
-  function resizeCanvas(){
-    W = canvas.width  = window.innerWidth;
-    H = canvas.height = window.innerHeight;
-  }
-  resizeCanvas();
-  window.addEventListener('resize', resizeCanvas, {passive:true});
-
-  pts = Array.from({length: 45}, () => ({
-    x: Math.random() * window.innerWidth,
-    y: Math.random() * window.innerHeight,
-    vx: (Math.random() - .5) * .35,
-    vy: (Math.random() - .5) * .35,
-    r:  Math.random() * 1.3 + .5
-  }));
-
-  function drawParticles(){
-    ctx.clearRect(0, 0, W, H);
-    pts.forEach(p => {
-      p.x += p.vx; p.y += p.vy;
-      if(p.x < 0) p.x = W; if(p.x > W) p.x = 0;
-      if(p.y < 0) p.y = H; if(p.y > H) p.y = 0;
-      ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = 'rgba(232,200,122,.38)';
-      ctx.fill();
-    });
-    for(let i = 0; i < pts.length; i++)
-      for(let j = i + 1; j < pts.length; j++){
-        const dx = pts[i].x - pts[j].x, dy = pts[i].y - pts[j].y;
-        const d  = Math.sqrt(dx*dx + dy*dy);
-        if(d < 120){
-          ctx.strokeStyle = `rgba(232,200,122,${(1 - d/120) * .08})`;
-          ctx.lineWidth   = .5;
-          ctx.beginPath();
-          ctx.moveTo(pts[i].x, pts[i].y);
-          ctx.lineTo(pts[j].x, pts[j].y);
-          ctx.stroke();
-        }
-      }
-    animId = requestAnimationFrame(drawParticles);
-  }
-  drawParticles();
-
-  /* ── Typewriter ── */
-  const NAME    = 'Mousa Assi';
-  const nameEl  = document.getElementById('loaderName');
-  const cursor  = document.getElementById('loaderCursor');
-  const line    = document.getElementById('loaderLine');
-  const sub     = document.getElementById('loaderSub');
-  const dotsWrap= document.getElementById('loaderDots');
-  const bottom  = document.getElementById('loaderBottom');
-  const ldots   = document.querySelectorAll('.ldot');
-
-  let ci = 0;
-  const typeIv = setInterval(() => {
-    nameEl.textContent = NAME.slice(0, ++ci);
-    if(ci >= NAME.length){
+  const text='HELLO, I AM MOUSA';
+  const el=document.getElementById('loaderMA');
+  const cursor=document.getElementById('loaderCursor');
+  const line=document.getElementById('loaderLine');
+  const sub=document.getElementById('loaderSub');
+  let i=0;
+  const typeIv=setInterval(()=>{
+    if(i<=text.length){el.textContent=text.slice(0,i);i++;}
+    else{
       clearInterval(typeIv);
-      setTimeout(() => {
-        /* cursor يختفي */
-        cursor.style.animation = 'none';
-        cursor.style.transition = 'opacity .35s';
-        cursor.style.opacity    = '0';
-        /* خط يمتد */
-        line.style.width = '260px';
-        /* تخصص يظهر */
-        setTimeout(() => { sub.style.opacity = '1'; }, 380);
-        /* نقاط تحميل */
-        setTimeout(() => {
-          dotsWrap.style.opacity = '1';
-          bottom.style.opacity   = '1';
-          let di = 0;
-          setInterval(() => {
-            ldots.forEach((d, idx) => {
-              d.style.opacity = idx === di % 3 ? '1' : '.18';
-            });
-            di++;
-          }, 400);
-        }, 850);
-      }, 500);
+      setTimeout(()=>{
+        cursor.style.animation='none';
+        cursor.style.opacity='0';
+        cursor.style.transition='opacity .3s';
+        line.style.width='220px';
+        sub.style.opacity='1';
+      },1400);
     }
-  }, 100); /* سرعة الكتابة — غيّرها كما تريد */
-
-  /* ── Hide loader ── */
-  const startTime = Date.now();
+  },280);
+  const startTime=Date.now();
   function hideLoader(){
-    const elapsed = Date.now() - startTime;
-    const delay   = Math.max(0, 3800 - elapsed); /* الوقت الكلي للـ loader */
-    setTimeout(() => {
-      const screen = document.getElementById('loaderScreen');
-      if(!screen) return;
-      screen.style.opacity    = '0';
-      screen.style.visibility = 'hidden';
-      /* أوقف الـ particles بعد ما يختفي */
-      setTimeout(() => {
-        if(animId) cancelAnimationFrame(animId);
-        if(screen.parentNode) screen.remove();
-      }, 750);
-    }, delay);
+    const elapsed=Date.now()-startTime;
+    const delay=Math.max(0,4200-elapsed);
+    setTimeout(()=>{
+      const screen=document.getElementById('loaderScreen');
+      if(!screen)return;
+      screen.style.opacity='0';
+      screen.style.visibility='hidden';
+      setTimeout(()=>{if(screen.parentNode)screen.remove();},750);
+    },delay);
   }
-
-  if(document.readyState === 'complete') hideLoader();
-  else window.addEventListener('load', hideLoader);
+  if(document.readyState==='complete')hideLoader();
+  else window.addEventListener('load',hideLoader);
 })();
 </script>
-  
   
 <canvas id="particleCanvas"></canvas>
 <div id="cursorGlow"></div>
@@ -1033,10 +923,8 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
   <a href="#sec-proj" class="snav-lnk" data-key="proj">Projects</a>
   <a href="#sec-exp" class="snav-lnk" data-key="exp">Experience</a>
   <a href="#sec-skills" class="snav-lnk" data-key="skills">Skills</a>
-    <a href="#sec-certs" class="snav-lnk" data-key="certs">Certs</a>
-  <a href="#sec-lead" class="snav-lnk" data-key="lead">Leadership</a>
+  <a href="#sec-certs" class="snav-lnk" data-key="certs">Certs</a>
 </nav>
-
   <div class="hr">
     <div class="lang-sw">
       <button class="lb active" onclick="setLang('en')">EN</button>
@@ -1199,7 +1087,6 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="etab" onclick="eTab('epDeepDive',this)">🔍 Deep Dive</button>
           <button class="etab" onclick="eTab('epLead',this)">🏆 Leadership</button>
           <button class="etab" onclick="eTab('epCV',this)">📥 CV Links</button>
-          <button class="etab" onclick="eTab('epOrder',this)">🔀 Order</button>
 
         </div>
       </div>
@@ -1369,16 +1256,6 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="sbtn" onclick="saveCVLinks()" type="button">Save CV Links</button>
           <p class="sok" id="cvOk">✓ Saved — press ☁ Sync</p>
         </div>
-        <!-- SECTION ORDER PANEL -->
-<div class="ep" id="epOrder">
-  <div class="cinfo-box">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--ac);flex-shrink:0;"><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
-    رتّب الأقسام بالضغط على ↑↓ — بعد الحفظ اضغط ☁ Sync.
-  </div>
-  <div id="sectionOrderList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
-  <button class="sbtn" onclick="saveSectionOrder()" type="button">Save Order</button>
-  <p class="sok" id="orderOk">✓ Saved — press ☁ Sync</p>
-</div>
         <!-- DEEP DIVE PANEL -->
         <div class="ep" id="epDeepDive">
           <div class="cinfo-box">
@@ -1739,8 +1616,8 @@ function normEdu(e){return{year:e.year||'',degree:ensureLO(e.degree,{}),school:e
 function normProj(p){return{year:p.year||'',title:ensureLO(p.title,{}),bullets:normBullets(p.bullets),pdf:p.pdf||'',pdfName:p.pdfName||''};}
 function normExp(e){return{role:ensureLO(e.role,{}),company:e.company||'',period:e.period||'',loc:e.loc||'',bullets:normBullets(e.bullets)};}
 function normSk(s){return{cat:ensureLO(s.cat,{}),tags:s.tags||[],hl:s.hl||[]};}
-function normCert(c){return{name:c.name||'',name_tr:c.name_tr||'',name_ar:c.name_ar||'',year:c.year||'',img:c.img||'',url:c.url||''};}
-  
+function normCert(c){return{name:c.name||'',year:c.year||'',img:c.img||'',url:c.url||''};}
+
 /* ════ LEADERSHIP & ACTIVITIES DATA ════ */
 const DEFS_LEAD = [
   {
@@ -2240,19 +2117,11 @@ let lks=``;
       ${c.url?`<a href="${c.url}" class="cvbtn" target="_blank">${SI.eye} View Certificate</a>`:''}
     </div>`).join('');
 
-document.getElementById('customContainer').innerHTML=(window.D.custom||[]).map((s,i)=>`
+  document.getElementById('customContainer').innerHTML=(window.D.custom||[]).map((s,i)=>`
     <div class="sdiv"></div>
-    <div class="sec fade-in visible" id="sec-cus-${i}">
-      <div class="sh"><span class="sn">${String(7+i).padStart(2,'0')}</span><h2 class="st">${
-        lang==='tr'?(s.title_tr||s.title||''):
-        lang==='ar'?(s.title_ar||s.title||''):
-        (s.title||'')
-      }</h2><div class="sl"></div></div>
-      <div class="csc">${
-        lang==='tr'?(s.content_tr||s.content||''):
-        lang==='ar'?(s.content_ar||s.content||''):
-        (s.content||'')
-      }</div>
+    <div class="sec fade-in visible">
+      <div class="sh"><span class="sn">0${6+i}</span><h2 class="st">${s.title||''}</h2><div class="sl"></div></div>
+      <div class="csc">${s.content||''}</div>
     </div>`).join('');
 
   // CV Links dynamic
@@ -2266,14 +2135,12 @@ if(ftEl){
     ftEl.innerHTML+=` &nbsp;|&nbsp;<span style="color:#4ecb71;font-family:var(--fm);">👁 ${window._visitorCount.toLocaleString()} visitors</span>`;
   }
 }
-document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===lang));
+  document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===lang));
   document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
-requestAnimationFrame(injectDDButtons);
-  if(typeof renderLead === 'function') renderLead();
+  requestAnimationFrame(injectDDButtons);
 };
   function setLang(l){
-  lang=l;
-  render();
+  lang=l;render();
   if(window._stopTW)window._stopTW();
   window._twCycling=false;
   const el=document.getElementById('heroSub');
@@ -2401,25 +2268,10 @@ function buildSocEd(){
 }
 
 function buildCusEd(){document.getElementById('cusEd').innerHTML=(window.D.custom||[]).map((s,i)=>`
-  <div class="lrow">
-    <div class="rh">
-      <span class="rn">Section #${i+1}</span>
-      <div style="display:flex;gap:5px;">
-        <button class="dbtn" onclick="moveI('custom',${i},-1)" type="button">↑</button>
-        <button class="dbtn" onclick="moveI('custom',${i},1)"  type="button">↓</button>
-        <button class="dbtn" onclick="delI('custom',${i})"     type="button">Remove</button>
-      </div>
-    </div>
-    <div class="thr">
-      <div class="ef"><label class="el">Title EN</label><input class="ei" value="${esc(s.title||'')}"    oninput="window.D.custom[${i}].title=this.value"></div>
-      <div class="ef"><label class="el">Title TR</label><input class="ei" value="${esc(s.title_tr||'')}" oninput="window.D.custom[${i}].title_tr=this.value"></div>
-      <div class="ef"><label class="el">Title AR</label><input class="ei" value="${esc(s.title_ar||'')}" oninput="window.D.custom[${i}].title_ar=this.value" dir="rtl"></div>
-    </div>
-    <div class="ef"><label class="el">Content EN</label><textarea class="eta" oninput="window.D.custom[${i}].content=this.value">${esc(s.content||'')}</textarea></div>
-    <div class="ef"><label class="el">Content TR</label><textarea class="eta" oninput="window.D.custom[${i}].content_tr=this.value">${esc(s.content_tr||'')}</textarea></div>
-    <div class="ef"><label class="el">Content AR</label><textarea class="eta" oninput="window.D.custom[${i}].content_ar=this.value" dir="rtl">${esc(s.content_ar||'')}</textarea></div>
+  <div class="lrow"><div class="rh"><span class="rn">Section #${i+1}</span><button class="dbtn" onclick="delI('custom',${i})" type="button">Remove</button></div>
+    <div class="ef"><label class="el">Title</label><input class="ei" value="${esc(s.title||'')}" oninput="window.D.custom[${i}].title=this.value"></div>
+    <div class="ef"><label class="el">Content</label><textarea class="eta" oninput="window.D.custom[${i}].content=this.value">${s.content||''}</textarea></div>
   </div>`).join('');}
-  
 
 const EB={edu:buildEduEd,proj:buildProjEd,exp:buildExpEd,skills:buildSkEd,certs:buildCertEd,social:buildSocEd,custom:buildCusEd};
 function addEdu(){window.D.edu.push({year:'20XX',degree:{en:'',tr:'',ar:''},school:'',loc:''});buildEduEd();}
@@ -2947,248 +2799,7 @@ window.deleteDDProject=function(i){
   if(typeof window.render==='function')window.render();
   buildDDEdList();
 };
-/* ════ SECTION ORDER ════ */
-window.SECTION_ORDER = window.SECTION_ORDER || ['edu','proj','exp','skills','certs','lead'];
 
-const SECTION_META = {
-  edu:    { label:{ en:'Education',           tr:'Eğitim',              ar:'التعليم'         }, id:'sec-edu',    num:'01' },
-  proj:   { label:{ en:'Projects',            tr:'Projeler',            ar:'المشاريع'        }, id:'sec-proj',   num:'02' },
-  exp:    { label:{ en:'Experience',          tr:'Deneyim',             ar:'الخبرات'         }, id:'sec-exp',    num:'03' },
-  skills: { label:{ en:'Skills',              tr:'Yetenekler',          ar:'المهارات'        }, id:'sec-skills', num:'04' },
-  certs:  { label:{ en:'Certifications',      tr:'Sertifikalar',        ar:'الشهادات'        }, id:'sec-certs',  num:'05' },
-  lead:   { label:{ en:'Leadership & Activities', tr:'Liderlik & Aktiviteler', ar:'القيادة والأنشطة' }, id:'sec-lead', num:'06' },
-};
-
-function buildSectionOrderUI(){
-  const el = document.getElementById('sectionOrderList');
-  if(!el) return;
-  el.innerHTML = window.SECTION_ORDER.map((key, i) => {
-    const meta = SECTION_META[key];
-    const lbl = meta ? (meta.label[lang] || meta.label.en) : key;
-    return `
-      <div style="display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;">
-        <span style="font-family:var(--fm);font-size:.68rem;color:var(--ac);width:24px;">${String(i+1).padStart(2,'0')}</span>
-        <span style="flex:1;font-family:var(--fd);font-size:.92rem;font-weight:600;">${lbl}</span>
-        <div style="display:flex;gap:5px;">
-          <button class="dbtn" onclick="moveSectionOrder(${i},-1)" type="button" ${i===0?'disabled style="opacity:.3"':''}>↑</button>
-          <button class="dbtn" onclick="moveSectionOrder(${i},1)"  type="button" ${i===window.SECTION_ORDER.length-1?'disabled style="opacity:.3"':''}>↓</button>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-window.moveSectionOrder = function(i, dir){
-  const arr = window.SECTION_ORDER;
-  const ni = i + dir;
-  if(ni < 0 || ni >= arr.length) return;
-  [arr[i], arr[ni]] = [arr[ni], arr[i]];
-  buildSectionOrderUI();
-};
-
-window.saveSectionOrder = function(){
-  try{ localStorage.setItem('ma_sec_order_v1', JSON.stringify(window.SECTION_ORDER)); }catch(e){}
-  applySectionOrder();
-  if(window._saveToFirebase) window._saveToFirebase();
-  showOK('orderOk');
-};
-
-function applySectionOrder(){
-  const container = document.querySelector('body');
-  const dividers = [];
-  // جمع كل الأقسام والـ dividers
-  window.SECTION_ORDER.forEach((key, i) => {
-    const meta = SECTION_META[key];
-    if(!meta) return;
-    const sec = document.getElementById(meta.id);
-    if(!sec) return;
-    // تحديث رقم القسم
-    const sn = sec.querySelector('.sn');
-    if(sn) sn.textContent = String(i+1).padStart(2,'0');
-    // تحريك القسم
-    const parent = sec.parentNode;
-    const nextSdiv = sec.nextElementSibling;
-    // نحتاج نجيب الـ sdiv قبل القسم
-    const prevSdiv = sec.previousElementSibling;
-    // احفظ موقعهم الجديد
-    sec._orderIndex = i;
-  });
-
-  // إعادة ترتيب DOM
-  const statsStrip = document.getElementById('statsStrip');
-  const lastSdiv = statsStrip ? statsStrip.nextElementSibling : null;
-  let insertAfter = lastSdiv || statsStrip;
-
-  window.SECTION_ORDER.forEach((key) => {
-    const meta = SECTION_META[key];
-    if(!meta) return;
-    const sec = document.getElementById(meta.id);
-    if(!sec || !insertAfter) return;
-    // أضف divider
-    const sdiv = document.createElement('div');
-    sdiv.className = 'sdiv';
-    insertAfter.parentNode.insertBefore(sdiv, insertAfter.nextSibling);
-    // أضف القسم بعد الـ divider
-    sdiv.parentNode.insertBefore(sec, sdiv.nextSibling);
-    insertAfter = sec;
-  });
-
-  // تحديث nav links
-  updateSecNavOrder();
-  renderLead();
-}
-
-function updateSecNavOrder(){
-  const nav = document.getElementById('secNav');
-  if(!nav) return;
-  const links = {};
-  nav.querySelectorAll('.snav-lnk').forEach(a => { links[a.dataset.key] = a; });
-  // إعادة ترتيب الـ nav links
-  window.SECTION_ORDER.forEach(key => {
-    const lnk = links[key];
-    if(lnk) nav.appendChild(lnk);
-  });
-}
-
-// تحميل الترتيب المحفوظ
-(function(){
-  try{
-    const saved = localStorage.getItem('ma_sec_order_v1');
-    if(saved){
-      const arr = JSON.parse(saved);
-      if(Array.isArray(arr) && arr.length >= 3) window.SECTION_ORDER = arr;
-    }
-  }catch(e){}
-  // تطبيق الترتيب عند التحميل
-  setTimeout(applySectionOrder, 800);
-})();
-
-// ربط buildSectionOrderUI مع فتح الـ tab
-const _origETabForOrder = eTab;
-eTab = function(id, btn){
-  _origETabForOrder(id, btn);
-  if(id === 'epOrder') buildSectionOrderUI();
-};
-/* ════ SECTION ORDER ════ */
-window.SECTION_ORDER = window.SECTION_ORDER || ['edu','proj','exp','skills','certs','lead'];
-
-const SECTION_META = {
-  edu:    { label:{ en:'Education',           tr:'Eğitim',              ar:'التعليم'         }, id:'sec-edu',    num:'01' },
-  proj:   { label:{ en:'Projects',            tr:'Projeler',            ar:'المشاريع'        }, id:'sec-proj',   num:'02' },
-  exp:    { label:{ en:'Experience',          tr:'Deneyim',             ar:'الخبرات'         }, id:'sec-exp',    num:'03' },
-  skills: { label:{ en:'Skills',              tr:'Yetenekler',          ar:'المهارات'        }, id:'sec-skills', num:'04' },
-  certs:  { label:{ en:'Certifications',      tr:'Sertifikalar',        ar:'الشهادات'        }, id:'sec-certs',  num:'05' },
-  lead:   { label:{ en:'Leadership & Activities', tr:'Liderlik & Aktiviteler', ar:'القيادة والأنشطة' }, id:'sec-lead', num:'06' },
-};
-
-function buildSectionOrderUI(){
-  const el = document.getElementById('sectionOrderList');
-  if(!el) return;
-  el.innerHTML = window.SECTION_ORDER.map((key, i) => {
-    const meta = SECTION_META[key];
-    const lbl = meta ? (meta.label[lang] || meta.label.en) : key;
-    return `
-      <div style="display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;">
-        <span style="font-family:var(--fm);font-size:.68rem;color:var(--ac);width:24px;">${String(i+1).padStart(2,'0')}</span>
-        <span style="flex:1;font-family:var(--fd);font-size:.92rem;font-weight:600;">${lbl}</span>
-        <div style="display:flex;gap:5px;">
-          <button class="dbtn" onclick="moveSectionOrder(${i},-1)" type="button" ${i===0?'disabled style="opacity:.3"':''}>↑</button>
-          <button class="dbtn" onclick="moveSectionOrder(${i},1)"  type="button" ${i===window.SECTION_ORDER.length-1?'disabled style="opacity:.3"':''}>↓</button>
-        </div>
-      </div>`;
-  }).join('');
-}
-
-window.moveSectionOrder = function(i, dir){
-  const arr = window.SECTION_ORDER;
-  const ni = i + dir;
-  if(ni < 0 || ni >= arr.length) return;
-  [arr[i], arr[ni]] = [arr[ni], arr[i]];
-  buildSectionOrderUI();
-};
-
-window.saveSectionOrder = function(){
-  try{ localStorage.setItem('ma_sec_order_v1', JSON.stringify(window.SECTION_ORDER)); }catch(e){}
-  applySectionOrder();
-  if(window._saveToFirebase) window._saveToFirebase();
-  showOK('orderOk');
-};
-
-function applySectionOrder(){
-  const container = document.querySelector('body');
-  const dividers = [];
-  // جمع كل الأقسام والـ dividers
-  window.SECTION_ORDER.forEach((key, i) => {
-    const meta = SECTION_META[key];
-    if(!meta) return;
-    const sec = document.getElementById(meta.id);
-    if(!sec) return;
-    // تحديث رقم القسم
-    const sn = sec.querySelector('.sn');
-    if(sn) sn.textContent = String(i+1).padStart(2,'0');
-    // تحريك القسم
-    const parent = sec.parentNode;
-    const nextSdiv = sec.nextElementSibling;
-    // نحتاج نجيب الـ sdiv قبل القسم
-    const prevSdiv = sec.previousElementSibling;
-    // احفظ موقعهم الجديد
-    sec._orderIndex = i;
-  });
-
-  // إعادة ترتيب DOM
-  const statsStrip = document.getElementById('statsStrip');
-  const lastSdiv = statsStrip ? statsStrip.nextElementSibling : null;
-  let insertAfter = lastSdiv || statsStrip;
-
-  window.SECTION_ORDER.forEach((key) => {
-    const meta = SECTION_META[key];
-    if(!meta) return;
-    const sec = document.getElementById(meta.id);
-    if(!sec || !insertAfter) return;
-    // أضف divider
-    const sdiv = document.createElement('div');
-    sdiv.className = 'sdiv';
-    insertAfter.parentNode.insertBefore(sdiv, insertAfter.nextSibling);
-    // أضف القسم بعد الـ divider
-    sdiv.parentNode.insertBefore(sec, sdiv.nextSibling);
-    insertAfter = sec;
-  });
-
-  // تحديث nav links
-  updateSecNavOrder();
-  renderLead();
-}
-
-function updateSecNavOrder(){
-  const nav = document.getElementById('secNav');
-  if(!nav) return;
-  const links = {};
-  nav.querySelectorAll('.snav-lnk').forEach(a => { links[a.dataset.key] = a; });
-  // إعادة ترتيب الـ nav links
-  window.SECTION_ORDER.forEach(key => {
-    const lnk = links[key];
-    if(lnk) nav.appendChild(lnk);
-  });
-}
-
-// تحميل الترتيب المحفوظ
-(function(){
-  try{
-    const saved = localStorage.getItem('ma_sec_order_v1');
-    if(saved){
-      const arr = JSON.parse(saved);
-      if(Array.isArray(arr) && arr.length >= 3) window.SECTION_ORDER = arr;
-    }
-  }catch(e){}
-  // تطبيق الترتيب عند التحميل
-  setTimeout(applySectionOrder, 800);
-})();
-
-// ربط buildSectionOrderUI مع فتح الـ tab
-const _origETabForOrder = eTab;
-eTab = function(id, btn){
-  _origETabForOrder(id, btn);
-  if(id === 'epOrder') buildSectionOrderUI();
-};
 window.saveDDData=function(){
   saveDDLocal();
   if(window._saveToFirebase)window._saveToFirebase();
@@ -3894,79 +3505,33 @@ function skView(mode, btn) {
 }  
 /* ════ SECTION NAV — ACTIVE STATE + LABELS ════ */
 (function(){
-  const STATIC_SECTIONS = [
-    { key:'edu',    id:'sec-edu',    label:{en:'Education',    tr:'Eğitim',     ar:'التعليم'   }, num:'01' },
-    { key:'proj',   id:'sec-proj',   label:{en:'Projects',     tr:'Projeler',   ar:'المشاريع'  }, num:'02' },
-    { key:'exp',    id:'sec-exp',    label:{en:'Experience',   tr:'Deneyim',    ar:'الخبرات'   }, num:'03' },
-    { key:'skills', id:'sec-skills', label:{en:'Skills',       tr:'Yetenekler', ar:'المهارات'  }, num:'04' },
-    { key:'certs',  id:'sec-certs',  label:{en:'Certifications',tr:'Sertifikalar',ar:'الشهادات'}, num:'05' },
-    { key:'lead',   id:'sec-lead',   label:{en:'Leadership',   tr:'Liderlik',   ar:'القيادة'   }, num:'06' },
-  ];
-
-  let obsNav = null;
-
-  function rebuildNav(){
-    const nav = document.getElementById('secNav');
-    if(!nav) return;
-
-    // اجمع كل الأقسام: الثابتة + الـ custom
-    const allSections = [...STATIC_SECTIONS];
-
-    // أضف الـ custom sections ديناميكياً
-    (window.D && window.D.custom || []).forEach((s, i) => {
-      allSections.push({
-        key:   'custom_' + i,
-        id:    'sec-cus-' + i,
-        label: {
-          en: s.title || ('Section ' + (i+1)),
-          tr: s.title_tr || s.title || ('Bölüm ' + (i+1)),
-          ar: s.title_ar || s.title || ('قسم ' + (i+1))
-        },
-        num: String(7 + i).padStart(2,'0')
-      });
-    });
-
-    // امسح الـ nav وأعد بناءه
-    nav.innerHTML = allSections.map(sec => {
-      const lbl = sec.label[lang] || sec.label.en;
-      // خذ العنوان من D.titles إذا موجود
-      const ti = window.D && window.D.titles || {};
-      const titObj = ti[sec.key];
-      const finalLbl = titObj ? (titObj[lang] || titObj.en || lbl) : lbl;
-      return `<a href="#${sec.id}" class="snav-lnk" data-key="${sec.key}">${finalLbl}</a>`;
-    }).join('');
-
-    // إعادة ربط smooth scroll
-    nav.querySelectorAll('.snav-lnk').forEach(a => {
-      a.addEventListener('click', e => {
-        const target = document.querySelector(a.getAttribute('href'));
-        if(target){ e.preventDefault(); window.scrollTo({top: target.offsetTop - 80, behavior:'smooth'}); }
-      });
-    });
-
-    // إعادة ربط IntersectionObserver
-    if(obsNav) obsNav.disconnect();
-    obsNav = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        const key = e.target.id.replace('sec-','').replace('cus-','custom_');
-        const lnk = nav.querySelector(`.snav-lnk[data-key="${key}"]`);
-        if(lnk) lnk.classList.toggle('active', e.isIntersecting);
-      });
-    }, {rootMargin:'-20% 0px -70% 0px'});
-
-    allSections.forEach(sec => {
-      const el = document.getElementById(sec.id);
-      if(el) obsNav.observe(el);
+  const navLabels={
+    edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},
+    proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},
+    exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},
+    skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},
+    certs:{en:'Certs',tr:'Sertifikalar',ar:'الشهادات'}
+  };
+  function updateNavLabels(){
+    const ti=window.D&&window.D.titles||{};
+    document.querySelectorAll('.snav-lnk').forEach(a=>{
+      const key=a.dataset.key;
+      const obj=ti[key]||navLabels[key]||{};
+      a.textContent=obj[lang]||obj.en||key;
     });
   }
-
-  // ربط مع render — بيتنادى كل مرة تتغير اللغة أو البيانات
-  const origRender = window.render;
-  window.render = function(){
-    origRender.apply(this, arguments);
-    rebuildNav();
-    if(typeof renderLead === 'function') renderLead();
-  };
+  const obsNav=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      const key=e.target.id.replace('sec-','');
+      const lnk=document.querySelector(`.snav-lnk[data-key="${key}"]`);
+      if(lnk)lnk.classList.toggle('active',e.isIntersecting);
+    });
+  },{rootMargin:'-20% 0px -70% 0px'});
+  ['sec-edu','sec-proj','sec-exp','sec-skills','sec-certs'].forEach(id=>{
+    const el=document.getElementById(id);if(el)obsNav.observe(el);
+  });
+  const origRender=window.render;
+  window.render=function(){origRender.apply(this,arguments);updateNavLabels();};
 })();
 /* ════ FLOAT CONTACT BUTTON ════ */
 (function(){
