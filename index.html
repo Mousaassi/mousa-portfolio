@@ -3018,32 +3018,48 @@ function applySectionOrder(){
   const statsStrip = document.getElementById('statsStrip');
   if(!statsStrip) return;
 
- // احذف بس الـ sdivs المضافة ديناميكياً — مش الأقسام الأصلية
-  let node = statsStrip.nextSibling;
-  while(node){
-    const next = node.nextSibling;
-    if(node.nodeType === 1 && node.classList.contains('sdiv') && node.dataset.dynamic){
-      node.remove();
-    }
-    node = next;
-  }
+  // احذف كل sdivs الديناميكية بس
+  document.querySelectorAll('.sdiv[data-dynamic]').forEach(el => el.remove());
 
+  // أخذ كل الأقسام من الـ body وأخبيها مؤقتاً
   let insertRef = statsStrip;
+
   window.SECTION_ORDER.forEach((key, i) => {
     const meta = all.find(s => s.key === key);
     if(!meta) return;
     const sec = document.getElementById(meta.id);
     if(!sec) return;
+
+    // حدّث رقم القسم
     const sn = sec.querySelector('.sn');
     if(sn) sn.textContent = String(i+1).padStart(2,'0');
+
+    // أضف sdiv ديناميكي
     const sdiv = document.createElement('div');
     sdiv.className = 'sdiv';
     sdiv.dataset.dynamic = '1';
-    insertRef.parentNode.insertBefore(sdiv, insertRef.nextSibling);
-    insertRef = sdiv;
-    insertRef.parentNode.insertBefore(sec, insertRef.nextSibling);
+
+    // أدرج بعد insertRef
+    if(insertRef.nextSibling){
+      insertRef.parentNode.insertBefore(sdiv, insertRef.nextSibling);
+      sdiv.parentNode.insertBefore(sec, sdiv.nextSibling);
+    } else {
+      insertRef.parentNode.appendChild(sdiv);
+      sdiv.parentNode.appendChild(sec);
+    }
+
     insertRef = sec;
   });
+
+  // أضف customContainer في النهاية إذا موجود
+  const cusContainer = document.getElementById('customContainer');
+  if(cusContainer){
+    if(insertRef.nextSibling){
+      insertRef.parentNode.insertBefore(cusContainer, insertRef.nextSibling);
+    } else {
+      insertRef.parentNode.appendChild(cusContainer);
+    }
+  }
 
   if(window._rebuildNav) window._rebuildNav();
 }
@@ -3053,9 +3069,9 @@ function applySectionOrder(){
     const saved = localStorage.getItem('ma_sec_order_v1');
     if(saved){ const arr = JSON.parse(saved); if(Array.isArray(arr) && arr.length >= 3) window.SECTION_ORDER = arr; }
   }catch(e){}
-  // لا تشغل applySectionOrder تلقائياً — بس عند Sync أو Save Order
+  // شغّل الترتيب بعد ما render ينتهي
+  setTimeout(()=>{ if(typeof applySectionOrder==='function') applySectionOrder(); }, 600);
 })();
-
 (function(){
   const _prev = eTab;
   eTab = function(id, btn){
