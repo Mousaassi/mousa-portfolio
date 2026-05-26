@@ -11,7 +11,200 @@
   window.CLOUDINARY_CLOUD = 'dfposi0sj';
   window.CLOUDINARY_PRESET = 'cv_upload';
 </script>
+/* ════ SECTION ORDER ════ */
+window.SECTION_ORDER = window.SECTION_ORDER || ['edu','proj','exp','skills','certs','lead'];
 
+const SECTION_META = {
+  edu:    { label:{ en:'Education',               tr:'Eğitim',              ar:'التعليم'          }, id:'sec-edu',    num:'01' },
+  proj:   { label:{ en:'Projects',                tr:'Projeler',            ar:'المشاريع'         }, id:'sec-proj',   num:'02' },
+  exp:    { label:{ en:'Experience',              tr:'Deneyim',             ar:'الخبرات'          }, id:'sec-exp',    num:'03' },
+  skills: { label:{ en:'Skills',                  tr:'Yetenekler',          ar:'المهارات'         }, id:'sec-skills', num:'04' },
+  certs:  { label:{ en:'Certifications',          tr:'Sertifikalar',        ar:'الشهادات'         }, id:'sec-certs',  num:'05' },
+  lead:   { label:{ en:'Leadership & Activities', tr:'Liderlik & Aktiviteler', ar:'القيادة والأنشطة' }, id:'sec-lead',   num:'06' },
+};
+
+function getAllSections(){
+  // الأقسام الثابتة
+  const all = Object.keys(SECTION_META).map(key => ({
+    key,
+    id:    SECTION_META[key].id,
+    label: SECTION_META[key].label,
+  }));
+  // الأقسام المخصصة custom
+  (window.D && window.D.custom || []).forEach((s, i) => {
+    const key = 'custom_' + i;
+    all.push({
+      key,
+      id: 'sec-cus-' + i,
+      label: {
+        en: s.title    || ('Section ' + (i+1)),
+        tr: s.title_tr || s.title || ('Bölüm '  + (i+1)),
+        ar: s.title_ar || s.title || ('قسم '    + (i+1)),
+      }
+    });
+    // أضفه لـ SECTION_ORDER إذا مو موجود
+    if(!window.SECTION_ORDER.includes(key)){
+      window.SECTION_ORDER.push(key);
+    }
+  });
+  // احذف custom sections اللي اتحذفت من D.custom
+  window.SECTION_ORDER = window.SECTION_ORDER.filter(k => {
+    if(!k.startsWith('custom_')) return true;
+    const idx = parseInt(k.replace('custom_',''));
+    return !!(window.D && window.D.custom && window.D.custom[idx]);
+  });
+  return all;
+}
+
+function buildSectionOrderUI(){
+  const el = document.getElementById('sectionOrderList');
+  if(!el) return;
+
+  const allSections = getAllSections();
+
+  // تأكد إن كل section موجود بـ SECTION_ORDER
+  allSections.forEach(s => {
+    if(!window.SECTION_ORDER.includes(s.key)){
+      window.SECTION_ORDER.push(s.key);
+    }
+  });
+
+  el.innerHTML = window.SECTION_ORDER.map((key, i) => {
+    const sec = allSections.find(s => s.key === key);
+    if(!sec) return '';
+    const lbl = (sec.label[lang] || sec.label.en || key);
+    const isFirst = i === 0;
+    const isLast  = i === window.SECTION_ORDER.length - 1;
+    return `
+      <div style="display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;">
+        <span style="font-family:var(--fm);font-size:.68rem;color:var(--ac);width:24px;flex-shrink:0;">${String(i+1).padStart(2,'0')}</span>
+        <span style="flex:1;font-family:var(--fd);font-size:.92rem;font-weight:600;">${lbl}</span>
+        <div style="display:flex;gap:5px;">
+          <button class="dbtn" onclick="moveSectionOrder(${i},-1)" type="button" ${isFirst?'disabled style="opacity:.25;cursor:not-allowed"':''}>↑</button>
+          <button class="dbtn" onclick="moveSectionOrder(${i}, 1)" type="button" ${isLast ?'disabled style="opacity:.25;cursor:not-allowed"':''}>↓</button>
+        </div>
+      </div>`;
+  }).filter(Boolean).join('');
+}
+
+window.moveSectionOrder = function(i, dir){
+  const arr = window.SECTION_ORDER;
+  const ni  = i + dir;
+  if(ni < 0 || ni >= arr.length) return;
+  [arr[i], arr[ni]] = [arr[ni], arr[i]];
+  buildSectionOrderUI();
+};
+
+window.saveSectionOrder = function(){
+  try{ localStorage.setItem('ma_sec_order_v1', JSON.stringify(window.SECTION_ORDER)); }catch(e){}
+  applySectionOrder();
+  showOK('orderOk');
+};
+
+function applySectionOrder(){
+  const allSections = getAllSections();
+
+  // رتب DOM
+  const statsStrip = document.getElementById('statsStrip');
+  if(!statsStrip) return;
+
+  // احذف كل الـ sdivs القديمة بين الأقسام
+  let node = statsStrip.nextSibling;
+  while(node){
+    const next = node.nextSibling;
+    if(node.nodeType === 1 && (node.classList.contains('sdiv') || node.classList.contains('sec') || node.id === 'customContainer')){
+      node.remove();
+    }
+    node = next;
+  }
+
+  // أعد رسم الأقسام بالترتيب الصحيح
+  let insertRef = statsStrip;
+
+  window.SECTION_ORDER.forEach((key, i) => {
+    const meta = allSections.find(s => s.key === key);
+    if(!meta) return;
+    const sec = document.getElementById(meta.id);
+    if(!sec) return;
+
+    // حدّث رقم القسم
+    const sn = sec.querySelector('.sn');
+    if(sn) sn.textContent = String(i+1).padStart(2,'0');
+
+    // أضف divider
+    const sdiv = document.createElement('div');
+    sdiv.className = 'sdiv';
+    insertRef.parentNode.insertBefore(sdiv, insertRef.nextSibling);
+    insertRef = sdiv;
+
+    // أضف القسم
+    insertRef.parentNode.insertBefore(sec, insertRef.nextSibling);
+    insertRef = sec;
+  });
+
+  // حدّث الـ nav
+  rebuildNavFromOrder();
+}
+
+function rebuildNavFromOrder(){
+  const nav = document.getElementById('secNav');
+  if(!nav) return;
+  const allSections = getAllSections();
+
+  nav.innerHTML = window.SECTION_ORDER.map(key => {
+    const sec  = allSections.find(s => s.key === key);
+    if(!sec) return '';
+    const ti   = window.D && window.D.titles || {};
+    const titObj = ti[key];
+    const lbl  = titObj ? (titObj[lang] || titObj.en) : (sec.label[lang] || sec.label.en);
+    return `<a href="#${sec.id}" class="snav-lnk" data-key="${key}">${lbl}</a>`;
+  }).filter(Boolean).join('');
+
+  // smooth scroll
+  nav.querySelectorAll('.snav-lnk').forEach(a => {
+    a.addEventListener('click', e => {
+      const t = document.querySelector(a.getAttribute('href'));
+      if(t){ e.preventDefault(); window.scrollTo({top: t.offsetTop - 80, behavior:'smooth'}); }
+    });
+  });
+
+  // active state observer
+  if(window._navObs) window._navObs.disconnect();
+  window._navObs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      const key = e.target.dataset.secKey || e.target.id.replace('sec-','').replace('cus-','custom_');
+      const lnk = nav.querySelector(`.snav-lnk[data-key="${key}"]`);
+      if(lnk) lnk.classList.toggle('active', e.isIntersecting);
+    });
+  }, {rootMargin:'-20% 0px -70% 0px'});
+
+  allSections.forEach(s => {
+    const el = document.getElementById(s.id);
+    if(el){ el.dataset.secKey = s.key; window._navObs.observe(el); }
+  });
+}
+
+// تحميل الترتيب المحفوظ
+(function(){
+  try{
+    const saved = localStorage.getItem('ma_sec_order_v1');
+    if(saved){
+      const arr = JSON.parse(saved);
+      if(Array.isArray(arr) && arr.length >= 3) window.SECTION_ORDER = arr;
+    }
+  }catch(e){}
+  setTimeout(()=>{ applySectionOrder(); rebuildNavFromOrder(); }, 900);
+})();
+
+// ربط tab Open
+const _origETabOrder = typeof eTab !== 'undefined' ? eTab : null;
+if(_origETabOrder){
+  const _prevETabRef = eTab;
+  eTab = function(id, btn){
+    _prevETabRef(id, btn);
+    if(id === 'epOrder') buildSectionOrderUI();
+  };
+}
 <script type="module">
 import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, doc, getDoc, setDoc, writeBatch, addDoc, collection }
@@ -3747,201 +3940,5 @@ function saveFloatLinks(){
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
   </button>
 </div>
-<script>
-/* ════ SECTION ORDER ════ */
-window.SECTION_ORDER = window.SECTION_ORDER || ['edu','proj','exp','skills','certs','lead'];
-
-const SECTION_META = {
-  edu:    { label:{ en:'Education',               tr:'Eğitim',              ar:'التعليم'          }, id:'sec-edu',    num:'01' },
-  proj:   { label:{ en:'Projects',                tr:'Projeler',            ar:'المشاريع'         }, id:'sec-proj',   num:'02' },
-  exp:    { label:{ en:'Experience',              tr:'Deneyim',             ar:'الخبرات'          }, id:'sec-exp',    num:'03' },
-  skills: { label:{ en:'Skills',                  tr:'Yetenekler',          ar:'المهارات'         }, id:'sec-skills', num:'04' },
-  certs:  { label:{ en:'Certifications',          tr:'Sertifikalar',        ar:'الشهادات'         }, id:'sec-certs',  num:'05' },
-  lead:   { label:{ en:'Leadership & Activities', tr:'Liderlik & Aktiviteler', ar:'القيادة والأنشطة' }, id:'sec-lead',   num:'06' },
-};
-
-function getAllSections(){
-  // الأقسام الثابتة
-  const all = Object.keys(SECTION_META).map(key => ({
-    key,
-    id:    SECTION_META[key].id,
-    label: SECTION_META[key].label,
-  }));
-  // الأقسام المخصصة custom
-  (window.D && window.D.custom || []).forEach((s, i) => {
-    const key = 'custom_' + i;
-    all.push({
-      key,
-      id: 'sec-cus-' + i,
-      label: {
-        en: s.title    || ('Section ' + (i+1)),
-        tr: s.title_tr || s.title || ('Bölüm '  + (i+1)),
-        ar: s.title_ar || s.title || ('قسم '    + (i+1)),
-      }
-    });
-    // أضفه لـ SECTION_ORDER إذا مو موجود
-    if(!window.SECTION_ORDER.includes(key)){
-      window.SECTION_ORDER.push(key);
-    }
-  });
-  // احذف custom sections اللي اتحذفت من D.custom
-  window.SECTION_ORDER = window.SECTION_ORDER.filter(k => {
-    if(!k.startsWith('custom_')) return true;
-    const idx = parseInt(k.replace('custom_',''));
-    return !!(window.D && window.D.custom && window.D.custom[idx]);
-  });
-  return all;
-}
-
-function buildSectionOrderUI(){
-  const el = document.getElementById('sectionOrderList');
-  if(!el) return;
-
-  const allSections = getAllSections();
-
-  // تأكد إن كل section موجود بـ SECTION_ORDER
-  allSections.forEach(s => {
-    if(!window.SECTION_ORDER.includes(s.key)){
-      window.SECTION_ORDER.push(s.key);
-    }
-  });
-
-  el.innerHTML = window.SECTION_ORDER.map((key, i) => {
-    const sec = allSections.find(s => s.key === key);
-    if(!sec) return '';
-    const lbl = (sec.label[lang] || sec.label.en || key);
-    const isFirst = i === 0;
-    const isLast  = i === window.SECTION_ORDER.length - 1;
-    return `
-      <div style="display:flex;align-items:center;gap:10px;background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;">
-        <span style="font-family:var(--fm);font-size:.68rem;color:var(--ac);width:24px;flex-shrink:0;">${String(i+1).padStart(2,'0')}</span>
-        <span style="flex:1;font-family:var(--fd);font-size:.92rem;font-weight:600;">${lbl}</span>
-        <div style="display:flex;gap:5px;">
-          <button class="dbtn" onclick="moveSectionOrder(${i},-1)" type="button" ${isFirst?'disabled style="opacity:.25;cursor:not-allowed"':''}>↑</button>
-          <button class="dbtn" onclick="moveSectionOrder(${i}, 1)" type="button" ${isLast ?'disabled style="opacity:.25;cursor:not-allowed"':''}>↓</button>
-        </div>
-      </div>`;
-  }).filter(Boolean).join('');
-}
-
-window.moveSectionOrder = function(i, dir){
-  const arr = window.SECTION_ORDER;
-  const ni  = i + dir;
-  if(ni < 0 || ni >= arr.length) return;
-  [arr[i], arr[ni]] = [arr[ni], arr[i]];
-  buildSectionOrderUI();
-};
-
-window.saveSectionOrder = function(){
-  try{ localStorage.setItem('ma_sec_order_v1', JSON.stringify(window.SECTION_ORDER)); }catch(e){}
-  applySectionOrder();
-  showOK('orderOk');
-};
-
-function applySectionOrder(){
-  const allSections = getAllSections();
-
-  // رتب DOM
-  const statsStrip = document.getElementById('statsStrip');
-  if(!statsStrip) return;
-
-  // احذف كل الـ sdivs القديمة بين الأقسام
-  let node = statsStrip.nextSibling;
-  while(node){
-    const next = node.nextSibling;
-    if(node.nodeType === 1 && (node.classList.contains('sdiv') || node.classList.contains('sec') || node.id === 'customContainer')){
-      node.remove();
-    }
-    node = next;
-  }
-
-  // أعد رسم الأقسام بالترتيب الصحيح
-  let insertRef = statsStrip;
-
-  window.SECTION_ORDER.forEach((key, i) => {
-    const meta = allSections.find(s => s.key === key);
-    if(!meta) return;
-    const sec = document.getElementById(meta.id);
-    if(!sec) return;
-
-    // حدّث رقم القسم
-    const sn = sec.querySelector('.sn');
-    if(sn) sn.textContent = String(i+1).padStart(2,'0');
-
-    // أضف divider
-    const sdiv = document.createElement('div');
-    sdiv.className = 'sdiv';
-    insertRef.parentNode.insertBefore(sdiv, insertRef.nextSibling);
-    insertRef = sdiv;
-
-    // أضف القسم
-    insertRef.parentNode.insertBefore(sec, insertRef.nextSibling);
-    insertRef = sec;
-  });
-
-  // حدّث الـ nav
-  rebuildNavFromOrder();
-}
-
-function rebuildNavFromOrder(){
-  const nav = document.getElementById('secNav');
-  if(!nav) return;
-  const allSections = getAllSections();
-
-  nav.innerHTML = window.SECTION_ORDER.map(key => {
-    const sec  = allSections.find(s => s.key === key);
-    if(!sec) return '';
-    const ti   = window.D && window.D.titles || {};
-    const titObj = ti[key];
-    const lbl  = titObj ? (titObj[lang] || titObj.en) : (sec.label[lang] || sec.label.en);
-    return `<a href="#${sec.id}" class="snav-lnk" data-key="${key}">${lbl}</a>`;
-  }).filter(Boolean).join('');
-
-  // smooth scroll
-  nav.querySelectorAll('.snav-lnk').forEach(a => {
-    a.addEventListener('click', e => {
-      const t = document.querySelector(a.getAttribute('href'));
-      if(t){ e.preventDefault(); window.scrollTo({top: t.offsetTop - 80, behavior:'smooth'}); }
-    });
-  });
-
-  // active state observer
-  if(window._navObs) window._navObs.disconnect();
-  window._navObs = new IntersectionObserver(entries => {
-    entries.forEach(e => {
-      const key = e.target.dataset.secKey || e.target.id.replace('sec-','').replace('cus-','custom_');
-      const lnk = nav.querySelector(`.snav-lnk[data-key="${key}"]`);
-      if(lnk) lnk.classList.toggle('active', e.isIntersecting);
-    });
-  }, {rootMargin:'-20% 0px -70% 0px'});
-
-  allSections.forEach(s => {
-    const el = document.getElementById(s.id);
-    if(el){ el.dataset.secKey = s.key; window._navObs.observe(el); }
-  });
-}
-
-// تحميل الترتيب المحفوظ
-(function(){
-  try{
-    const saved = localStorage.getItem('ma_sec_order_v1');
-    if(saved){
-      const arr = JSON.parse(saved);
-      if(Array.isArray(arr) && arr.length >= 3) window.SECTION_ORDER = arr;
-    }
-  }catch(e){}
-  setTimeout(()=>{ applySectionOrder(); rebuildNavFromOrder(); }, 900);
-})();
-
-// ربط tab Open
-const _origETabOrder = typeof eTab !== 'undefined' ? eTab : null;
-if(_origETabOrder){
-  const _prevETabRef = eTab;
-  eTab = function(id, btn){
-    _prevETabRef(id, btn);
-    if(id === 'epOrder') buildSectionOrderUI();
-  };
-}
-</script>
 </body>
 </html>
