@@ -1196,6 +1196,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="etab" onclick="eTab('epDeepDive',this)">🔍 Deep Dive</button>
           <button class="etab" onclick="eTab('epLead',this)">🏆 Leadership</button>
           <button class="etab" onclick="eTab('epCV',this)">📥 CV Links</button>
+          <button class="etab" onclick="eTab('epOrder',this)">🔀 Order</button>
 
         </div>
       </div>
@@ -1365,6 +1366,16 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
           <button class="sbtn" onclick="saveCVLinks()" type="button">Save CV Links</button>
           <p class="sok" id="cvOk">✓ Saved — press ☁ Sync</p>
         </div>
+ <!-- SECTION ORDER PANEL -->
+<div class="ep" id="epOrder">
+  <div class="cinfo-box">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;color:var(--ac);flex-shrink:0;"><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/></svg>
+    رتّب الأقسام بالضغط على ↑↓ — بعد الحفظ اضغط ☁ Sync.
+  </div>
+  <div id="sectionOrderList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+  <button class="sbtn" onclick="saveSectionOrder()" type="button">Save Order</button>
+  <p class="sok" id="orderOk">✓ Saved — press ☁ Sync</p>
+</div>
         <!-- DEEP DIVE PANEL -->
         <div class="ep" id="epDeepDive">
           <div class="cinfo-box">
