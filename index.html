@@ -90,13 +90,6 @@ window._loadFromFirebase = async () => {
   while(typeof showSync==='undefined'||typeof loadLocalD==='undefined'){await new Promise(r=>setTimeout(r,50));
   }
   try {
-  const lds = await getDoc(doc(db,'portfolio','leaddata'));
-  if(lds.exists() && lds.data().data) {
-    window.LEAD_DATA = JSON.parse(lds.data().data);
-    try { localStorage.setItem('ma_lead_v1', JSON.stringify(window.LEAD_DATA)); } catch(e){}
-  }
-} catch(e){}
-  try {
     if(typeof showSync==='function') showSync('loading','☁ Loading…');
     let D = {};
     const hs = await getDoc(doc(db,'portfolio','hero'));
@@ -145,8 +138,8 @@ if (leadSnap.exists()) {
     } catch(e){}
 window.D = deepMerge(D, loadLocalD());
 window.render();
-document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero').forEach(el=>el.style.opacity='1');
-if(typeof showSync==='function') showSync('synced','✓ Loaded from Firebase');
+document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero,#sec-lead').forEach(el=>el.style.opacity='1');
+  if(typeof showSync==='function') showSync('synced','✓ Loaded from Firebase');
   } catch(e) {
     console.error('Load error:', e);
     showSync('error','✗ Load error: ' + e.message);
@@ -263,8 +256,9 @@ function deepMerge(fb,defs){
   r.certs =(fb.certs &&fb.certs.length) ?fb.certs.map(normCert):defs.certs;
   r.social=(fb.social&&fb.social.length)?fb.social:defs.social;
   r.custom=(fb.custom&&fb.custom.length)?fb.custom:defs.custom;
-  r.contact=fb.contact||null;
-  return r;
+ r.contact=fb.contact||null;
+r.floatContact=fb.floatContact||null;
+return r;
 }
 function normBullets(a){if(!a||!a.length)return[{en:'',tr:'',ar:''}];return a.map(b=>{if(!b)return{en:'',tr:'',ar:''};if(typeof b==='string')return{en:b,tr:b,ar:b};return{en:b.en||'',tr:b.tr||'',ar:b.ar||''};});}
 function normEdu(e){return{year:e.year||'',degree:ensureLO(e.degree,{}),school:e.school||'',loc:e.loc||''};}
@@ -832,7 +826,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 .lead-ul li::before { content: '▸'; position: absolute; left: 0; color: var(--a3); }
 [dir=rtl] .lead-ul li { padding-left: 0; padding-right: 15px; }
 [dir=rtl] .lead-ul li::before { left: auto; right: 0; }
-  #sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero{opacity:0;transition:opacity .4s ease;}
+#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#sec-lead,#statsStrip,.hero{opacity:0;transition:opacity .4s ease;}
 </style>
 <style>
 @keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
