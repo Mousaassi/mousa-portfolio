@@ -1586,15 +1586,6 @@ function saveLeadData() {
     window._saveToFirebase();
   }
 }
-
-/* Hook tab open */
-const _origETab = window.eTab || eTab;
-// Override eTab to catch epLead
-const _prevETab = eTab;
-window.eTab = function(id, btn) {
-  _prevETab(id, btn);
-  if(id === 'epLead') buildLeadEd();
-};
 /* ════ SYNC ════ */
 let _sT;
 function showSync(s,m){
@@ -2550,6 +2541,8 @@ function eTab(id,btn){
   btn.classList.add('active');
   if(TM[id]&&TB[TM[id]])TB[TM[id]]();
   if(id==='epDeepDive')setTimeout(buildDDEdList,60);
+  if(id==='epLead')buildLeadEd();
+  if(id==='epOrder')buildSectionOrderUI();
 }
 
 function openEditor(){
@@ -3132,17 +3125,6 @@ function rebuildNavFromOrder(){
   }catch(e){}
   setTimeout(()=>{ applySectionOrder(); rebuildNavFromOrder(); }, 900);
 })();
-
-// ربط tab Open — مرة وحدة بس
-(function(){
-  const _prev = eTab;
-  eTab = function(id, btn){
-    _prev(id, btn);
-    if(id === 'epOrder') buildSectionOrderUI();
-    if(id === 'epLead')  buildLeadEd();
-  };
-})();
-
 window.saveDDData=function(){
   saveDDLocal();
   if(window._saveToFirebase)window._saveToFirebase();
@@ -3154,7 +3136,7 @@ applyTheme(CT);
 buildTG();
 window.D=loadLocalD();
 render();
-document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero').forEach(el=>el.style.opacity='1');
+document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero,#sec-lead').forEach(el=>el.style.opacity='1');
 setTimeout(() => {
   if(window._initVisitorCounter) window._initVisitorCounter();
 }, 800);
