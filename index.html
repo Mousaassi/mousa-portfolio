@@ -923,8 +923,9 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
   <a href="#sec-proj" class="snav-lnk" data-key="proj">Projects</a>
   <a href="#sec-exp" class="snav-lnk" data-key="exp">Experience</a>
   <a href="#sec-skills" class="snav-lnk" data-key="skills">Skills</a>
-  <a href="#sec-certs" class="snav-lnk" data-key="certs">Certs</a>
-</nav>
+ <a href="#sec-certs" class="snav-lnk" data-key="certs">Certs</a>
+  <a href="#sec-lead" class="snav-lnk" data-key="lead">Leadership</a>
+  </nav>
   <div class="hr">
     <div class="lang-sw">
       <button class="lb active" onclick="setLang('en')">EN</button>
@@ -2148,8 +2149,8 @@ if(ftEl){
 }
 document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===lang));
   document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
-  requestAnimationFrame(injectDDButtons);
-  renderLead();
+requestAnimationFrame(injectDDButtons);
+  if(typeof renderLead === 'function') renderLead();
 };
 function setLang(l){
   lang=l;
@@ -3638,12 +3639,13 @@ function skView(mode, btn) {
 }  
 /* ════ SECTION NAV — ACTIVE STATE + LABELS ════ */
 (function(){
-  const navLabels={
+   const navLabels={
     edu:{en:'Education',tr:'Eğitim',ar:'التعليم'},
     proj:{en:'Projects',tr:'Projeler',ar:'المشاريع'},
     exp:{en:'Experience',tr:'Deneyim',ar:'الخبرات'},
     skills:{en:'Skills',tr:'Yetenekler',ar:'المهارات'},
-    certs:{en:'Certs',tr:'Sertifikalar',ar:'الشهادات'}
+    certs:{en:'Certs',tr:'Sertifikalar',ar:'الشهادات'},
+    lead:{en:'Leadership',tr:'Liderlik',ar:'القيادة'}
   };
   function updateNavLabels(){
     const ti=window.D&&window.D.titles||{};
@@ -3660,7 +3662,7 @@ function skView(mode, btn) {
       if(lnk)lnk.classList.toggle('active',e.isIntersecting);
     });
   },{rootMargin:'-20% 0px -70% 0px'});
-  ['sec-edu','sec-proj','sec-exp','sec-skills','sec-certs'].forEach(id=>{
+ ['sec-edu','sec-proj','sec-exp','sec-skills','sec-certs','sec-lead'].forEach(id=>{
     const el=document.getElementById(id);if(el)obsNav.observe(el);
   });
   const origRender=window.render;
