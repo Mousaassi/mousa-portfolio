@@ -90,6 +90,13 @@ window._loadFromFirebase = async () => {
   while(typeof showSync==='undefined'||typeof loadLocalD==='undefined'){await new Promise(r=>setTimeout(r,50));
   }
   try {
+  const lds = await getDoc(doc(db,'portfolio','leaddata'));
+  if(lds.exists() && lds.data().data) {
+    window.LEAD_DATA = JSON.parse(lds.data().data);
+    try { localStorage.setItem('ma_lead_v1', JSON.stringify(window.LEAD_DATA)); } catch(e){}
+  }
+} catch(e){}
+  try {
     if(typeof showSync==='function') showSync('loading','☁ Loading…');
     let D = {};
     const hs = await getDoc(doc(db,'portfolio','hero'));
@@ -138,8 +145,8 @@ if (leadSnap.exists()) {
     } catch(e){}
 window.D = deepMerge(D, loadLocalD());
 window.render();
-document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero,#sec-lead').forEach(el=>el.style.opacity='1');
-  if(typeof showSync==='function') showSync('synced','✓ Loaded from Firebase');
+document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero').forEach(el=>el.style.opacity='1');
+if(typeof showSync==='function') showSync('synced','✓ Loaded from Firebase');
   } catch(e) {
     console.error('Load error:', e);
     showSync('error','✗ Load error: ' + e.message);
@@ -256,9 +263,8 @@ function deepMerge(fb,defs){
   r.certs =(fb.certs &&fb.certs.length) ?fb.certs.map(normCert):defs.certs;
   r.social=(fb.social&&fb.social.length)?fb.social:defs.social;
   r.custom=(fb.custom&&fb.custom.length)?fb.custom:defs.custom;
- r.contact=fb.contact||null;
-r.floatContact=fb.floatContact||null;
-return r;
+  r.contact=fb.contact||null;
+  return r;
 }
 function normBullets(a){if(!a||!a.length)return[{en:'',tr:'',ar:''}];return a.map(b=>{if(!b)return{en:'',tr:'',ar:''};if(typeof b==='string')return{en:b,tr:b,ar:b};return{en:b.en||'',tr:b.tr||'',ar:b.ar||''};});}
 function normEdu(e){return{year:e.year||'',degree:ensureLO(e.degree,{}),school:e.school||'',loc:e.loc||''};}
@@ -826,7 +832,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
 .lead-ul li::before { content: '▸'; position: absolute; left: 0; color: var(--a3); }
 [dir=rtl] .lead-ul li { padding-left: 0; padding-right: 15px; }
 [dir=rtl] .lead-ul li::before { left: auto; right: 0; }
-#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#sec-lead,#statsStrip,.hero{opacity:0;transition:opacity .4s ease;}
+  #sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero{opacity:0;transition:opacity .4s ease;}
 </style>
 <style>
 @keyframes cursorBlink{0%,100%{opacity:1}50%{opacity:0}}
@@ -1580,6 +1586,15 @@ function saveLeadData() {
     window._saveToFirebase();
   }
 }
+
+/* Hook tab open */
+const _origETab = window.eTab || eTab;
+// Override eTab to catch epLead
+const _prevETab = eTab;
+window.eTab = function(id, btn) {
+  _prevETab(id, btn);
+  if(id === 'epLead') buildLeadEd();
+};
 /* ════ SYNC ════ */
 let _sT;
 function showSync(s,m){
@@ -2240,6 +2255,19 @@ document.getElementById('customContainer').innerHTML=(window.D.custom||[]).map((
         (s.content||'')
       }</div>
     </div>`).join('');
+  }
+  <div class="sec fade-in visible" id="sec-cus-${i}">
+      <div class="sh"><span class="sn">${String(7+i).padStart(2,'0')}</span><h2 class="st">${
+        lang==='tr'?(s.title_tr||s.title||''):
+        lang==='ar'?(s.title_ar||s.title||''):
+        (s.title||'')
+      }</h2><div class="sl"></div></div>
+      <div class="csc">${
+        lang==='tr'?(s.content_tr||s.content||''):
+        lang==='ar'?(s.content_ar||s.content||''):
+        (s.content||'')
+      }</div>
+    </div>`).join('');
 
   // CV Links dynamic
   const cvRow=document.getElementById('cvLinksRow');
@@ -2256,6 +2284,9 @@ document.querySelectorAll('.lb').forEach(b=>b.classList.toggle('active',b.textCo
   document.querySelectorAll('.fade-in').forEach(el=>obs.observe(el));
 requestAnimationFrame(injectDDButtons);
   if(typeof renderLead === 'function') renderLead();
+requestAnimationFrame(()=>{
+    if(typeof applySectionOrder === 'function') applySectionOrder();
+  });
 };
 function setLang(l){
   lang=l;
@@ -2535,8 +2566,6 @@ function eTab(id,btn){
   btn.classList.add('active');
   if(TM[id]&&TB[TM[id]])TB[TM[id]]();
   if(id==='epDeepDive')setTimeout(buildDDEdList,60);
-  if(id==='epLead')buildLeadEd();
-  if(id==='epOrder')buildSectionOrderUI();
 }
 
 function openEditor(){
@@ -3119,6 +3148,17 @@ function rebuildNavFromOrder(){
   }catch(e){}
   setTimeout(()=>{ applySectionOrder(); rebuildNavFromOrder(); }, 900);
 })();
+
+// ربط tab Open — مرة وحدة بس
+(function(){
+  const _prev = eTab;
+  eTab = function(id, btn){
+    _prev(id, btn);
+    if(id === 'epOrder') buildSectionOrderUI();
+    if(id === 'epLead')  buildLeadEd();
+  };
+})();
+
 window.saveDDData=function(){
   saveDDLocal();
   if(window._saveToFirebase)window._saveToFirebase();
@@ -3130,7 +3170,7 @@ applyTheme(CT);
 buildTG();
 window.D=loadLocalD();
 render();
-document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero,#sec-lead').forEach(el=>el.style.opacity='1');
+document.querySelectorAll('#sec-edu,#sec-proj,#sec-exp,#sec-skills,#sec-certs,#statsStrip,.hero').forEach(el=>el.style.opacity='1');
 setTimeout(() => {
   if(window._initVisitorCounter) window._initVisitorCounter();
 }, 800);
@@ -3893,8 +3933,9 @@ function skView(mode, btn) {
   // ربط مع render — بيتنادى كل مرة تتغير اللغة أو البيانات
   const origRender = window.render;
   window.render = function(){
-   origRender.apply(this, arguments);
+    origRender.apply(this, arguments);
     rebuildNav();
+rebuildNav();
     if(typeof renderLead === 'function') renderLead();
 };
 })();
