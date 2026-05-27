@@ -85,6 +85,21 @@ onAuthStateChanged(auth, user => {
     window._loadFromFirebase();
   }
 });
+// ══ CONTACT FORM SAVE ══
+window._saveContactMsg = async function(first, last, phone, msg) {
+  try {
+    await addDoc(collection(db, 'contact_messages'), {
+      first, last, phone: phone || '',
+      message: msg,
+      sentAt: new Date().toISOString(),
+      read: false
+    });
+    return true;
+  } catch(e) {
+    console.error('Contact save error:', e);
+    return false;
+  }
+};
 window._loadFromFirebase = async () => {
   while(typeof showSync==='undefined'||typeof loadLocalD==='undefined'){await new Promise(r=>setTimeout(r,50));
   }
@@ -596,6 +611,23 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
   .contact-inner{grid-template-columns:1fr;gap:32px;}
   .sec-nav{display:flex !important; justify-content:center; flex-wrap:wrap;}
 }
+/* ══ MOBILE NAV ══ */
+.mob-nav-btn{display:none;flex-direction:column;gap:5px;background:transparent;border:1px solid var(--bd);border-radius:8px;padding:8px 10px;cursor:pointer;transition:var(--tr);}
+.mob-nav-btn:hover{border-color:var(--ac);}
+.mob-nav-btn span{display:block;width:18px;height:2px;background:var(--td);border-radius:2px;transition:var(--tr);}
+.mob-nav-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:800;opacity:0;pointer-events:none;transition:opacity .3s;}
+.mob-nav-overlay.open{opacity:1;pointer-events:all;}
+.mob-nav-drawer{position:fixed;top:0;right:0;bottom:0;width:260px;background:var(--sf);border-left:1px solid var(--bd);z-index:801;transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);padding:80px 24px 40px;display:flex;flex-direction:column;gap:6px;}
+.mob-nav-drawer.open{transform:translateX(0);}
+[dir=rtl] .mob-nav-drawer{right:auto;left:0;border-left:none;border-right:1px solid var(--bd);transform:translateX(-100%);}
+[dir=rtl] .mob-nav-drawer.open{transform:translateX(0);}
+.mob-nav-lnk{padding:12px 16px;border-radius:10px;color:var(--td);font-family:var(--fb);font-size:.9rem;text-decoration:none;transition:var(--tr);display:flex;align-items:center;gap:10px;border:1px solid transparent;}
+.mob-nav-lnk:hover,.mob-nav-lnk.active{color:var(--ac);background:var(--gl);border-color:var(--bd);}
+.mob-nav-close{position:absolute;top:18px;right:18px;background:transparent;border:1px solid var(--bd);border-radius:8px;color:var(--td);padding:8px 11px;cursor:pointer;font-size:.9rem;transition:var(--tr);}
+.mob-nav-close:hover{border-color:var(--ac);color:var(--ac);}
+@media(max-width:900px){
+  .mob-nav-btn{display:flex;}
+}
 @media(max-width:768px){
   .hero{padding:96px 18px 60px;}
   .hero-in{flex-direction:column;gap:28px;align-items:flex-start;}
@@ -997,7 +1029,7 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
   const startTime = Date.now();
   function hideLoader(){
     const elapsed = Date.now() - startTime;
-    const delay   = Math.max(0, 3800 - elapsed); /* الوقت الكلي للـ loader */
+    const delay   = Math.max(0, 2200 - elapsed); /* الوقت الكلي للـ loader */
     setTimeout(() => {
       const screen = document.getElementById('loaderScreen');
       if(!screen) return;
@@ -1034,6 +1066,20 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
     <a href="#sec-certs" class="snav-lnk" data-key="certs">Certs</a>
 <a href="#sec-lead" class="snav-lnk" data-key="lead">Leadership</a>
 </nav>
+<button class="mob-nav-btn" id="mobNavBtn" onclick="toggleMobNav()" aria-label="Menu">
+  <span></span><span></span><span></span>
+</button>
+<div class="mob-nav-overlay" id="mobNavOverlay" onclick="closeMobNav()"></div>
+<div class="mob-nav-drawer" id="mobNavDrawer">
+  <button class="mob-nav-close" onclick="closeMobNav()">✕</button>
+  <a href="#sec-edu"    class="mob-nav-lnk" onclick="closeMobNav()">🎓 Education</a>
+  <a href="#sec-proj"   class="mob-nav-lnk" onclick="closeMobNav()">🚀 Projects</a>
+  <a href="#sec-exp"    class="mob-nav-lnk" onclick="closeMobNav()">💼 Experience</a>
+  <a href="#sec-skills" class="mob-nav-lnk" onclick="closeMobNav()">🛠 Skills</a>
+  <a href="#sec-certs"  class="mob-nav-lnk" onclick="closeMobNav()">📜 Certifications</a>
+  <a href="#sec-lead"   class="mob-nav-lnk" onclick="closeMobNav()">🏆 Leadership</a>
+  <a href="#sec-contact"class="mob-nav-lnk" onclick="closeMobNav()">✉ Contact</a>
+</div>
   <div class="hr">
     <div class="lang-sw">
       <button class="lb active" onclick="setLang('en')">EN</button>
@@ -1077,7 +1123,6 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
       <input type="file" id="photoInput" accept="image/*" style="display:none;">
     </div>
     <div class="hcont">
-      <div id="availBadgeWrap"></div>
       <div class="h-ey" id="heroEyebrow"></div>
       <div id="availBadge" style="display:inline-flex;align-items:center;gap:8px;padding:6px 16px;background:rgba(78,203,113,.12);border:1px solid rgba(78,203,113,.4);border-radius:50px;font-family:var(--fm);font-size:.72rem;color:#4ecb71;margin-bottom:8px;width:fit-content;">
   <span style="width:7px;height:7px;border-radius:50%;background:#4ecb71;animation:dotP 2s infinite;flex-shrink:0;"></span>
@@ -1133,8 +1178,45 @@ footer{text-align:center;padding:48px;color:var(--tm);font-family:var(--fm);font
   </div>
   <div class="lead-list" id="leadList"></div>
 </div>
+<!-- ══ CONTACT SECTION ══ -->
+<div class="sdiv"></div>
+<div class="sec fade-in" id="sec-contact" style="max-width:700px;">
+  <div class="sh">
+    <span class="sn" id="contact-sn">07</span>
+    <h2 class="st" id="tContact">Get In Touch</h2>
+    <div class="sl"></div>
+  </div>
+  <div id="contactFormWrap" style="background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:36px 32px;">
+    <p style="font-size:.92rem;color:var(--td);line-height:1.8;margin-bottom:28px;" id="contactDesc">
+      Open to internships, graduation projects, and engineering collaborations. Feel free to reach out.
+    </p>
+    <div class="two" style="margin-bottom:14px;">
+      <div class="ef">
+        <label class="el">First Name *</label>
+        <input class="ei" id="cfFirst" placeholder="Mousa">
+      </div>
+      <div class="ef">
+        <label class="el">Last Name *</label>
+        <input class="ei" id="cfLast" placeholder="Assi">
+      </div>
+    </div>
+    <div class="ef" style="margin-bottom:14px;">
+      <label class="el">Phone (optional)</label>
+      <input class="ei" id="cfPhone" placeholder="+90 555 ...">
+    </div>
+    <div class="ef" style="margin-bottom:20px;">
+      <label class="el">Message *</label>
+      <textarea class="eta" id="cfMsg" style="min-height:120px;" placeholder="Hello, I'd like to discuss..."></textarea>
+    </div>
+    <button class="sbtn" id="cfBtn" onclick="submitContact(event)" type="button" style="width:100%;padding:14px;font-size:.95rem;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <span class="lspin" id="cfSpin"></span>
+      <span id="cfBtnTxt">Send Message</span>
+    </button>
+    <p style="color:#e87a7a;font-size:.8rem;margin-top:10px;display:none;background:rgba(232,122,122,.07);border:1px solid rgba(232,122,122,.2);border-radius:8px;padding:9px 14px;" id="cfErr"></p>
+    <p style="color:#4ecb71;font-size:.82rem;margin-top:10px;display:none;padding:10px 14px;background:rgba(78,203,113,.07);border:1px solid rgba(78,203,113,.2);border-radius:8px;" id="cfOk">✓ Message sent! I'll get back to you soon.</p>
+  </div>
+</div>
 <div id="customContainer"></div>
-
 <!-- LIGHTBOX -->
 <div class="lightbox" id="lightbox" onclick="closeLB(event)">
   <button class="lb-x" onclick="closeLB()">✕</button>
@@ -2190,7 +2272,6 @@ if(!document.getElementById('skGrid')){
 let lks=``;
   if(window.D.social&&window.D.social.length)
     lks+=`<span class="ldiv"></span>`+window.D.social.map(s=>`<a href="${s.url||'#'}" class="slink" target="_blank" rel="noopener">${SI[s.icon]||SI.link} ${s.name||''}</a>`).join('');
-  document.getElementById('heroLinks').innerHTML=lks;
   const ti=window.D.titles||DEFS.titles;
   document.getElementById('tEdu').textContent=GL(ti.edu,'Education');
   document.getElementById('tProj').textContent=GL(ti.proj,'Projects');
@@ -2256,8 +2337,12 @@ document.getElementById('customContainer').innerHTML=(window.D.custom||[]).map((
     </div>`).join('');
   
   // CV Links dynamic
-  const cvRow=document.getElementById('cvLinksRow');
-  if(cvRow){const cvEn=h.cvEnUrl||'cv-en.pdf',cvTr=h.cvTrUrl||'cv-tr.pdf',cvEnL=h.cvEnLbl||'📄 Download CV (EN)',cvTrL=h.cvTrLbl||'📄 CV (TR)';cvRow.innerHTML=`<a href="${cvEn}" download class="slink">${cvEnL}</a><a href="${cvTr}" download class="slink">${cvTrL}</a>`;}
+const cvRow=document.getElementById('cvLinksRow');
+if(cvRow) cvRow.style.display='none';
+const cvEn=h.cvEnUrl||'cv-en.pdf', cvTr=h.cvTrUrl||'cv-tr.pdf';
+const cvEnL=h.cvEnLbl||'📄 CV (EN)', cvTrL=h.cvTrLbl||'📄 CV (TR)';
+lks+=`<span class="ldiv"></span><a href="${cvEn}" download class="slink">${cvEnL}</a><a href="${cvTr}" download class="slink">${cvTrL}</a>`;
+document.getElementById('heroLinks').innerHTML=lks;
 
 const ftEl=document.getElementById('footerTxt');
 if(ftEl){
@@ -2948,8 +3033,7 @@ window.deleteDDProject=function(i){
   buildDDEdList();
 };
 /* ════ SECTION ORDER ════ */
-window.SECTION_ORDER = window.SECTION_ORDER || ['edu','proj','exp','skills','certs','lead'];
-
+window.SECTION_ORDER = window.SECTION_ORDER || ['edu','proj','exp','skills','certs','lead','contact'];
 const SECTION_META = {
   edu:    { label:{ en:'Education',               tr:'Eğitim',                 ar:'التعليم'          }, id:'sec-edu'    },
   proj:   { label:{ en:'Projects',                tr:'Projeler',               ar:'المشاريع'         }, id:'sec-proj'   },
@@ -2957,6 +3041,8 @@ const SECTION_META = {
   skills: { label:{ en:'Skills',                  tr:'Yetenekler',             ar:'المهارات'         }, id:'sec-skills' },
   certs:  { label:{ en:'Certifications',          tr:'Sertifikalar',           ar:'الشهادات'         }, id:'sec-certs'  },
   lead:   { label:{ en:'Leadership & Activities', tr:'Liderlik & Aktiviteler', ar:'القيادة والأنشطة' }, id:'sec-lead'   },
+  contact:{ label:{ en:'Contact', tr:'İletişim', ar:'تواصل' }, id:'sec-contact' },
+
 };
 
 function getSectionsMeta(){
@@ -3072,14 +3158,17 @@ function applySectionOrder(){
   // شغّل الترتيب بعد ما render ينتهي
   setTimeout(()=>{ if(typeof applySectionOrder==='function') applySectionOrder(); }, 600);
 })();
-(function(){
-  const _prev = eTab;
-  eTab = function(id, btn){
-    _prev(id, btn);
-    if(id === 'epOrder') buildSectionOrderUI();
-    if(id === 'epLead')  buildLeadEd();
-  };
-})();
+function eTab(id,btn){
+  document.querySelectorAll('.ep').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.etab').forEach(b=>b.classList.remove('active'));
+  const panel=document.getElementById(id);
+  if(panel)panel.classList.add('active');
+  btn.classList.add('active');
+  if(TM[id]&&TB[TM[id]])TB[TM[id]]();
+  if(id==='epDeepDive') setTimeout(buildDDEdList,60);
+  if(id==='epOrder')    buildSectionOrderUI();
+  if(id==='epLead')     buildLeadEd();
+}
   
 window.saveDDData=function(){
   saveDDLocal();
@@ -3099,6 +3188,15 @@ setTimeout(() => {
 /* ════ SCROLL PROGRESS ════ */
 (function(){
   const bar=document.getElementById('scrollProg');
+  /* ════ STOP PARTICLES WHEN HIDDEN ════ */
+(function(){
+  if(typeof document.hidden !== 'undefined'){
+    document.addEventListener('visibilitychange', ()=>{
+      const canvas = document.getElementById('particleCanvas');
+      if(canvas) canvas.style.opacity = document.hidden ? '0' : '.4';
+    });
+  }
+})();
   window.addEventListener('scroll',()=>{const pct=(window.scrollY/(document.documentElement.scrollHeight-window.innerHeight))*100;bar.style.width=Math.min(pct,100)+'%';},{passive:true});
 })();
 
@@ -3762,6 +3860,23 @@ document.querySelectorAll('a[href^="#"]').forEach(a=>{a.addEventListener('click'
     if(wrap) wrap.style.display='none';
   };
 })();
+/* ════ MOBILE NAV ════ */
+function toggleMobNav(){
+  document.getElementById('mobNavDrawer').classList.toggle('open');
+  document.getElementById('mobNavOverlay').classList.toggle('open');
+  document.body.style.overflow = document.getElementById('mobNavDrawer').classList.contains('open') ? 'hidden' : '';
+}
+function closeMobNav(){
+  document.getElementById('mobNavDrawer').classList.remove('open');
+  document.getElementById('mobNavOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.querySelectorAll('.mob-nav-lnk').forEach(a=>{
+  a.addEventListener('click', e=>{
+    const target = document.querySelector(a.getAttribute('href'));
+    if(target){ e.preventDefault(); closeMobNav(); setTimeout(()=>window.scrollTo({top:target.offsetTop-80,behavior:'smooth'}),300); }
+  });
+});
 function skView(mode, btn) {
   document.querySelectorAll('.sk-toggle-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -3786,13 +3901,14 @@ function skView(mode, btn) {
 }  
 /* ════ SECTION NAV — ACTIVE STATE + LABELS ════ */
 (function(){
-  const STATIC_SECTIONS = [
+const STATIC_SECTIONS = [
     { key:'edu',    id:'sec-edu',    label:{en:'Education',           tr:'Eğitim',                 ar:'التعليم'          }, num:'01' },
     { key:'proj',   id:'sec-proj',   label:{en:'Projects',            tr:'Projeler',               ar:'المشاريع'         }, num:'02' },
     { key:'exp',    id:'sec-exp',    label:{en:'Experience',          tr:'Deneyim',                ar:'الخبرات'          }, num:'03' },
     { key:'skills', id:'sec-skills', label:{en:'Skills',              tr:'Yetenekler',             ar:'المهارات'         }, num:'04' },
     { key:'certs',  id:'sec-certs',  label:{en:'Certifications',      tr:'Sertifikalar',           ar:'الشهادات'         }, num:'05' },
     { key:'lead',   id:'sec-lead',   label:{en:'Leadership',          tr:'Liderlik',               ar:'القيادة'          }, num:'06' },
+    { key:'contact',id:'sec-contact',label:{en:'Contact',             tr:'İletişim',               ar:'تواصل'            }, num:'07' },
   ];
 
   function getAllSections(){
