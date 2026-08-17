@@ -5,11 +5,137 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mousa Assi — Portfolio</title>
+<meta name="description" content="Mousa Assi — Mechanical & Mechatronics Engineer specializing in UAV systems, robotics, and embedded design. Based in Konya, Türkiye.">
+<meta name="keywords" content="Mousa Assi, Mechatronics Engineer, Mechanical Engineer, UAV, Robotics, Embedded Systems, Konya, Selçuk University">
+<meta name="author" content="Mousa Assi">
+<link rel="canonical" href="https://YOUR-DOMAIN-HERE/">
+
+<!-- Open Graph (Facebook / LinkedIn / WhatsApp preview) -->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://YOUR-DOMAIN-HERE/">
+<meta property="og:title" content="Mousa Assi — Mechanical & Mechatronics Engineer">
+<meta property="og:description" content="UAV Systems · Robotics · Embedded Design — Portfolio of Mousa Assi.">
+<meta property="og:image" content="https://YOUR-CLOUDINARY-OG-IMAGE-URL.jpg">
+
+<!-- Twitter/X -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Mousa Assi — Mechanical & Mechatronics Engineer">
+<meta name="twitter:description" content="UAV Systems · Robotics · Embedded Design">
+<meta name="twitter:image" content="https://YOUR-CLOUDINARY-OG-IMAGE-URL.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
   window.CLOUDINARY_CLOUD = 'dfposi0sj';
   window.CLOUDINARY_PRESET = 'cv_upload';
+/* ════ TESTIMONIALS ════ */
+if(!window.D.testimonials) window.D.testimonials = [
+  { name:'', role:{en:'',tr:'',ar:''}, quote:{en:'',tr:'',ar:''}, avatar:'', rating:5 }
+];
+
+function renderTesti(){
+  const grid=document.getElementById('testiGrid');
+  if(!grid)return;
+  const list=(window.D&&window.D.testimonials)||[];
+  grid.innerHTML=list.map(t=>{
+    const initials=(t.name||'?').split(' ').map(w=>w[0]).slice(0,2).join('').toUpperCase();
+    return `<div class="testi-card">
+      <div class="testi-quote-mark">"</div>
+      <div class="testi-stars">${'★'.repeat(t.rating||5)}${'☆'.repeat(5-(t.rating||5))}</div>
+      <p class="testi-text">${GL(t.quote,'')}</p>
+      <div class="testi-foot">
+        ${t.avatar?`<img src="${t.avatar}" class="testi-avatar" alt="${esc(t.name||'')}">`:`<div class="testi-avatar-ph">${initials}</div>`}
+        <div><div class="testi-name">${esc(t.name||'')}</div><div class="testi-role">${GL(t.role,'')}</div></div>
+      </div>
+    </div>`;
+  }).join('');
+  const titles={en:'Testimonials',tr:'Referanslar',ar:'التوصيات'};
+  const ti=(window.D&&window.D.titles)||{};
+  const el=document.getElementById('tTesti');
+  if(el) el.textContent = ti.testi ? GL(ti.testi,titles[lang]) : (titles[lang]||titles.en);
+}
+
+function buildTestiEd(){
+  const el=document.getElementById('testiEd');
+  if(!el)return;
+  if(!window.D.testimonials)window.D.testimonials=[];
+  el.innerHTML=window.D.testimonials.map((t,i)=>`
+    <div class="lrow">
+      <div class="rh"><span class="rn">Testimonial #${i+1}</span>
+        <div style="display:flex;gap:5px;">
+          <button class="dbtn" onclick="moveI('testimonials',${i},-1)" type="button">↑</button>
+          <button class="dbtn" onclick="moveI('testimonials',${i},1)" type="button">↓</button>
+          <button class="dbtn" onclick="delI('testimonials',${i})" type="button">Remove</button>
+        </div>
+      </div>
+      <div class="two">
+        <div class="ef"><label class="el">Name</label><input class="ei" value="${esc(t.name||'')}" oninput="window.D.testimonials[${i}].name=this.value"></div>
+        <div class="ef"><label class="el">Rating (1-5)</label><input class="ei" type="number" min="1" max="5" value="${t.rating||5}" oninput="window.D.testimonials[${i}].rating=parseInt(this.value)||5"></div>
+      </div>
+      <div class="thr">
+        <div class="ef"><label class="el">Role/Company EN</label><input class="ei" value="${esc((t.role&&t.role.en)||'')}" oninput="window.D.testimonials[${i}].role.en=this.value"></div>
+        <div class="ef"><label class="el">Role/Company TR</label><input class="ei" value="${esc((t.role&&t.role.tr)||'')}" oninput="window.D.testimonials[${i}].role.tr=this.value"></div>
+        <div class="ef"><label class="el">Role/Company AR</label><input class="ei" value="${esc((t.role&&t.role.ar)||'')}" oninput="window.D.testimonials[${i}].role.ar=this.value" dir="rtl"></div>
+      </div>
+      <div class="ef"><label class="el">Quote EN</label><textarea class="eta" oninput="window.D.testimonials[${i}].quote.en=this.value">${esc((t.quote&&t.quote.en)||'')}</textarea></div>
+      <div class="ef"><label class="el">Quote TR</label><textarea class="eta" oninput="window.D.testimonials[${i}].quote.tr=this.value">${esc((t.quote&&t.quote.tr)||'')}</textarea></div>
+      <div class="ef"><label class="el">Quote AR</label><textarea class="eta" dir="rtl" oninput="window.D.testimonials[${i}].quote.ar=this.value">${esc((t.quote&&t.quote.ar)||'')}</textarea></div>
+      <div class="ef"><label class="el">Avatar (optional)</label>
+        ${t.avatar
+          ?`<div style="display:flex;align-items:center;gap:10px;margin-top:6px;"><img src="${t.avatar}" class="cthumb" style="border-radius:50%;width:50px;height:50px;"><button class="badd" onclick="uploadTestiAvatar(${i})" type="button">Change</button><button class="dbtn" onclick="window.D.testimonials[${i}].avatar='';buildTestiEd()" type="button">Remove</button></div>`
+          :`<div class="cloud-upload-btn" onclick="uploadTestiAvatar(${i})">${SI.upload} Upload avatar</div>`}
+      </div>
+    </div>`).join('');
+}
+
+function addTesti(){
+  if(!window.D.testimonials)window.D.testimonials=[];
+  window.D.testimonials.push({name:'',role:{en:'',tr:'',ar:''},quote:{en:'',tr:'',ar:''},avatar:'',rating:5});
+  buildTestiEd();
+}
+function saveTesti(){
+  saveD();renderTesti();showOK('testiOk');
+  if(window._isAdmin&&window._fbUser&&window._saveToFirebase)window._saveToFirebase();
+}
+
+async function uploadTestiAvatar(i){
+  const cloud=window.CLOUDINARY_CLOUD,preset=window.CLOUDINARY_PRESET;
+  if(!cloud||!preset){alert('⚙ Cloudinary not configured!');return;}
+  if(!window._isAdmin){showSync('error','✗ Log in as admin first');return;}
+  const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
+  inp.onchange=async e=>{
+    const file=e.target.files[0];if(!file)return;
+    showSync('saving','☁ Uploading…');
+    const reader=new FileReader();
+    reader.onload=async ev=>{
+      const img=new Image();
+      img.onload=async()=>{
+        const MAX=300,canvas=document.createElement('canvas');
+        let w=img.width,h=img.height;
+        if(w>MAX||h>MAX){const r=Math.min(MAX/w,MAX/h);w=~~(w*r);h=~~(h*r);}
+        canvas.width=w;canvas.height=h;
+        canvas.getContext('2d').drawImage(img,0,0,w,h);
+        canvas.toBlob(async blob=>{
+          try{
+            const fd=new FormData();
+            fd.append('file',blob,'testi.jpg');
+            fd.append('upload_preset',preset);
+            fd.append('folder','portfolio_testimonials');
+            const res=await fetch(`https://api.cloudinary.com/v1_1/${cloud}/image/upload`,{method:'POST',body:fd});
+            const data=await res.json();
+            if(!data.secure_url)throw new Error('No URL returned');
+            window.D.testimonials[i].avatar=data.secure_url;
+            saveD();buildTestiEd();renderTesti();
+            if(window._saveToFirebase)window._saveToFirebase();
+            showSync('synced','✓ Avatar uploaded!');
+          }catch(err){showSync('error','✗ Upload failed');}
+        },'image/jpeg',.85);
+      };
+      img.src=ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  };
+  inp.click();
+}
 </script>
 <script type="module">
 import { initializeApp }   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -426,8 +552,9 @@ header{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:
 .edu-i h3{font-family:var(--fd);font-size:1.08rem;font-weight:700;margin-bottom:4px;}
 .edu-i .sch{color:var(--ac);font-size:.86rem;font-weight:500;margin-bottom:3px;}
 .edu-i .loc{font-family:var(--fm);font-size:.7rem;color:var(--tm);}
-
-.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:22px;}
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));grid-auto-flow:dense;gap:22px;}
+.pgrid .pc:first-child{grid-column:span 2;}
+@media(max-width:768px){.pgrid .pc:first-child{grid-column:span 1;}}
 .pc{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:22px;position:relative;overflow:hidden;transition:var(--tr);display:flex;flex-direction:column;}
 .pc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--ac),transparent);opacity:0;transition:opacity .3s;}
 .pc:hover{border-color:var(--ac);transform:translateY(-4px);box-shadow:0 12px 40px rgba(0,0,0,.3);}
@@ -1077,6 +1204,7 @@ const delay   = Math.max(0, 900 - elapsed);
   <a href="#sec-skills" class="mob-nav-lnk" onclick="closeMobNav()">🛠 Skills</a>
   <a href="#sec-certs"  class="mob-nav-lnk" onclick="closeMobNav()">📜 Certifications</a>
   <a href="#sec-lead"   class="mob-nav-lnk" onclick="closeMobNav()">🏆 Leadership</a>
+  
 </div>
   <div class="hr">
     <div class="lang-sw">
@@ -1175,9 +1303,15 @@ const delay   = Math.max(0, 900 - elapsed);
   </div>
   <div class="lead-list" id="leadList"></div>
 </div>
+<div class="sdiv"></div>
+<div class="sec fade-in" id="sec-testi">
+  <div class="sh"><span class="sn">07</span><h2 class="st" id="tTesti">Testimonials</h2><div class="sl"></div></div>
+  <div class="testi-grid" id="testiGrid"></div>
+</div>
+  
 <!-- ══ CONTACT SECTION ══ -->
 <div class="sdiv"></div>
-  <div class="sec fade-in" id="sec-contact" style="max-width:700px;display:none;">
+<div class="sec fade-in" id="sec-contact" style="max-width:700px;">
   <div class="sh">
     <span class="sn" id="contact-sn">07</span>
     <h2 class="st" id="tContact">Get In Touch</h2>
@@ -1271,14 +1405,20 @@ const delay   = Math.max(0, 900 - elapsed);
           <button class="etab" onclick="eTab('epFloat',this)">💬 Float</button>
           <button class="etab" onclick="eTab('epDeepDive',this)">🔍 Deep Dive</button>
           <button class="etab" onclick="eTab('epLead',this)">🏆 Leadership</button>
+          <button class="etab" onclick="eTab('epTesti',this)">💬 Testimonials</button>
           <button class="etab" onclick="eTab('epCV',this)">📥 CV Links</button>
           <button class="etab" onclick="eTab('epOrder',this)">🔀 Order</button>
-
         </div>
       </div>
       <div class="ebody">
+      
       <!-- FLOAT CONTACT PANEL -->
-      <div class="ep" id="epLead">
+    <div class="ep" id="epTesti">
+  <div class="led" id="testiEd"></div>
+  <button class="addbtn" onclick="addTesti()" type="button">+ Add Testimonial</button>
+  <button class="sbtn" onclick="saveTesti()" type="button">Save Testimonials</button>
+  <p class="sok" id="testiOk">✓ Saved — press ☁ Sync</p>
+</div>
   <div class="cinfo-box">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
     قسم القيادة والأنشطة — قابل للتعديل بـ 3 لغات.
@@ -3143,7 +3283,45 @@ window.saveDDData=function(){
   if(window._saveToFirebase)window._saveToFirebase();
   showOK('ddSaveOk');
 };
+async function submitContact(e){
+  e.preventDefault();
+  const first=document.getElementById('cfFirst').value.trim();
+  const last=document.getElementById('cfLast').value.trim();
+  const phone=document.getElementById('cfPhone').value.trim();
+  const msg=document.getElementById('cfMsg').value.trim();
+  const errEl=document.getElementById('cfErr');
+  const okEl=document.getElementById('cfOk');
+  errEl.style.display='none';okEl.style.display='none';
 
+  if(!first||!last||!msg){
+    errEl.textContent = lang==='ar' ? 'الرجاء تعبئة الاسم الأول والأخير والرسالة.'
+      : lang==='tr' ? 'Lütfen ad, soyad ve mesaj alanlarını doldurun.'
+      : 'Please fill in first name, last name, and message.';
+    errEl.style.display='block';
+    return;
+  }
+
+  const btn=document.getElementById('cfBtn'),spin=document.getElementById('cfSpin'),txt=document.getElementById('cfBtnTxt');
+  btn.disabled=true;spin.classList.add('show');txt.style.opacity='.6';
+
+  let waited=0;
+  while(!window._firebaseReady && waited<6000){await new Promise(r=>setTimeout(r,300));waited+=300;}
+
+  try{
+    const ok = window._saveContactMsg ? await window._saveContactMsg(first,last,phone,msg) : false;
+    if(!ok) throw new Error('save-failed');
+    okEl.style.display='block';
+    ['cfFirst','cfLast','cfPhone','cfMsg'].forEach(id=>document.getElementById(id).value='');
+  }catch(err){
+    errEl.textContent = lang==='ar' ? 'حدث خطأ، حاول مرة أخرى لاحقاً.'
+      : lang==='tr' ? 'Bir hata oluştu, lütfen tekrar deneyin.'
+      : 'Something went wrong — please try again.';
+    errEl.style.display='block';
+  }finally{
+    btn.disabled=false;spin.classList.remove('show');txt.style.opacity='1';
+  }
+}
+  
 /* ════ INIT ════ */
 applyTheme(CT);
 buildTG();
@@ -3891,6 +4069,7 @@ const STATIC_SECTIONS = [
     origRender.apply(this, arguments);
     rebuildNav();
     if(typeof renderLead === 'function') renderLead();
+    if(typeof renderTesti === 'function') renderTesti();
   };
 })();
   
